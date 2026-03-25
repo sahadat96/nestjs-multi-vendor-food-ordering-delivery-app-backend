@@ -10,6 +10,9 @@ export interface UserProps {
 
   permissions?: string[];
   refreshToken?: string | null;
+
+  isEmailVerified?: boolean;
+
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -26,6 +29,9 @@ export class User {
 
   public permissions?: string[];
   public refreshToken?: string | null;
+
+  public isEmailVerified: boolean;
+
   public createdAt?: Date;
   public updatedAt?: Date;
 
@@ -41,6 +47,9 @@ export class User {
 
     this.permissions = props.permissions;
     this.refreshToken = props.refreshToken;
+
+    this.isEmailVerified = props.isEmailVerified ?? false;
+
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
   }

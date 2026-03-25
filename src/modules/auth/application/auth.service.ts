@@ -31,17 +31,27 @@ export class AuthService {
     );
   }
 
-    private async generateAndSendOtp(user: User, type: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET') {
+  private async generateAndSendOtp(user: User, type: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET') {
     const otp = crypto.randomInt(100000, 999999).toString();
     const hashedOtp = await bcrypt.hash(otp, 10);
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
     await this.otpRepository.create(user.id, hashedOtp, type, expiresAt);
 
     const purpose = type === 'EMAIL_VERIFICATION' ? 'Verification' : 'Password Reset';
     await this.mailService.sendOtpEmail(user.email, otp, purpose);
   }
 
-   getGoogleAuthUrl(): string {
+  async requestEmailVerification(email: string) {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) throw new BadRequestException('User not found');
+    if (user.isEmailVerified) throw new BadRequestException('Email is already verified');
+
+    await this.generateAndSendOtp(user, 'EMAIL_VERIFICATION');
+    return { message: 'Verification OTP sent to your email.' };
+  }
+
+  getGoogleAuthUrl(): string {
     const url = this.googleClient.generateAuthUrl({
       access_type: 'offline', 
       scope: ['email', 'profile'],

@@ -17,4 +17,21 @@ export class OtpRepository implements IOtpRepository {
             },
          });
     }
+
+    async findLatest(userId: string, type: string): Promise<{ otp: string; expiresAt: Date } | null> {
+    const record = await this.prisma.otp.findFirst({
+      where: { userId, type },
+      orderBy: { createdAt: 'desc' },
+      select: { otp: true, expiresAt: true }, 
+    });
+
+    return record;
+  }
+
+  async deleteUserOtps(userId: string, type: string): Promise<void> {
+    await this.prisma.otp.deleteMany({
+      where: { userId, type },
+    });
+  }
+
 }

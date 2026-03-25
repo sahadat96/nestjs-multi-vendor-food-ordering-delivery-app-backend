@@ -14,15 +14,28 @@ import { Role } from 'src/common/enums/role.enum';
 import { GoogleOAuthGuard } from 'src/common/guards/google-oauth.guard';
 import { ConfigService } from '@nestjs/config';
 import { Public } from 'src/common/decorators/public.decorator';
+import { SendOtpDto, VerifyOtpDto, ResetPasswordDto  } from './dto/mail/otp.dto';
 
 @Controller('auth')
 export class AuthController {
-  
+    
   constructor(
     private readonly authService: AuthService,
     private readonly jwtService: JwtService,
     private readonly configService:ConfigService
   ) {}
+
+  @Post('send-verification')
+  @Public()
+  async sendVerificationEmail(@Body() dto: SendOtpDto) {
+    return this.authService.requestEmailVerification(dto.email);
+  }
+
+  @Post('verify-email')
+  @Public()
+  async verifyEmail(@Body() dto: VerifyOtpDto) {
+    return this.authService.verifyEmail(dto);
+  }
 
   @Get('google/url')
   @Public()

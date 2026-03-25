@@ -21,7 +21,7 @@ export class MailService {
   async sendOtpEmail(to: string, otp: string, purpose: 'Verification' | 'Password Reset') {
     try {
       await this.transporter.sendMail({
-        from: `"Dalna Support" <${this.configService.get<string>('mail.from')}>`,
+        from: `"Sstewartii Support" <${this.configService.get<string>('mail.from')}>`,
         to,
         subject: `Your ${purpose} Code`,
         html: `
