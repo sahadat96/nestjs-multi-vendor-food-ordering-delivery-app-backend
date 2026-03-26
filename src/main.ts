@@ -43,8 +43,6 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalInterceptors(new ResponseInterceptor());
-
   app.useGlobalFilters(new AllExceptionsFilter());
 
   app.enableShutdownHooks();

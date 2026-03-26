@@ -10,7 +10,8 @@ import { LoginDto } from '../presentation/dto/loginDto/login.dto';
 import { ConfigService } from '@nestjs/config';
 import { OAuth2Client } from 'google-auth-library';
 import * as crypto from 'crypto';
-import { MailService } from '../infrastructure/services/mail.service';
+import { MailService } from 'src/common/mail/mail.service';
+import { SendOtpDto, VerifyOtpDto, ResetPasswordDto  } from '../presentation/dto/mail/otp.dto';
 
 @Injectable()
 export class AuthService {
@@ -31,70 +32,7 @@ export class AuthService {
     );
   }
 
-  private async generateAndSendOtp(user: User, type: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET') {
-    const otp = crypto.randomInt(100000, 999999).toString();
-    const hashedOtp = await bcrypt.hash(otp, 10);
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
-
-    await this.otpRepository.create(user.id, hashedOtp, type, expiresAt);
-
-    const purpose = type === 'EMAIL_VERIFICATION' ? 'Verification' : 'Password Reset';
-    await this.mailService.sendOtpEmail(user.email, otp, purpose);
-  }
-
-  async requestEmailVerification(email: string) {
-    const user = await this.userRepository.findByEmail(email);
-    if (!user) throw new BadRequestException('User not found');
-    if (user.isEmailVerified) throw new BadRequestException('Email is already verified');
-
-    await this.generateAndSendOtp(user, 'EMAIL_VERIFICATION');
-    return { message: 'Verification OTP sent to your email.' };
-  }
-
-  getGoogleAuthUrl(): string {
-    const url = this.googleClient.generateAuthUrl({
-      access_type: 'offline', 
-      scope: ['email', 'profile'],
-      prompt: 'consent'
-    });
-
-    return url;
-  }
-
-  async validateGoogleLogin(profile: any) {
-
-    const { email, googleId } = profile;
-
-    let user = await this.userRepository.findByEmail(email);
-
-    if (user) {
-    
-      if (!user.googleId) {
-         await this.userRepository.update(user.id, { googleId, provider: 'GOOGLE' });
-      }
-    } else {
-
-      const newUser = new User({
-        id: uuidv4(),
-        email: email,
-        password: null, 
-        googleId: googleId, 
-        provider: 'GOOGLE',
-      });
-
-      const roleType = 'USER'; 
-
-      user = await this.userRepository.create(newUser, roleType);
-    }
-
-    const tokens = await this.getTokens(user.id, user.email, user.role.name);
-    
-    await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
-
-    return { user, tokens };
-  }
-
-  async register(registerDto: RegisterDto) {
+  async register(registerDto: RegisterDto): Promise<any> {
     
     const { email, password, confirmPassword, accountType  } = registerDto;
 
@@ -130,31 +68,7 @@ export class AuthService {
     };
   }
 
-  private async getTokens(userId: string, email: string, roleName: string) {
-
-    const jwtPayload = { sub: userId, email, roleName };
-
-    const[accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(jwtPayload, {
-        secret: this.configService.get<string>('JWT_SECRET'),
-        expiresIn: '1h',
-      }),
-
-      this.jwtService.signAsync(jwtPayload, {
-        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-        expiresIn: '1d',
-      }),
-    ]);
-
-    return { accessToken, refreshToken };
-  }
-
-  private async updateRefreshTokenHash(userId: string, refreshToken: string) {
-    const hash = await bcrypt.hash(refreshToken, 10);
-    await this.userRepository.updateRefreshToken(userId, hash);
-  }
-
-  async login(loginDto: LoginDto){
+  async login(loginDto: LoginDto): Promise<any> {
 
     const { email, password } = loginDto;
     const user = await this.userRepository.findByEmail(email);
@@ -189,7 +103,7 @@ export class AuthService {
     
   }
 
-  async refreshToken(userId: string, refreshToken: string){
+  async refreshToken(userId: string, refreshToken: string): Promise<any> {
 
     const user = await this.userRepository.findById(userId);
 
@@ -212,6 +126,123 @@ export class AuthService {
     await this.updateRefreshTokenHash(user.id, token.refreshToken);
 
     return token;
+  }
+
+  private async getTokens(userId: string, email: string, roleName: string): Promise<any> {
+
+    const jwtPayload = { sub: userId, email, roleName };
+
+    const[accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(jwtPayload, {
+        secret: this.configService.get<string>('JWT_SECRET'),
+        expiresIn: '1h',
+      }),
+
+      this.jwtService.signAsync(jwtPayload, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+        expiresIn: '1d',
+      }),
+    ]);
+
+    return { accessToken, refreshToken };
+  }
+
+  async validateGoogleLogin(profile: any): Promise<any> {
+    const { email, googleId } = profile;
+
+    let user = await this.userRepository.findByEmail(email);
+
+    if (user) {
+    
+      if (!user.googleId) {
+         await this.userRepository.update(user.id, { googleId, provider: 'GOOGLE' });
+      }
+    } else {
+
+      const newUser = new User({
+        id: uuidv4(),
+        email: email,
+        password: null, 
+        googleId: googleId, 
+        provider: 'GOOGLE',
+      });
+
+      const roleType = 'USER'; 
+
+      user = await this.userRepository.create(newUser, roleType);
+    }
+
+    const tokens = await this.getTokens(user.id, user.email, user.role.name);
+    
+    await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
+
+    return { user, tokens };
+  }
+
+  getGoogleAuthUrl(): string {
+    const url = this.googleClient.generateAuthUrl({
+      access_type: 'offline', 
+      scope: ['email', 'profile'],
+      prompt: 'consent'
+    });
+
+    return url;
+  }
+
+  private async updateRefreshTokenHash(userId: string, refreshToken: string) {
+    const hash = await bcrypt.hash(refreshToken, 10);
+    await this.userRepository.updateRefreshToken(userId, hash);
+  }
+
+  async requestEmailVerification(email: string): Promise<void> {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) throw new BadRequestException('User not found');
+    if (user.isEmailVerified) throw new BadRequestException('Email is already verified');
+
+    await this.generateAndSendOtp(user, 'EMAIL_VERIFICATION');
+  }
+
+  private async generateAndSendOtp(user: User, type: 'EMAIL_VERIFICATION' | 'PASSWORD_RESET'): Promise<void>  {
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const hashedOtp = await bcrypt.hash(otp, 10);
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await this.otpRepository.create(user.id, hashedOtp, type, expiresAt);
+
+    const purpose = type === 'EMAIL_VERIFICATION' ? 'Verification' : 'Password Reset';
+    await this.mailService.sendOtpEmail(user.email, otp, purpose);
+  }
+
+  async verifyEmail(dto: VerifyOtpDto): Promise<void> {
+    const user = await this.userRepository.findByEmail(dto.email);
+    if (!user) throw new BadRequestException('Invalid request');
+
+    await this.validateOtp(user.id, dto.otp, 'EMAIL_VERIFICATION');
+
+    await this.userRepository.update(user.id, { isEmailVerified: true });
+  }
+
+  private async validateOtp(userId: string, plainOtp: string, type: string): Promise<void> {
+    const otpRecord = await this.otpRepository.findLatest(userId, type);
+
+    if (!otpRecord) throw new BadRequestException('Invalid or expired OTP');
+
+    if (otpRecord.expiresAt < new Date()) {
+      throw new BadRequestException('OTP has expired. Please request a new one.');
+    }
+
+    const isValid = await bcrypt.compare(plainOtp, otpRecord.otp);
+    if (!isValid) throw new BadRequestException('Invalid OTP');
+
+    await this.otpRepository.deleteUserOtps(userId, type);
+  }
+
+  async forgotPassword(email: string): Promise<void>  {
+    const user = await this.userRepository.findByEmail(email);
+    
+    if (user && user.provider === 'LOCAL') {
+      await this.generateAndSendOtp(user, 'PASSWORD_RESET');
+    }
   }
 
 }

@@ -15,6 +15,7 @@ import { GoogleOAuthGuard } from 'src/common/guards/google-oauth.guard';
 import { ConfigService } from '@nestjs/config';
 import { Public } from 'src/common/decorators/public.decorator';
 import { SendOtpDto, VerifyOtpDto, ResetPasswordDto  } from './dto/mail/otp.dto';
+import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -24,13 +25,6 @@ export class AuthController {
     private readonly jwtService: JwtService,
     private readonly configService:ConfigService
   ) {}
-
-  @Post('send-verification')
-  @Public()
-  async sendVerificationEmail(@Body() dto: SendOtpDto) {
-    return this.authService.requestEmailVerification(dto.email);
-  }
-
 
   @Get('google/url')
   @Public()
@@ -69,6 +63,7 @@ export class AuthController {
 
   @Post('register')
   @Public()
+  @ResponseMessage('Registration Successfull.')
     register(@Body() registerDto: RegisterDto ) {
       return this.authService.register(registerDto);
   }
@@ -97,7 +92,20 @@ export class AuthController {
       }
     };
   }
- 
+
+  @Post('send-verification')
+  @Public()
+  @ResponseMessage('Verification OTP sent to your email.')
+  async sendVerificationEmail(@Body() dto: SendOtpDto) {
+    return this.authService.requestEmailVerification(dto.email);
+  }
+
+  @Post('verify-otp')
+  @Public()
+  async verifyEmail(@Body() dto: VerifyOtpDto) {
+    return this.authService.verifyEmail(dto);
+  }
+
  @Post('refresh')
  @Public()
   async refresh(
@@ -125,6 +133,13 @@ export class AuthController {
     });
     
     return { accessToken: tokens.accessToken };
+  }
+
+  @Post('forgot-password')
+  @ResponseMessage('If your sssss email is registered, a reset code has been sent.')
+  @Public()
+  async forgotPassword(@Body() dto: SendOtpDto) {
+    return this.authService.forgotPassword(dto.email);
   }
 
 }

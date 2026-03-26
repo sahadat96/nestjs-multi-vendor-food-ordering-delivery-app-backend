@@ -10,7 +10,7 @@ import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { GoogleStrategy } from './infrastructure/strategies/google.strategy';
 import { OtpRepository } from './infrastructure/repositories/otp.repository';
-import { MailService } from './infrastructure/services/mail.service';
+import { MailService } from 'src/common/mail/mail.service';
 
 @Module({
   imports:[

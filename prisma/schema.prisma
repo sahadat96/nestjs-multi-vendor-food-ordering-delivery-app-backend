@@ -17,6 +17,8 @@ model User {
 
   isEmailVerified Boolean @default(false)
   otps         Otp[]
+  cart         Cart?  
+  orders       Order[]
   
   roleId       String
   role         Role     @relation(fields: [roleId], references: [id])
@@ -67,6 +69,7 @@ model Vendor {
   storeName            String   @unique
   ownerId              String   @unique
   owner                User     @relation(fields:[ownerId], references:[id])
+  kycStatus            KycStatus @default(UNVERIFIED)
   
   stripeCustomerId     String?  @unique 
   stripeSubscriptionId String?  @unique 
@@ -77,6 +80,8 @@ model Vendor {
   subscriptionExpiry   DateTime?
 
   kycProfile           KycProfile?
+  products             Product[] 
+  orderItems           OrderItem[]
   
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -106,6 +111,96 @@ model KycProfile {
   
   submittedAt      DateTime @default(now())
   verifiedAt       DateTime?
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  price       Float    
+  stock       Int      @default(0)
+
+  vendorId    String
+  vendor      Vendor   @relation(fields:[vendorId], references: [id])
+
+  cartItems   CartItem[] 
+  orderItems  OrderItem[]
+
+  createdAt   DateTime @default(now())
+}
+
+model Cart {
+  id         String     @id @default(uuid())
+  customerId String     @unique
+  customer   User       @relation(fields: [customerId], references:[id], onDelete: Cascade)
+
+  items      CartItem[]
+  
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  
+  quantity  Int      @default(1)
+}
+
+model Order {
+  id               String   @id @default(uuid())
+  totalAmount      Float
+  
+  paymentMethod    PaymentMethod @default(COD)
+  shippingAddress  String   
+  contactPhone     String   
+
+  status           OrderStatus @default(PENDING)
+  
+  customerId       String
+  customer         User     @relation(fields: [customerId], references:[id])
+
+  items            OrderItem[]
+
+  createdAt        DateTime @default(now())
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  quantity    Int
+  priceAtTime Float    
+
+  orderId     String
+  order       Order    @relation(fields: [orderId], references:[id], onDelete: Cascade)
+
+  productId   String
+  product     Product  @relation(fields:[productId], references: [id])
+
+  vendorId    String
+  vendor      Vendor   @relation(fields:[vendorId], references: [id])
+}
+
+enum PaymentMethod {
+  COD // Cash on Delivery
+}
+
+enum KycStatus {
+  UNVERIFIED
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  DELIVERED
+  CANCELLED
+  RETURNED
 }
 
 enum DocumentType {
