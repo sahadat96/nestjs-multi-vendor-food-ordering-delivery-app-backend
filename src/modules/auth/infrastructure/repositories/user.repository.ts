@@ -26,14 +26,13 @@ export class UserRepository implements IUserRepository {
     const updatedUser = await this.prisma.user.update({
       where: { id: userId },
       data: {
-        
+        email: updateData.email ?? undefined,
+        password: updateData.password ?? undefined,
+        googleId: updateData.googleId ?? undefined,
+        appleId: updateData.appleId ?? undefined,
+        provider: updateData.provider ?? undefined,
+        refreshToken: updateData.refreshToken ?? undefined,
         isEmailVerified: updateData.isEmailVerified ?? undefined,
-
-        googleId: updateData.googleId,
-        provider: updateData.provider,
-        
-        password: updateData.password,
-        refreshToken: updateData.refreshToken,
       },
       
       include: { 
@@ -56,11 +55,11 @@ export class UserRepository implements IUserRepository {
       data: {
         id: user.id,
         email: user.email,
-        password: user.password,
-
-        googleId: user.googleId,   
-        provider: user.provider,
-        
+        password: user.password ?? null,
+        googleId: user.googleId ?? null,
+        appleId: user.appleId ?? null,
+        provider: user.provider ?? 'LOCAL',
+  
         role: {
           connect: { name: roleType }
         } 

@@ -14,7 +14,7 @@ import { Role } from 'src/common/enums/role.enum';
 import { GoogleOAuthGuard } from 'src/common/guards/google-oauth.guard';
 import { ConfigService } from '@nestjs/config';
 import { Public } from 'src/common/decorators/public.decorator';
-import { SendOtpDto, VerifyOtpDto, ResetPasswordDto  } from './dto/mail/otp.dto';
+import { SendOtpDto, VerifyOtpDto, NewPasswordDto  } from './dto/mail/otp.dto';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 
 @Controller('auth')
@@ -25,6 +25,39 @@ export class AuthController {
     private readonly jwtService: JwtService,
     private readonly configService:ConfigService
   ) {}
+  
+  @Post('register')
+  @Public()
+  @ResponseMessage('Registration Successfull.')
+    register(@Body() registerDto: RegisterDto ) {
+      return this.authService.register(registerDto);
+  }
+
+  @Post('login')
+  @Public()
+  @ResponseMessage('Login Succesful')
+  async login(
+    @Body() loginDto: LoginDto, 
+    @Res({ passthrough: true }) res: Response 
+  ) {
+
+    const response = await this.authService.login(loginDto);
+
+    res.cookie('refreshToken', response.data.refreshToken, {
+      httpOnly: true, 
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict', 
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+    
+    return {
+      message: response.message,
+      data: {
+        accessToken: response.data.accessToken,
+        user: response.data.user
+      }
+    };
+  }
 
   @Get('google/url')
   @Public()
@@ -61,53 +94,8 @@ export class AuthController {
     return 'Sohel Athentication test Success';
   }
 
-  @Post('register')
+  @Post('refresh')
   @Public()
-  @ResponseMessage('Registration Successfull.')
-    register(@Body() registerDto: RegisterDto ) {
-      return this.authService.register(registerDto);
-  }
-
-  @Post('login')
-  @Public()
-  async login(
-    @Body() loginDto: LoginDto, 
-    @Res({ passthrough: true }) res: Response 
-  ) {
-
-    const response = await this.authService.login(loginDto);
-
-    res.cookie('refreshToken', response.data.refreshToken, {
-      httpOnly: true, 
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict', 
-      maxAge: 24 * 60 * 60 * 1000,
-    });
-    
-    return {
-      message: response.message,
-      data: {
-        accessToken: response.data.accessToken,
-        user: response.data.user
-      }
-    };
-  }
-
-  @Post('send-verification')
-  @Public()
-  @ResponseMessage('Verification OTP sent to your email.')
-  async sendVerificationEmail(@Body() dto: SendOtpDto) {
-    return this.authService.requestEmailVerification(dto.email);
-  }
-
-  @Post('verify-otp')
-  @Public()
-  async verifyEmail(@Body() dto: VerifyOtpDto) {
-    return this.authService.verifyEmail(dto);
-  }
-
- @Post('refresh')
- @Public()
   async refresh(
     @Req() req: Request, 
     @Res({ passthrough: true }) res: Response
@@ -135,11 +123,42 @@ export class AuthController {
     return { accessToken: tokens.accessToken };
   }
 
-  @Post('forgot-password')
-  @ResponseMessage('If your sssss email is registered, a reset code has been sent.')
+  @Post('send-verification')
   @Public()
+  @ResponseMessage('Verification OTP sent to your email.')
+  async sendVerificationEmail(@Body() dto: SendOtpDto) {
+    return this.authService.requestEmailVerification(dto.email);
+  }
+
+  @Post('verify-otp')
+  @Public()
+  @ResponseMessage('Otp Verification Success')
+  async verifyEmail(@Body() dto: VerifyOtpDto) {
+    return this.authService.verifyEmail(dto);
+  }
+
+  @Post('forgot-password')
+  @Public()
+  @ResponseMessage('If your email is registered, a reset code has been sent.')
   async forgotPassword(@Body() dto: SendOtpDto) {
     return this.authService.forgotPassword(dto.email);
+  }
+
+  @Post('verify-reset-otp')
+  @Public()
+  @ResponseMessage('OTP verified. You may now change your password.')
+  async verifyResetOtp(@Body() dto: VerifyOtpDto) {
+    return this.authService.verifyResetOtp(dto);
+  }
+
+  @Post('reset-password')
+  @ResponseMessage('Password changed successfully.')
+  async resetPassword(
+    @Body('resetToken') resetToken: string, 
+    @Body() dto: NewPasswordDto 
+  ) {
+    await this.authService.resetPasswordWithToken(resetToken, dto.newPassword);
+    return null;
   }
 
 }

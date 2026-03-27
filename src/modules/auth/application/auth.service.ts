@@ -11,7 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import { OAuth2Client } from 'google-auth-library';
 import * as crypto from 'crypto';
 import { MailService } from 'src/common/mail/mail.service';
-import { SendOtpDto, VerifyOtpDto, ResetPasswordDto  } from '../presentation/dto/mail/otp.dto';
+import { VerifyOtpDto  } from '../presentation/dto/mail/otp.dto';
 
 @Injectable()
 export class AuthService {
@@ -134,12 +134,12 @@ export class AuthService {
 
     const[accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(jwtPayload, {
-        secret: this.configService.get<string>('JWT_SECRET'),
+        secret: this.configService.get<string>('jwt.secret'),
         expiresIn: '1h',
       }),
 
       this.jwtService.signAsync(jwtPayload, {
-        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+        secret: this.configService.get<string>('jwt.refreshSecret'),
         expiresIn: '1d',
       }),
     ]);
@@ -242,6 +242,40 @@ export class AuthService {
     
     if (user && user.provider === 'LOCAL') {
       await this.generateAndSendOtp(user, 'PASSWORD_RESET');
+    }
+  }
+
+  async verifyResetOtp(dto: VerifyOtpDto): Promise<{ resetToken: string }> {
+    const user = await this.userRepository.findByEmail(dto.email);
+    if (!user) throw new BadRequestException('Invalid request');
+
+    await this.validateOtp(user.id, dto.otp, 'PASSWORD_RESET');
+    const resetToken = await this.jwtService.signAsync(
+      { sub: user.id, type: 'PASSWORD_RESET_TOKEN' }, 
+      { secret: this.configService.get('jwt.resetSecret'), expiresIn: '10m' }
+    );
+
+    return { resetToken };
+  }
+
+  async resetPasswordWithToken(resetToken: string, newPassword: string): Promise<void> {
+    try {
+      const payload = await this.jwtService.verifyAsync(resetToken, {
+        secret: this.configService.get('jwt.resetSecret'),
+      });
+
+      if (payload.type !== 'PASSWORD_RESET_TOKEN') {
+        throw new UnauthorizedException('Invalid token type');
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await this.userRepository.update(payload.sub, { 
+        password: hashedPassword,
+        refreshToken: null 
+      });
+
+    } catch (error) {
+      throw new UnauthorizedException('Reset session expired or invalid');
     }
   }
 

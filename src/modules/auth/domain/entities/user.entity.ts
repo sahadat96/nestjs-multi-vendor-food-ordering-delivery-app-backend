@@ -6,6 +6,7 @@ export interface UserProps {
   role?: any;
 
   googleId?: string | null;
+  appleId?: string | null;
   provider?: string;
 
   permissions?: string[];
@@ -25,6 +26,7 @@ export class User {
   public role?: any;
 
   public googleId?: string | null;
+  public appleId?: string | null;
   public provider?: string;
 
   public permissions?: string[];
@@ -43,6 +45,7 @@ export class User {
     this.role = props.role;
 
     this.googleId = props.googleId,
+    this.appleId = props.appleId,
     this.provider = props.provider || 'LOCAL',
 
     this.permissions = props.permissions;
