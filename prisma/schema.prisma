@@ -65,7 +65,7 @@ model Otp {
 }
 
 model Vendor {
-  id                   String   @id @default(uuid())
+  id              String   @id @default(uuid())
   businessName    String?
   publicEmail     String?
   contactNumber   String?

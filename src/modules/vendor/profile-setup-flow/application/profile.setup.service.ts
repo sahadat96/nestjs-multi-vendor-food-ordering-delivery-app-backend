@@ -1,15 +1,15 @@
 import { Injectable, Inject } from '@nestjs/common';
-import type { IVendorRepository } from '../domain/interface/profile-setup-flow.interface';
+import type { IProfileSetupRepository } from '../domain/interface/profile.setup.interface';
 import { SetupProfileDto } from '../presentation/dto/profile-setup-flow.dto';
-// Assume you have a common storage service for S3/Cloudinary
-import { StorageService } from 'src/common/storage/storage.service'; 
+import type { IStorageService } from 'src/common/storage/storage.interface';
 
 @Injectable()
 export class ProfileSetupFlowService {
   constructor(
-    @Inject('IVendorRepository')
-    private readonly vendorRepository: IVendorRepository,
-    private readonly storageService: StorageService,
+    @Inject('IProfileSetupRepository')
+    private readonly vendorRepository: IProfileSetupRepository,
+    @Inject('IStorageService')
+    private readonly storageService: IStorageService,
   ) {}
 
   async saveProfile(

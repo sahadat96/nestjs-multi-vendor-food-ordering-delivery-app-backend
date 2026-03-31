@@ -1,6 +1,6 @@
 import { SetupProfileDto } from "../../presentation/dto/profile-setup-flow.dto";
 
-export interface IVendorRepository {
+export interface IProfileSetupRepository {
   
   updateProfileAndSyncRelations(
     vendorId: string,

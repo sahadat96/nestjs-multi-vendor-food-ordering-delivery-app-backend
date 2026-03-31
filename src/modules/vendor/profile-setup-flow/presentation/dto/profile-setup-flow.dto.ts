@@ -13,10 +13,9 @@ export class SetupProfileDto {
   @IsString() bio: string;
 
   @IsArray()
-  @IsString({ each: true })
   @Transform(({ value }) => (typeof value === 'string' ? JSON.parse(value) : value))
-  cuisines: string[]; 
-  
+  cuisines: string[];
+
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })
