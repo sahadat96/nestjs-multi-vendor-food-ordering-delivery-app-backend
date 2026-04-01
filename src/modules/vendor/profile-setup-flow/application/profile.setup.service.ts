@@ -20,7 +20,7 @@ export class ProfileSetupFlowService {
     let imageUrl: string | undefined;
 
     if (file) {
-      imageUrl = await this.storageService.uploadFile(file, 'vendor/covers');
+      imageUrl = await this.storageService.uploadFile(file, 'vendor/profile');
     }
 
     return this.vendorRepository.updateProfileAndSyncRelations(vendorId, dto, imageUrl);

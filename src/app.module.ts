@@ -21,7 +21,7 @@ import { StorageModule } from './common/storage/storage.module';
       load: [configuration],
     }),
     AuthModule,
-    //VendorProfileSetupModule,
+    VendorProfileSetupModule,
     StorageModule,
     ServeStaticModule.forRoot({
     rootPath: join(process.cwd(), 'uploads'),

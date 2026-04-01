@@ -3,14 +3,18 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ProfileSetupFlowService } from '../application/profile.setup.service';
 import { SetupProfileDto } from './dto/profile-setup-flow.dto';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
-import { JwtAuthGuard } from 'src/modules/auth/infrastructure/guards/jwt-auth.guard';
+import { Public } from 'src/common/decorators/public.decorator';
+import { RoleGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from 'src/common/enums/role.enum';
 
 @Controller('vendor/profile-setup')
 export class ProfileSetupFlowController {
   constructor(private readonly service: ProfileSetupFlowService) {}
 
   @Post('upload-cover-photo')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
   @UseInterceptors(FileInterceptor('coverImage'))
   @ResponseMessage('Step 1: Profile details saved successfully')
   async setupStepOne(

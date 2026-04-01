@@ -7,41 +7,77 @@ import { SetupProfileDto } from '../../presentation/dto/profile-setup-flow.dto';
 export class ProfileSetupRepository implements IProfileSetupRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async updateProfileAndSyncRelations(vendorId: string, data: SetupProfileDto, imageUrl?: string): Promise<void> {
-    
+  async updateProfileAndSyncRelations(
+    userId: string,
+    data: SetupProfileDto,
+    imageUrl?: string,
+  ): Promise<void> {
     const { socialLinks, cuisines, ...profileData } = data;
 
     await this.prisma.$transaction(async (tx) => {
+      
+      let vendor = await tx.vendor.findUnique({
+        where: { ownerId: userId },
+        select: { id: true },
+      });
+
+      if (!vendor) {
+        vendor = await tx.vendor.create({
+          data: {
+            ownerId: userId,
+          },
+          select: { id: true },
+        });
+      }
+
+      const vendorId = vendor.id;
 
       await tx.vendor.update({
         where: { id: vendorId },
         data: {
           ...profileData,
-          coverImage: imageUrl ?? undefined,
-          onboardingStep: 2, 
+          ...(imageUrl && { coverImage: imageUrl }),
+          onboardingStep: 2,
         },
       });
 
-      if (socialLinks) {
-        await tx.socialLink.deleteMany({ where: { vendorId } });
-        await tx.socialLink.createMany({
-          data: socialLinks.map((link) => ({ ...link, vendorId })),
+      if (socialLinks !== undefined) {
+        await tx.socialLink.deleteMany({
+          where: { vendorId },
         });
+
+        if (socialLinks.length > 0) {
+          await tx.socialLink.createMany({
+            data: socialLinks.map((link) => ({
+              vendorId,
+              url: link.url,
+            })),
+          });
+        }
       }
 
-      await tx.vendorCuisine.deleteMany({ where: { vendorId } });
-      for (const name of cuisines) {
-        await tx.vendorCuisine.create({
-          data: {
-            vendor: { connect: { id: vendorId } },
-            cuisine: {
-              connectOrCreate: {
-                where: { name },
-                create: { name },
-              },
-            },
-          },
+      if (cuisines !== undefined) {
+        await tx.vendorCuisine.deleteMany({
+          where: { vendorId },
         });
+
+        if (cuisines.length > 0) {
+          for (const name of cuisines) {
+            await tx.vendorCuisine.create({
+              data: {
+                vendor: {
+                  connect: { id: vendorId },
+                },
+                cuisine: {
+                  connectOrCreate: {
+                    where: { name },
+                    create: { name },
+                  },
+                },
+              },
+            });
+          }
+        }
       }
     });
   }

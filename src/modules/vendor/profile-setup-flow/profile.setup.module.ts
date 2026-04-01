@@ -3,10 +3,12 @@ import { ProfileSetupFlowController } from './presentation/profile.setup.control
 import { ProfileSetupFlowService } from './application/profile.setup.service';
 import { ProfileSetupRepository } from './infrastructure/repositories/profile.setup.repository';
 import { StorageModule } from 'src/common/storage/storage.module';
+import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
   imports: [
-    StorageModule, 
+    StorageModule,
+    PrismaModule,
   ],
   controllers: [
     ProfileSetupFlowController

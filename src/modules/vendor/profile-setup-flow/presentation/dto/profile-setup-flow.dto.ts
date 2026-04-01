@@ -1,8 +1,7 @@
 import { IsString, IsEmail, IsOptional, IsArray, IsUrl, ValidateNested } from 'class-validator';
-import { Type, Transform } from 'class-transformer';
+import { Type, Transform, plainToInstance  } from 'class-transformer';
 
 export class SocialLinkDto {
-  @IsString() platform: string;
   @IsUrl() url: string;
 }
 
@@ -20,6 +19,10 @@ export class SetupProfileDto {
   @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => SocialLinkDto)
-  @Transform(({ value }) => (typeof value === 'string' ? JSON.parse(value) : value))
+  
+   @Transform(({ value }) => {
+    const arr = typeof value === 'string' ? JSON.parse(value) : value;
+    return arr.map((item: any) => plainToInstance(SocialLinkDto, item));
+  })
   socialLinks?: SocialLinkDto[];
 }
