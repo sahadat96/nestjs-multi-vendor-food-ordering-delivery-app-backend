@@ -8,6 +8,7 @@ import { RoleGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enums/role.enum';
 import { UpsertOperationHoursDto } from './dto/profile-setup-flow.dto';
+import { ServiceAreaDto } from './dto/profile-setup-flow.dto';
 
 @Controller('vendor/profile-setup')
 export class ProfileSetupFlowController {
@@ -38,5 +39,18 @@ export class ProfileSetupFlowController {
     const userId = req.user.id;
 
     return this.service.upsertOperationHours(userId, dto);
+  }
+
+  @Post('service-area')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  @ResponseMessage('Step 3: Service area saved successfully')
+  async setServiceArea(
+    @Req() req: any,
+    @Body() dto: ServiceAreaDto,
+  ) {
+    const userId = req.user.id;
+
+    return this.service.upsertServiceArea(userId, dto);
   }
 }

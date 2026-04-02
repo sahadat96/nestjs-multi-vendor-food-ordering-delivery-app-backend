@@ -3,6 +3,7 @@ import type { IProfileSetupRepository } from '../domain/interface/profile.setup.
 import { SetupProfileDto } from '../presentation/dto/profile-setup-flow.dto';
 import type { IStorageService } from 'src/common/storage/storage.interface';
 import { UpsertOperationHoursDto } from '../presentation/dto/profile-setup-flow.dto';
+import { ServiceAreaDto } from '../presentation/dto/profile-setup-flow.dto';
 
 @Injectable()
 export class ProfileSetupFlowService {
@@ -26,19 +27,32 @@ export class ProfileSetupFlowService {
   }
 
   async upsertOperationHours(
-  userId: string,
-  dto: UpsertOperationHoursDto,
-): Promise<void> {
+    userId: string,
+    dto: UpsertOperationHoursDto,
+  ): Promise<void> {
 
-  for (const h of dto.hours) {
-    if (!h.isClosed && (!h.openTime || !h.closeTime)) {
-      throw new Error('Open and close time required when not closed');
+    for (const h of dto.hours) {
+      if (!h.isClosed && (!h.openTime || !h.closeTime)) {
+        throw new Error('Open and close time required when not closed');
+      }
     }
+
+    return this.vendorRepository.createOperationHourVersion(
+        userId,
+        dto.hours,
+      );
+    }
+
+  async upsertServiceArea(
+    userId: string,
+    dto: ServiceAreaDto,
+  ): Promise<void> {
+
+    if (dto.radius > 50) {
+      throw new Error('Radius too large (max 50km allowed)');
+    }
+
+    return this.vendorRepository.upsertServiceArea(userId, dto);
   }
 
-  return this.vendorRepository.createOperationHourVersion(
-      userId,
-      dto.hours,
-    );
-  }
 }

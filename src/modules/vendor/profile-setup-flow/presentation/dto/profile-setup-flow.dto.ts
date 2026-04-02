@@ -1,5 +1,6 @@
 import {
   IsString, 
+  IsNumber,
   IsEmail, 
   IsOptional, 
   IsArray, 
@@ -79,4 +80,20 @@ export class UpsertOperationHoursDto {
   @ValidateNested({ each: true })
   @Type(() => OperationHourDto)
   hours: OperationHourDto[];
+}
+
+export class ServiceAreaDto {
+  @IsNumber()
+  latitude: number;
+
+  @IsNumber()
+  longitude: number;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @IsNumber()
+  @Min(0.1)
+  radius: number;
 }
