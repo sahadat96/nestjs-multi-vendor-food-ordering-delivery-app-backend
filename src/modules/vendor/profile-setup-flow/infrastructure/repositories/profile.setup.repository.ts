@@ -83,47 +83,48 @@ export class ProfileSetupRepository implements IProfileSetupRepository {
     });
   }
   
-  async upsertOperationHours(
-    userId: string,
-    hours: OperationHourDto[],
-  ): Promise<void> {
-    await this.prisma.$transaction(async (tx) => {
+async createOperationHourVersion(
+  userId: string,
+  hours: OperationHourDto[],
+): Promise<void> {
+  await this.prisma.$transaction(async (tx) => {
 
-      let vendor = await tx.vendor.findUnique({
-        where: { ownerId: userId },
-        select: { id: true },
-      });
-
-      if (!vendor) {
-        throw new Error('Vendor not found for this user');
-      }
-
-      const vendorId = vendor.id;
-
-      await tx.operationHour.deleteMany({
-        where: { vendorId },
-      });
-
-      if (hours.length > 0) {
-        await tx.operationHour.createMany({
-          data: hours.map((h) => ({
-            vendorId,
-            dayOfWeek: h.dayOfWeek,
-            openTime: h.openTime ?? null,
-            closeTime: h.closeTime ?? null,
-            isClosed: h.isClosed,
-          })),
-        });
-      }
-
-      await tx.vendor.update({
-        where: { id: vendorId },
-        data: {
-          onboardingStep: 3,
-        },
-      });
+    const vendor = await tx.vendor.findUnique({
+      where: { ownerId: userId },
+      select: { id: true },
     });
-  }
+
+    if (!vendor) {
+      throw new Error('Vendor not found');
+    }
+
+    const vendorId = vendor.id;
+
+    const now = new Date();
+
+    const data = hours.map((h) => ({
+      vendorId,
+      dayOfWeek: h.dayOfWeek,
+      openTime: h.isClosed ? null : h.openTime ?? null,
+      closeTime: h.isClosed ? null : h.closeTime ?? null,
+      isClosed: h.isClosed,
+      activeFrom: h.activeFrom ? new Date(h.activeFrom) : now,
+      activeTo: h.activeTo ? new Date(h.activeTo) : null,
+      priority: h.priority ?? 0,
+    }));
+
+    await tx.operationHour.createMany({
+      data,
+    });
+
+    await tx.vendor.update({
+      where: { id: vendorId },
+      data: {
+        onboardingStep: 3,
+      },
+    });
+  });
+}
 
   
 }

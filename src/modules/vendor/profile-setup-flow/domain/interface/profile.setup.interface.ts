@@ -9,7 +9,7 @@ export interface IProfileSetupRepository {
     imageUrl?: string,
   ): Promise<void>;
 
-  upsertOperationHours(
+  createOperationHourVersion(
     userId: string, 
     hours:OperationHourDto[]
   ): Promise<void>;

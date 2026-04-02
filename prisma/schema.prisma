@@ -217,20 +217,24 @@ model VendorCuisine {
 
 model OperationHour {
   id        String   @id @default(uuid())
+
   vendorId  String
   vendor    Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
 
-  dayOfWeek Int      // 0 = Sunday, 6 = Saturday
-  openTime  String?   // "09:00"
-  closeTime String?  // "22:00"
-  isClosed  Boolean  @default(false)
+  dayOfWeek  Int                          // 0 = Sunday, 6 = Saturday
+  openTime   String?                      // "09:00"
+  closeTime  String?                      // "22:00"
+  isClosed   Boolean   @default(false)
+  activeFrom DateTime
+  activeTo   DateTime?    
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  priority   Int       @default(0)
 
-  @@unique([vendorId, dayOfWeek])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([vendorId, dayOfWeek, activeFrom, activeTo])
 }
-
 
 enum PaymentMethod {
   COD // Cash on Delivery

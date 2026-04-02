@@ -7,7 +7,7 @@ import { Public } from 'src/common/decorators/public.decorator';
 import { RoleGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enums/role.enum';
-import { OperationHourDto } from './dto/profile-setup-flow.dto';
+import { UpsertOperationHoursDto } from './dto/profile-setup-flow.dto';
 
 @Controller('vendor/profile-setup')
 export class ProfileSetupFlowController {
@@ -30,12 +30,13 @@ export class ProfileSetupFlowController {
   @Post('operation-hours')
   @UseGuards(RoleGuard)
   @Roles(Role.VENDOR)
+  @ResponseMessage('Step 2: Operation Hours saved successfully')
   async setOperationHours(
     @Req() req: any,
-    @Body() dto: OperationHourDto[],
+    @Body() dto: UpsertOperationHoursDto,
   ): Promise<void> {
     const userId = req.user.id;
 
-    return this.service.saveOperationHours(userId, dto);
+    return this.service.upsertOperationHours(userId, dto);
   }
 }
