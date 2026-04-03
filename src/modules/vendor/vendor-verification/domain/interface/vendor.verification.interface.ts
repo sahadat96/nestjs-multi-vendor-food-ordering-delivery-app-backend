@@ -1,14 +1,19 @@
 import { VendorVerification } from "../entities/vendor-verification.entity";
+import { VerificationStatus } from "@prisma/client";
 
 export interface IVendorVerificationRepository {
 
-  create(data: VendorVerification): Promise<VendorVerification>;
-
-  findByVendorId(vendorId: string): Promise<VendorVerification | null>;
-
-  createOrUpdate(
+  findByVendorId(
     vendorId: string,
-    status: string,
+  ): Promise<VendorVerification | null>;
+
+  upsert(
+    data: VendorVerification,
+  ): Promise<VendorVerification>;
+
+  updateStatus(
+    vendorId: string,
+    status: VerificationStatus,
     reason?: string,
   ): Promise<void>;
-}   
+}

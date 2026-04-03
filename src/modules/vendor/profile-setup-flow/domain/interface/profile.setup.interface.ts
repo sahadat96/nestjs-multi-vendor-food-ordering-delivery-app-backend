@@ -19,4 +19,5 @@ export interface IProfileSetupRepository {
     userId: string,
     data: ServiceAreaDto
   ): Promise<void>;
+  
 }

@@ -9,6 +9,7 @@ import type { IVendorVerificationRepository } from '../domain/interface/vendor.v
 import { VendorVerification } from '../domain/entities/vendor-verification.entity';
 import type { IStorageService } from 'src/common/storage/storage.interface';
 
+
 @Injectable()
 export class VendorVerificationService {
   constructor(
@@ -17,6 +18,8 @@ export class VendorVerificationService {
 
     @Inject('IStorageService')
     private readonly storage: IStorageService,
+
+
   ) {}
 
   async uploadDocuments(
@@ -27,12 +30,6 @@ export class VendorVerificationService {
       insuranceProof?: Express.Multer.File[];
     },
   ): Promise<VendorVerification> {
-    
-    const existing = await this.repo.findByVendorId(vendorId);
-
-    if (existing && existing.status === 'PENDING') {
-      throw new BadRequestException('Already submitted');
-    }
 
     if (
       !files.businessLicense ||
@@ -42,22 +39,20 @@ export class VendorVerificationService {
       throw new BadRequestException('All documents are required');
     }
 
+    const existing = await this.repo.findByVendorId(vendorId);
+
+    if (existing?.status === 'PENDING') {
+      throw new BadRequestException('Verification already under review');
+    }
+
     const folder = `vendor-verification/${vendorId}`;
 
-    const businessLicenseUrl = await this.storage.uploadFile(
-      files.businessLicense[0],
-      folder,
-    );
-
-    const healthPermitUrl = await this.storage.uploadFile(
-      files.healthPermit[0],
-      folder,
-    );
-
-    const insuranceProofUrl = await this.storage.uploadFile(
-      files.insuranceProof[0],
-      folder,
-    );
+    const [businessLicenseUrl, healthPermitUrl, insuranceProofUrl] =
+      await Promise.all([
+        this.storage.uploadFile(files.businessLicense[0], folder),
+        this.storage.uploadFile(files.healthPermit[0], folder),
+        this.storage.uploadFile(files.insuranceProof[0], folder),
+      ]);
 
     const verification = new VendorVerification(
       randomUUID(),
@@ -71,6 +66,6 @@ export class VendorVerificationService {
       undefined,
     );
 
-    return await this.repo.create(verification);
+    return await this.repo.upsert(verification);
   }
 }

@@ -3,9 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import type { IVendorVerificationRepository } from '../../domain/interface/vendor.verification.interface';
 import { VendorVerification } from '../../domain/entities/vendor-verification.entity';
 import { VendorVerificationMapper } from '../mapper/vendor.verification.mapper';
-import { VerificationStatus, Prisma } from '@prisma/client';
-
-type VendorVerificationRecord = Prisma.VendorVerificationGetPayload<{}>;
+import { VerificationStatus } from '@prisma/client';
 
 @Injectable()
 export class VendorVerificationRepository
@@ -16,61 +14,64 @@ export class VendorVerificationRepository
   async findByVendorId(
     vendorId: string,
   ): Promise<VendorVerification | null> {
-    const record: VendorVerificationRecord | null =
-      await this.prisma.vendorVerification.findUnique({
-        where: { vendorId },
-      });
 
-    if (!record) return null;
+    const record = await this.prisma.vendorVerification.findUnique({
+      where: { vendorId },
+    });
 
-    return VendorVerificationMapper.toDomain(record);
+    return record
+      ? VendorVerificationMapper.toDomain(record)
+      : null;
   }
 
-  async create(
-      data: VendorVerification,
-    ): Promise<VendorVerification> {
-      const created = await this.prisma.vendorVerification.create({
-        data: {
-          id: data.id,
-          vendorId: data.vendorId,
-          businessLicense: data.businessLicense,
-          healthPermit: data.healthPermit,
-          insuranceProof: data.insuranceProof,
+  async upsert(
+    data: VendorVerification,
+  ): Promise<VendorVerification> {
 
-          status: VerificationStatus.PENDING,
+    const saved = await this.prisma.vendorVerification.upsert({
+      where: { vendorId: data.vendorId },
 
-          rejectionReason: data.rejectionReason ?? null,
-          submittedAt: data.submittedAt ?? new Date(),
-        },
-      });
+      update: {
+        businessLicense: data.businessLicense,
+        healthPermit: data.healthPermit,
+        insuranceProof: data.insuranceProof,
 
-    return VendorVerificationMapper.toDomain(created);
+        status: VerificationStatus.PENDING,
+        rejectionReason: null,
+        submittedAt: new Date(),
+        reviewedAt: null,
+      },
+
+      create: {
+        id: data.id,
+        vendorId: data.vendorId,
+
+        businessLicense: data.businessLicense,
+        healthPermit: data.healthPermit,
+        insuranceProof: data.insuranceProof,
+
+        status: VerificationStatus.PENDING,
+        submittedAt: data.submittedAt ?? new Date(),
+      },
+    });
+
+    return VendorVerificationMapper.toDomain(saved);
   }
 
-  async createOrUpdate(
+  async updateStatus(
     vendorId: string,
     status: VerificationStatus,
     reason?: string,
   ): Promise<void> {
-    
-    const existing = await this.prisma.vendorVerification.findUnique({
-      where: { vendorId },
-      select: { id: true },
-    });
-
-    if (!existing) {
-      throw new NotFoundException('Verification record not found');
-    }
 
     await this.prisma.vendorVerification.update({
       where: { vendorId },
       data: {
-        status, 
+        status,
         rejectionReason:
           status === VerificationStatus.REJECTED
             ? reason ?? 'Rejected by admin'
             : null,
-
         reviewedAt: new Date(),
       },
     });
