@@ -8,6 +8,7 @@ import { randomUUID } from 'crypto';
 import type { IVendorVerificationRepository } from '../domain/interface/vendor.verification.interface';
 import { VendorVerification } from '../domain/entities/vendor-verification.entity';
 import type { IStorageService } from 'src/common/storage/storage.interface';
+import type { IVendorRepository } from '../../vendor/domain/interface/vendor.repository.interface';
 
 
 @Injectable()
@@ -16,14 +17,15 @@ export class VendorVerificationService {
     @Inject('IVendorVerificationRepository')
     private readonly repo: IVendorVerificationRepository,
 
+    @Inject('IVendorRepository')
+    private readonly vendorRepo: IVendorRepository,
+
     @Inject('IStorageService')
     private readonly storage: IStorageService,
-
-
   ) {}
 
   async uploadDocuments(
-    vendorId: string,
+    userId: string,
     files: {
       businessLicense?: Express.Multer.File[];
       healthPermit?: Express.Multer.File[];
@@ -39,13 +41,29 @@ export class VendorVerificationService {
       throw new BadRequestException('All documents are required');
     }
 
-    const existing = await this.repo.findByVendorId(vendorId);
+    const vendor = await this.vendorRepo.findByOwnerId(userId);
 
-    if (existing?.status === 'PENDING') {
-      throw new BadRequestException('Verification already under review');
+    if (!vendor) {
+      throw new BadRequestException('Vendor profile not found');
     }
 
-    const folder = `vendor-verification/${vendorId}`;
+    const vendorId = vendor.id;
+
+    const existing = await this.repo.findByVendorId(vendorId);
+
+    if (existing) {
+      if (existing.status === 'PENDING') {
+        throw new BadRequestException('Verification already under review');
+      }
+
+      if (existing.status === 'APPROVED') {
+        throw new BadRequestException('Vendor already verified');
+      }
+
+      // REJECTED → allow resubmission
+    }
+
+    const folder = `vendor/vendor-verification/${vendorId}`;
 
     const [businessLicenseUrl, healthPermitUrl, insuranceProofUrl] =
       await Promise.all([
@@ -54,16 +72,11 @@ export class VendorVerificationService {
         this.storage.uploadFile(files.insuranceProof[0], folder),
       ]);
 
-    const verification = new VendorVerification(
-      randomUUID(),
+    const verification = VendorVerification.createPending(
       vendorId,
       businessLicenseUrl,
       healthPermitUrl,
       insuranceProofUrl,
-      'PENDING',
-      undefined,
-      new Date(),
-      undefined,
     );
 
     return await this.repo.upsert(verification);

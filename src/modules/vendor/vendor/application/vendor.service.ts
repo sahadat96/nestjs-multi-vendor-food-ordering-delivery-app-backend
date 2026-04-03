@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import type { IVendorRepository } from '../domain/interface/vendor.repository.interface';
 
 @Injectable()
 export class VendorService {
 
   constructor(
+    @Inject('IVendorRepository') 
     private readonly vendorRepository: IVendorRepository
   ) {}
 

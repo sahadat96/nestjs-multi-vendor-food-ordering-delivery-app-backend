@@ -4,6 +4,9 @@ import type { IVendorVerificationRepository } from '../../domain/interface/vendo
 import { VendorVerification } from '../../domain/entities/vendor-verification.entity';
 import { VendorVerificationMapper } from '../mapper/vendor.verification.mapper';
 import { VerificationStatus } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+
+type VendorVerificationRecord = Prisma.VendorVerificationGetPayload<{}>;
 
 @Injectable()
 export class VendorVerificationRepository
@@ -14,20 +17,20 @@ export class VendorVerificationRepository
   async findByVendorId(
     vendorId: string,
   ): Promise<VendorVerification | null> {
+    const record: VendorVerificationRecord | null =
+      await this.prisma.vendorVerification.findUnique({
+        where: { vendorId },
+      });
 
-    const record = await this.prisma.vendorVerification.findUnique({
-      where: { vendorId },
-    });
+    if (!record) return null;
 
-    return record
-      ? VendorVerificationMapper.toDomain(record)
-      : null;
+    return VendorVerificationMapper.toDomain(record);
   }
 
   async upsert(
     data: VendorVerification,
   ): Promise<VendorVerification> {
-
+    
     const saved = await this.prisma.vendorVerification.upsert({
       where: { vendorId: data.vendorId },
 
@@ -38,8 +41,13 @@ export class VendorVerificationRepository
 
         status: VerificationStatus.PENDING,
         rejectionReason: null,
+
         submittedAt: new Date(),
         reviewedAt: null,
+
+        version: {
+          increment: 1,
+        },
       },
 
       create: {
@@ -51,7 +59,10 @@ export class VendorVerificationRepository
         insuranceProof: data.insuranceProof,
 
         status: VerificationStatus.PENDING,
+        rejectionReason: null,
         submittedAt: data.submittedAt ?? new Date(),
+
+        version: 1,
       },
     });
 
@@ -63,15 +74,16 @@ export class VendorVerificationRepository
     status: VerificationStatus,
     reason?: string,
   ): Promise<void> {
-
     await this.prisma.vendorVerification.update({
       where: { vendorId },
       data: {
         status,
+
         rejectionReason:
           status === VerificationStatus.REJECTED
             ? reason ?? 'Rejected by admin'
             : null,
+
         reviewedAt: new Date(),
       },
     });

@@ -13,6 +13,7 @@ import { join } from 'path';
 import { VendorProfileSetupModule } from './modules/vendor/profile-setup-flow/profile.setup.module';
 import { StorageModule } from './common/storage/storage.module';
 import { VendorVerificationModule } from './modules/vendor/vendor-verification/vendor.verification.module';
+import { VendorModule } from './modules/vendor/vendor/vendor.module';
 
 @Module({
   imports: [
@@ -27,8 +28,9 @@ import { VendorVerificationModule } from './modules/vendor/vendor-verification/v
     ServeStaticModule.forRoot({
     rootPath: join(process.cwd(), 'uploads'),
     serveRoot: '/uploads', 
-  }),
-  VendorVerificationModule,
+    }),
+    VendorVerificationModule,
+    VendorModule,
   ],
   controllers: [AppController],
   providers: [

@@ -4,11 +4,13 @@ import { VendorVerificationController } from './presentation/vendor.verify.contr
 import { VendorVerificationRepository } from './infrastructure/repositories/vendor.verification.repository';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { StorageModule } from 'src/common/storage/storage.module';
+import { VendorModule } from '../vendor/vendor.module';
 
 @Module({
   imports: [
       StorageModule,
       PrismaModule,
+      VendorModule,
     ],
   controllers: [VendorVerificationController],
   providers: [

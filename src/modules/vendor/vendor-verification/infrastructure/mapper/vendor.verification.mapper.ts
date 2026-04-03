@@ -1,4 +1,5 @@
-import { VendorVerification } from "../../domain/entities/vendor-verification.entity";
+import { VendorVerification } from '../../domain/entities/vendor-verification.entity';
+import { VerificationStatus } from '@prisma/client';
 
 export class VendorVerificationMapper {
 
@@ -9,10 +10,10 @@ export class VendorVerificationMapper {
       raw.businessLicense,
       raw.healthPermit,
       raw.insuranceProof,
-      raw.status,
-      raw.rejectionReason ?? undefined, 
-      raw.submittedAt,
-      raw.reviewedAt ?? undefined,
+      raw.status as VerificationStatus,
+      raw.rejectionReason ?? null, 
+      raw.submittedAt, 
+      raw.reviewedAt ?? null, 
     );
   }
 }
