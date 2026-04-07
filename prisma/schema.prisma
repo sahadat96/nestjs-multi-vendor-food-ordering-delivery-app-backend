@@ -92,7 +92,8 @@ model Vendor {
   cuisines             VendorCuisine[]
   operationHours       OperationHour[]
   serviceArea          ServiceArea?
-  vendorVerification VendorVerification?
+  vendorVerification   VendorVerification?
+  categories           Category[]
   
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -133,6 +134,9 @@ model Product {
 
   vendorId    String
   vendor      Vendor   @relation(fields:[vendorId], references: [id])
+
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
 
   cartItems   CartItem[] 
   orderItems  OrderItem[]
