@@ -276,6 +276,20 @@ model VendorVerification {
   @@index([vendorId])
 }
 
+model Category {
+  id        String   @id @default(uuid())
+  name      String
+  vendorId  String
+  vendor    Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  products  Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([vendorId, name])
+}
+
 enum VerificationStatus {
   PENDING
   IN_REVIEW
