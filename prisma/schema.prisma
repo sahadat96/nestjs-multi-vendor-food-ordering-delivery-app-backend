@@ -126,21 +126,24 @@ model KycProfile {
 }
 
 model Product {
-  id          String   @id @default(uuid())
-  name        String
-  description String
-  price       Float    
-  stock       Int      @default(0)
+  id            String    @id @default(uuid())
+  name          String
+  description   String
+  price         Float    
+  stock         Int       @default(0)
+  isActive      Boolean   @default(true)
 
-  vendorId    String
-  vendor      Vendor   @relation(fields:[vendorId], references: [id])
+  vendorId      String
+  vendor        Vendor    @relation(fields:[vendorId], references: [id])
 
-  categoryId  String?
-  category    Category? @relation(fields: [categoryId], references: [id])
+  categoryId    String?
+  category      Category? @relation(fields: [categoryId], references: [id])
 
-  cartItems   CartItem[] 
-  orderItems  OrderItem[]
-  sizeOptions SizeOption[]
+  cartItems     CartItem[] 
+  orderItems    OrderItem[]
+  sizeOptions   SizeOption[]
+  choiceOptions ChoiceOption[]
+  addOns        AddOn[]
 
   createdAt   DateTime @default(now())
 }
@@ -259,7 +262,6 @@ model ServiceArea {
 
 model VendorVerification {
   id                String   @id @default(uuid())
-
   vendorId          String   @unique
   vendor            Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   
@@ -304,6 +306,32 @@ model SizeOption {
   name      String   
   price     Float
 
+  isRequired Boolean @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+model ChoiceOption {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  name      String   
+  price     Float
+
+  isRequired Boolean @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+model AddOn {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  name      String   
+  price     Float
+  
   isRequired Boolean @default(false)
 
   createdAt DateTime @default(now())
