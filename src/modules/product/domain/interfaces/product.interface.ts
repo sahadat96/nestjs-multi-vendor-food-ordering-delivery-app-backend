@@ -1,5 +1,4 @@
-import { Product } from '@prisma/client';
-import { ProductResponseDto } from '../../presentation/dto/product.response.dto';
+import { Product } from '../entities/product.entity';
 import { Prisma } from '@prisma/client';
 
 type ProductWithCategory = Prisma.ProductGetPayload<{
@@ -30,10 +29,21 @@ export interface IProductRepository {
     images: string[];
   }): Promise<Product>;
 
-  findProductByVendorId(vendorId: string): Promise<ProductResponseDto[]>;
+  findProductByVendorId(vendorId: string): Promise<Product[]>;
 
   searchProducts(
     params: SearchProductsParams,
-  ): Promise<PaginatedProducts[]>;
+  ): Promise<Product[]>;
+
+  updateProductStatus(
+    productId: string,
+    isActive: boolean,
+  ): Promise<Product>;
+
+  findProductByIdAndVendorId(
+    userId: string,
+    productId: string,
+  );
+
 
 }

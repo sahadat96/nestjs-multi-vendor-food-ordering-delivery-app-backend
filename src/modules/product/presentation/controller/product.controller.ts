@@ -1,4 +1,18 @@
-import { Controller, Req, Post, Body, Request, UseGuards, Get, UseInterceptors, UploadedFiles, Query } from '@nestjs/common';
+import { Controller,
+   Req,
+   Post,
+   Body, 
+   Request, 
+   UseGuards, 
+   Get,
+   UseInterceptors, 
+   UploadedFiles, 
+   Query ,
+   Patch,
+   ParseUUIDPipe,
+   Param,
+  } from '@nestjs/common';
+   
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 import { Public } from 'src/common/decorators/public.decorator';
@@ -7,11 +21,13 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enums/role.enum';
 import { CurrentUser } from '@/modules/auth/decorators/get-user.decorator';
 import type { AuthUser } from '@/modules/auth/domain/interfaces/auth-user.interface';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { ProductService } from '../../application/product.service';
 import { CreateProductDto } from '../dto/product.dto';
 import { ProductResponseDto } from '../dto/product.response.dto';
 import { SearchProductQueryDto } from '../dto/searchQuery.dto';
+import { UpdateProductStatusDto } from '../dto/product.dto';
+import { ApiResponses } from '@/common/types/api-response.type';
 
 @ApiTags('Product')
 @Controller('product')
@@ -60,6 +76,29 @@ export class ProductController {
     @Query() query: SearchProductQueryDto,
   ) {
     return this.service.searchProducts(user.id, query);
+  }
+
+  @Patch(':productId/status')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  @ApiOperation({ summary: 'Update product availability status' })
+  @ApiParam({ name: 'productId', description: 'Product UUID' })
+  async updateProductStatus(
+  @CurrentUser() user: AuthUser,
+    @Param('productId', ParseUUIDPipe) productId: string,
+    @Body() dto: UpdateProductStatusDto,
+  ): Promise<ApiResponses<ProductResponseDto>> {
+    const data = await this.service.updateProductStatus(
+      user.id,
+      productId,
+      dto,
+    );
+
+    return {
+      success: true,
+      message: `Product marked as ${dto.isActive ? 'active' : 'inactive'} successfully`,
+      data,
+    };
   }
 
 }

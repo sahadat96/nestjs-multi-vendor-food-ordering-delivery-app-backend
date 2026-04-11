@@ -2,6 +2,7 @@ import {
   Injectable,
   Inject,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 
 import type { ICuisineRepository } from '../domain/interfaces/cuisine.interface';
@@ -13,6 +14,7 @@ import { CreateProductDto } from '../presentation/dto/product.dto';
 import { ProductResponseDto } from '../presentation/dto/product.response.dto';
 import { ProductMapper } from '../infrastructure/mappers/product.mapper';
 import { SearchProductQueryDto } from '../presentation/dto/searchQuery.dto';
+import { UpdateProductStatusDto } from '../presentation/dto/product.dto';
 
 @Injectable()
 export class ProductService {
@@ -107,6 +109,40 @@ export class ProductService {
     });
 
     return products.map(ProductMapper.toResponse);
+  }
+
+  async updateProductStatus(
+    userId: string,
+    productId: string,
+    dto: UpdateProductStatusDto,
+  ): Promise<ProductResponseDto> {
+    const vendor = await this.vendorRepo.findByOwnerId(userId);
+
+    if (!vendor) {
+      throw new BadRequestException('Vendor not found');
+    }
+
+    const product = await this.productRepo.findProductByIdAndVendorId(
+      productId,
+      vendor.id,
+    );
+
+    if (!product) {
+      throw new NotFoundException('Product not found or does not belong to this vendor');
+    }
+
+    if (product.isActive === dto.isActive) {
+      throw new BadRequestException(
+        `Product is already ${dto.isActive ? 'active' : 'inactive'}`,
+      );
+    }
+
+    const updated = await this.productRepo.updateProductStatus(
+      productId,
+      dto.isActive,
+    );
+
+    return ProductMapper.toResponse(updated);
   }
   
 }

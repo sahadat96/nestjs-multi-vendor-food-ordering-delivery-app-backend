@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { IProductRepository } from '../../domain/interfaces/product.interface';
-import { Product } from '@prisma/client';
-import { ProductResponseDto } from '../../presentation/dto/product.response.dto';
+import { Product } from '../../domain/entities/product.entity';
+import { ProductMapper } from '../mappers/product.mapper';
 
 @Injectable()
 export class ProductRepository implements IProductRepository {
@@ -69,9 +69,9 @@ export class ProductRepository implements IProductRepository {
     });
   }
   
-  async findProductByVendorId(vendorId: string): Promise<ProductResponseDto[]> {
+  async findProductByVendorId(vendorId: string): Promise<Product[]> {
 
-    const products = await this.prisma.product.findMany({
+    const raws = await this.prisma.product.findMany({
       where: { vendorId },
       include: {
         category: true,
@@ -79,17 +79,7 @@ export class ProductRepository implements IProductRepository {
       orderBy: { createdAt: 'desc' },
     });
 
-    return products.map((p) => ({
-      id: p.id,
-      name: p.name,
-      description: p.description,
-      price: p.price,
-      isActive: p.isActive,
-
-      category: p.category
-        ? { id: p.category.id, name: p.category.name }
-        : undefined,
-    }));
+    return raws.map(ProductMapper.toDomain);
   }
 
   async searchProducts(params: {
@@ -99,11 +89,11 @@ export class ProductRepository implements IProductRepository {
     isActive?: boolean;
     page: number;
     limit: number;
-  }): Promise<any[]> {
+  }): Promise<Product[]> {
 
     const { vendorId, search, category,  isActive,  page, limit,  } = params;
 
-    return this.prisma.product.findMany({
+    const raws = await this.prisma.product.findMany({
       where: {
         vendorId,
 
@@ -137,6 +127,48 @@ export class ProductRepository implements IProductRepository {
       skip: (page - 1) * limit,
       take: limit,
     });
+
+    return raws.map(ProductMapper.toDomain);
+  }
+
+  async findProductByIdAndVendorId(
+  productId: string,
+  vendorId: string,
+  ): Promise<Product | null> {
+    const raw = await this.prisma.product.findFirst({
+      where: {
+        id: productId,
+        vendorId,
+      },
+      include: {
+        category: true,
+        images: true,
+        sizeOptions: true,
+        choiceOptions: true,
+        addOns: true,
+      },
+    });
+
+    return raw ? ProductMapper.toDomain(raw) : null; 
+  }
+
+  async updateProductStatus(
+    productId: string,
+    isActive: boolean,
+  ): Promise<Product> {
+    const raw = await this.prisma.product.update({
+      where: { id: productId },
+      data: { isActive },
+      include: {
+        category: true,
+        images: true,
+        sizeOptions: true,
+        choiceOptions: true,
+        addOns: true,
+      },
+    });
+
+    return ProductMapper.toDomain(raw);            
   }
 
 }

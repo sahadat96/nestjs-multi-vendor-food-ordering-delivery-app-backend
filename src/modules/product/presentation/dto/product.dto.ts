@@ -4,8 +4,11 @@ import {
   IsOptional,
   IsArray,
   ValidateNested,
+  IsBoolean,
 } from 'class-validator';
 import { Type, Transform, plainToInstance } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
+
 
 class SizeOptionDto {
   @IsString()
@@ -86,3 +89,10 @@ export class CreateProductDto {
   @Type(() => AddOnDto)
   addOns?: AddOnDto[];
 }
+
+export class UpdateProductStatusDto {
+  @ApiProperty({ example: true, description: 'Product availability status' })
+  @IsBoolean()
+  isActive!: boolean;
+}
+

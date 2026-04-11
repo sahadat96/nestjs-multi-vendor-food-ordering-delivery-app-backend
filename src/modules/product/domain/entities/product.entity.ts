@@ -1,12 +1,12 @@
 export class Product {
-  constructor(
-    public id: string,
-    public name: string,
-    public description: string,
-    public price: number,
-    public isActive: boolean,
-    public vendorId: string,
-    public categoryId?: string,
-    public createdAt?: Date,
-  ) {}
+  id!: string;
+  name!: string;
+  description!: string;
+  price!: number;
+  estimateCookTime!: number;
+  isActive!: boolean;
+  vendorId!: string;
+  categoryId!: string | null;
+  createdAt!: Date;
+  category?: { id: string; name: string } | null;
 }
