@@ -46,7 +46,7 @@ export class ProductService {
     userId: string,
     dto: CreateProductDto,
     files: Express.Multer.File[],
-  ): Promise<{data: any }> {
+  ): Promise<ProductResponseDto> {
     const vendor = await this.vendorRepo.findByOwnerId(userId);
 
     if (!vendor) {
@@ -71,9 +71,7 @@ export class ProductService {
       images: imageUrls,
     });
 
-    return {
-      data: product,
-    };
+    return ProductMapper.toResponse(product);
   }
 
   async getVendorProducts(userId: string): Promise<ProductResponseDto[]> {

@@ -15,7 +15,7 @@ export class ProductRepository implements IProductRepository {
   }): Promise<Product> {
     const { vendorId, dto, images } = data;
 
-    return this.prisma.$transaction(async (tx) => {
+    const raw = await this.prisma.$transaction(async (tx) => {
       const product = await tx.product.create({
         data: {
           name: dto.name,
@@ -65,8 +65,13 @@ export class ProductRepository implements IProductRepository {
         });
       }
 
-      return product;
-    });
+      return tx.product.findUniqueOrThrow({
+          where: { id: product.id },
+          include: { category: true },
+        });
+      });
+
+   return ProductMapper.toDomain(raw);
   }
   
   async findProductByVendorId(vendorId: string): Promise<Product[]> {
