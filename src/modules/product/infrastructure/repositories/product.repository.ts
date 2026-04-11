@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { IProductRepository } from '../../domain/interfaces/product.interface';
 import { Product } from '@prisma/client';
+import { ProductResponseDto } from '../../presentation/dto/product.response.dto';
 
 @Injectable()
 export class ProductRepository implements IProductRepository {
@@ -67,4 +68,75 @@ export class ProductRepository implements IProductRepository {
       return product;
     });
   }
+  
+  async findProductByVendorId(vendorId: string): Promise<ProductResponseDto[]> {
+
+    const products = await this.prisma.product.findMany({
+      where: { vendorId },
+      include: {
+        category: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      description: p.description,
+      price: p.price,
+      isActive: p.isActive,
+
+      category: p.category
+        ? { id: p.category.id, name: p.category.name }
+        : undefined,
+    }));
+  }
+
+  async searchProducts(params: {
+    vendorId: string;
+    search?: string;
+    category?: string;
+    isActive?: boolean;
+    page: number;
+    limit: number;
+  }): Promise<any[]> {
+
+    const { vendorId, search, category,  isActive,  page, limit,  } = params;
+
+    return this.prisma.product.findMany({
+      where: {
+        vendorId,
+
+        ...(isActive !== undefined && { isActive }),
+
+        ...(search && {
+          name: {
+            contains: search,
+            mode: 'insensitive', 
+          },
+        }),
+
+        ...(category && {
+          category: {
+            name: {
+              equals: category,
+              mode: 'insensitive',
+            },
+          },
+        }),
+      },
+
+      include: {
+        category: true,
+      },
+
+      orderBy: {
+        createdAt: 'desc',
+      },
+
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+  }
+
 }

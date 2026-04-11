@@ -10,6 +10,9 @@ import { Cuisine } from '../domain/entities/cuisine.entity';
 import type { IProductRepository } from '../domain/interfaces/product.interface';
 import type { IStorageService } from '@/common/storage/storage.interface';
 import { CreateProductDto } from '../presentation/dto/product.dto';
+import { ProductResponseDto } from '../presentation/dto/product.response.dto';
+import { ProductMapper } from '../infrastructure/mappers/product.mapper';
+import { SearchProductQueryDto } from '../presentation/dto/searchQuery.dto';
 
 @Injectable()
 export class ProductService {
@@ -41,7 +44,7 @@ export class ProductService {
     userId: string,
     dto: CreateProductDto,
     files: Express.Multer.File[],
-  ) {
+  ): Promise<{data: any }> {
     const vendor = await this.vendorRepo.findByOwnerId(userId);
 
     if (!vendor) {
@@ -60,11 +63,50 @@ export class ProductService {
       ),
     );
 
-    return this.productRepo.createFullProduct({
+    const product = await this.productRepo.createFullProduct({
       vendorId: vendor.id,
       dto,
       images: imageUrls,
     });
+
+    return {
+      data: product,
+    };
+  }
+
+  async getVendorProducts(userId: string): Promise<ProductResponseDto[]> {
+    const vendor = await this.vendorRepo.findByOwnerId(userId);
+
+    if (!vendor) {
+      throw new BadRequestException('Vendor not found');
+    }
+
+    const products = await this.productRepo.findProductByVendorId(vendor.id);
+
+    return products.map(ProductMapper.toResponse);
+  }
+
+  async searchProducts(
+    userId: string,
+    query: SearchProductQueryDto,
+  ): Promise<ProductResponseDto[]> {
+
+    const vendor = await this.vendorRepo.findByOwnerId(userId);
+
+    if (!vendor) {
+      throw new BadRequestException('Vendor not found');
+    }
+
+    const products = await this.productRepo.searchProducts({
+      vendorId: vendor.id,
+      search: query.search,
+      category: query.category,
+      isActive: query.isActive,
+      page: query.page,
+      limit: query.limit,
+    });
+
+    return products.map(ProductMapper.toResponse);
   }
   
 }
