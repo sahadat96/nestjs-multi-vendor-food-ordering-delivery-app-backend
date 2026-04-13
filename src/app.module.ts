@@ -15,6 +15,7 @@ import { StorageModule } from './common/storage/storage.module';
 import { VendorVerificationModule } from './modules/vendor/vendor-verification/vendor.verification.module';
 import { VendorModule } from './modules/vendor/vendor/vendor.module';
 import { ProductModule } from './modules/product/product.module';
+import { CustomerModule } from './modules/customer/customer/customer.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ProductModule } from './modules/product/product.module';
     VendorVerificationModule,
     VendorModule,
     ProductModule,
+    CustomerModule,
   ],
   controllers: [AppController],
   providers: [
