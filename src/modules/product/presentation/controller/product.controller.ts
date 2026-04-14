@@ -1,8 +1,6 @@
 import { Controller,
-   Req,
    Post,
    Body, 
-   Request, 
    UseGuards, 
    Get,
    UseInterceptors, 
@@ -12,7 +10,6 @@ import { Controller,
    ParseUUIDPipe,
    Param,
    Delete,
-   HttpCode,
   } from '@nestjs/common';
    
 import { FilesInterceptor } from '@nestjs/platform-express';

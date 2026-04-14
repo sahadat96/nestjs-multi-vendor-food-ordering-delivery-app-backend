@@ -17,6 +17,8 @@ import { Public } from 'src/common/decorators/public.decorator';
 import { SendOtpDto, VerifyOtpDto, NewPasswordDto  } from './dto/mail/otp.dto';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { CurrentUser } from '../decorators/get-user.decorator';
+import type { AuthUser } from '../domain/interfaces/auth-user.interface';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -164,6 +166,16 @@ export class AuthController {
   ) {
     await this.authService.resetPasswordWithToken(resetToken, dto.newPassword);
     return null;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  @ResponseMessage('Logged out successfully.')
+  async logout(
+    @CurrentUser() user: AuthUser,
+  ): Promise<void> {
+    const userId = user.id; 
+    await this.authService.logout(userId);
   }
 
 }

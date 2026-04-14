@@ -135,7 +135,7 @@ export class AuthService {
     const[accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(jwtPayload, {
         secret: this.configService.get<string>('jwt.secret'),
-        expiresIn: '1h',
+        expiresIn: '15m',
       }),
 
       this.jwtService.signAsync(jwtPayload, {
@@ -277,6 +277,10 @@ export class AuthService {
     } catch (error) {
       throw new UnauthorizedException('Reset session expired or invalid');
     }
+  }
+
+  async logout(userId: string): Promise<void> {
+    await this.userRepository.updateRefreshToken(userId, null);
   }
 
 }

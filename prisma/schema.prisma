@@ -141,6 +141,7 @@ model Product {
   choiceOptions     ChoiceOption[]
   addOns            AddOn[]
   images            ProductImage[]
+  cartItems         CartItem[]
 
   createdAt   DateTime @default(now())
 }
@@ -300,19 +301,56 @@ model Customer {
   userId        String   @unique
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  phoneNumber   String?  
-  dateOfBirth   DateTime?
-  address       String?
-  latitude      Float?
-  longitude     Float?
-  avatar        String?
-  isActive      Boolean  @default(true)
-
+  phoneNumber     String?  
+  dateOfBirth     DateTime?
+  address         String?
+  latitude        Float?
+  longitude       Float?
+  avatar          String?
+  isActive        Boolean  @default(true)
   preferredRadius Float? 
+
+  cart  Cart?
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+}
+
+model Cart {
+  id          String     @id @default(uuid())
+
+  customerId  String     @unique
+  customer    Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  items       CartItem[]
+
+  totalAmount Float      @default(0)
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model CartItem {
+  id          String   @id @default(uuid())
+
+  cartId      String
+  cart        Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+
+  quantity    Int      @default(1)
+
+  price       Float    
+
+  sizeOptionId   String?
+  choiceOptionIds String[]  
+  addOnIds        String[]
+
+  createdAt   DateTime @default(now())
+
+  @@index([cartId])
 }
 
 enum VerificationStatus {
