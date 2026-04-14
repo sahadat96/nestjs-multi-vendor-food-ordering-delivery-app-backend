@@ -1,5 +1,8 @@
+import { CustomerEntity } from "../entities/customer.entity";
+
 export interface ICustomerRepository {
-  findByUserId(userId: string): Promise<any | null>;
+
+  findByUserId(userId: string): Promise<CustomerEntity | null>;
 
   create(data: {
     userId: string;

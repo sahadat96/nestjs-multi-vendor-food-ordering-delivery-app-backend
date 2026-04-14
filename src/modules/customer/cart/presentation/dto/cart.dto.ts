@@ -1,28 +1,50 @@
 import {
-  IsString,
-  IsNumber,
-  IsOptional,
+  ArrayUnique,
   IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+  Min,
 } from 'class-validator';
 
-export class AddToCartDto {
-  @IsString()
+export class AddCartItemDto {
+  @IsUUID()
   productId!: string;
 
-  @IsNumber()
+  @IsInt()
+  @Min(1)
   quantity!: number;
 
   @IsOptional()
-  @IsString()
+  @IsUUID()
   sizeOptionId?: string;
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
+  @ArrayUnique()
+  @IsUUID('4', { each: true })
   choiceOptionIds?: string[];
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
+  @ArrayUnique()
+  @IsUUID('4', { each: true })
   addOnIds?: string[];
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  note?: string;
+}
+
+export class CartItemChoiceOptionDto {
+  @IsUUID()
+  choiceOptionId!: string;
+}
+
+export class CartItemAddOnDto {
+  @IsUUID()
+  addOnId!: string;
 }

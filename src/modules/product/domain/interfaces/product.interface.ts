@@ -1,5 +1,6 @@
 import { Product } from '../entities/product.entity';
 import { Prisma } from '@prisma/client';
+import { ProductCart } from '../entities/product.entity';
 
 type ProductWithCategory = Prisma.ProductGetPayload<{
   include: { category: true };
@@ -70,4 +71,6 @@ export interface IProductRepository {
     productId: string,
   ): Promise<ProductDetailPrisma | null>;
 
+  findActiveProductForCart(productId: string): Promise<ProductCart | null>;
+  
 }

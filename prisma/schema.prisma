@@ -251,6 +251,8 @@ model SizeOption {
 
   isRequired Boolean @default(false)
 
+  cartItem CartItem[]
+
   createdAt DateTime @default(now())
 }
 
@@ -264,6 +266,8 @@ model ChoiceOption {
 
   isRequired Boolean @default(false)
 
+  choiceOptions CartItemChoiceOption[]
+
   createdAt DateTime @default(now())
 }
 
@@ -274,8 +278,9 @@ model AddOn {
 
   name      String   
   price     Float
-  
+
   isRequired Boolean @default(false)
+  addOns        CartItemAddOn[]
 
   createdAt DateTime @default(now())
 }
@@ -341,16 +346,42 @@ model CartItem {
   product     Product  @relation(fields: [productId], references: [id])
 
   quantity    Int      @default(1)
-
   price       Float    
+  note        String?  @db.Text
 
-  sizeOptionId   String?
-  choiceOptionIds String[]  
-  addOnIds        String[]
+  sizeOptionId  String?
+  sizeOption    SizeOption? @relation(fields: [sizeOptionId], references: [id])
+
+  choiceOptions CartItemChoiceOption[]
+  addOns        CartItemAddOn[]
 
   createdAt   DateTime @default(now())
 
   @@index([cartId])
+  @@index([productId])
+  @@index([sizeOptionId])
+}
+
+model CartItemChoiceOption {
+  cartItemId     String
+  choiceOptionId String
+
+  cartItem       CartItem     @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
+  choiceOption   ChoiceOption @relation(fields: [choiceOptionId], references: [id], onDelete: Cascade)
+
+  @@id([cartItemId, choiceOptionId])
+  @@index([choiceOptionId])
+}
+
+model CartItemAddOn {
+  cartItemId String
+  addOnId    String
+
+  cartItem   CartItem @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
+  addOn      AddOn    @relation(fields: [addOnId], references: [id], onDelete: Cascade)
+
+  @@id([cartItemId, addOnId])
+  @@index([addOnId])
 }
 
 enum VerificationStatus {

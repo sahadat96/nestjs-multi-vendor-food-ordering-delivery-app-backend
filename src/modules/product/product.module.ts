@@ -41,5 +41,6 @@ import { ProductRepository } from './infrastructure/repositories/product.reposit
       useClass: LocalStorageService,
     } 
   ],
+  exports: ['IProductRepository', ProductService],
 })
 export class ProductModule {}

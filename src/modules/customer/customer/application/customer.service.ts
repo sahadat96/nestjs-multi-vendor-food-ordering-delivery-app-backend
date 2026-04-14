@@ -6,6 +6,8 @@ import {
 import type { ICustomerRepository } from '../domain/interface/customer.repository.interface';
 import  { SetCustomerLocationDto } from '../presentation/dto/customer.dto';
 import { CustomerResponseDto } from '../presentation/dto/customer.response.dto';
+import { CustomerEntity } from '../domain/entities/customer.entity';
+import { CustomerMapper } from '../infrastructure/mapper/customer.mapper';
 
 @Injectable()
 export class CustomerService {
@@ -14,28 +16,29 @@ export class CustomerService {
     private readonly repo: ICustomerRepository,
   ) {}
 
+  async findActiveByUserId(userId: string): Promise<CustomerEntity | null> {
+    return this.repo.findByUserId(userId);
+  }
+
   async setLocation(
     userId: string,
     dto: SetCustomerLocationDto,
   ): Promise<CustomerResponseDto> {
-    let customer = await this.repo.findByUserId(userId);
+    const customer = await this.repo.findByUserId(userId);
+
+    let finalCustomer: CustomerEntity;
 
     if (!customer) {
-      customer = await this.repo.create({
+      finalCustomer = await this.repo.create({
         userId,
         latitude: dto.latitude,
         longitude: dto.longitude,
         address: dto.address,
       });
     } else {
-      customer = await this.repo.updateLocation(userId, dto);
+      finalCustomer = await this.repo.updateLocation(userId, dto);
     }
 
-    return {
-      id: customer.id,
-      latitude: customer.latitude,
-      longitude: customer.longitude,
-      address: customer.address,
-    };
+    return CustomerMapper.toResponse(finalCustomer);
   }
 }

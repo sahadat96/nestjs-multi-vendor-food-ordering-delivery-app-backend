@@ -16,6 +16,7 @@ import { ProductMapper } from '../infrastructure/mappers/product.mapper';
 import { SearchProductQueryDto } from '../presentation/dto/searchQuery.dto';
 import { UpdateProductStatusDto } from '../presentation/dto/product.dto';
 import { ProductDetailResponseDto } from '../presentation/dto/product.response.dto';
+import { ProductCart } from '../domain/entities/product.entity';
 
 @Injectable()
 export class ProductService {
@@ -32,6 +33,12 @@ export class ProductService {
     @Inject('IStorageService')
     private readonly storage: IStorageService,
   ) {}
+
+  async findActiveProductForCart(
+    productId: string,
+  ): Promise<ProductCart | null> {
+    return this.productRepo.findActiveProductForCart(productId);
+  }
 
   async getVendorCuisines(userId: string): Promise<Cuisine[]> {
     const vendor = await this.vendorRepo.findByOwnerId(userId);

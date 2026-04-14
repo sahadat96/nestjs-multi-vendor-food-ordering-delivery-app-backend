@@ -4,6 +4,8 @@ import { IProductRepository } from '../../domain/interfaces/product.interface';
 import { Product } from '../../domain/entities/product.entity';
 import { ProductMapper } from '../mappers/product.mapper';
 import { Prisma } from '@prisma/client';
+import { ProductCart } from '../../domain/entities/product.entity';
+import { ProductCartMapper } from '../mappers/product.mapper';
 
   type ProductDetailPrisma = Prisma.ProductGetPayload<{
     include: {
@@ -27,6 +29,28 @@ import { Prisma } from '@prisma/client';
 @Injectable()
 export class ProductRepository implements IProductRepository {
   constructor(private readonly prisma: PrismaService) {}
+
+  async findActiveProductForCart(
+    productId: string,
+  ): Promise<ProductCart | null> {
+    const product = await this.prisma.product.findFirst({
+      where: {
+        id: productId,
+        isActive: true,
+      },
+      include: {
+        sizeOptions: true,
+        choiceOptions: true,
+        addOns: true,
+      },
+    });
+
+    if (!product) {
+      return null;
+    }
+
+    return ProductCartMapper.toDomain(product);
+  }
 
   async createFullProduct(data: {
     vendorId: string;

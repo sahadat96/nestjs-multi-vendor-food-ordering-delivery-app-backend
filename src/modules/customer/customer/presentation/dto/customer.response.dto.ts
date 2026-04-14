@@ -1,6 +1,6 @@
 export class CustomerResponseDto {
   id!: string;
-  latitude!: number;
-  longitude!: number;
+  latitude?: number;
+  longitude?: number;
   address?: string;
 }
