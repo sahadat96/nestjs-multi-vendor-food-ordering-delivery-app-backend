@@ -22,3 +22,12 @@ export class CartItemResponseDto {
     name: string;
   }[];
 }
+
+export class CartResponseDto {
+  id!: string;
+  customerId!: string;
+
+  items!: CartItemResponseDto[];
+
+  totalAmount!: number;
+}
