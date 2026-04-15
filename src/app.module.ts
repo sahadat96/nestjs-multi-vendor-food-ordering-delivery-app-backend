@@ -17,7 +17,7 @@ import { VendorModule } from './modules/vendor/vendor/vendor.module';
 import { ProductModule } from './modules/product/product.module';
 import { CustomerModule } from './modules/customer/customer/customer.module';
 import { CartModule } from './modules/customer/cart/cart.module';
-
+import { OrderModule } from './modules/order/order.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -37,6 +37,7 @@ import { CartModule } from './modules/customer/cart/cart.module';
     ProductModule,
     CustomerModule,
     CartModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [

@@ -21,6 +21,10 @@ export class CartService {
     private readonly productRepo: ProductService,
   ) {}
 
+  async findCartByCustomerId(customerId: string): Promise<any | null> {
+    return this.cartRepository.findCartByCustomerId(customerId);
+  }
+
   async addItem(
     userId: string,
     dto: AddCartItemDto,
