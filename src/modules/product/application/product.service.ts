@@ -34,7 +34,7 @@ export class ProductService {
     private readonly storage: IStorageService,
   ) {}
 
-  async findActiveProductForCart(
+  async findActiveProductForCart( 
     productId: string,
   ): Promise<ProductCart | null> {
     return this.productRepo.findActiveProductForCart(productId);

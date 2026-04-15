@@ -92,6 +92,7 @@ model Vendor {
   serviceArea          ServiceArea?
   vendorVerification   VendorVerification?
   categories           Category[]
+  orders               Order[]
   
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -142,6 +143,7 @@ model Product {
   addOns            AddOn[]
   images            ProductImage[]
   cartItems         CartItem[]
+  orderItems        OrderItem[]
 
   createdAt   DateTime @default(now())
 }
@@ -315,7 +317,8 @@ model Customer {
   isActive        Boolean  @default(true)
   preferredRadius Float? 
 
-  cart  Cart?
+  cart   Cart?
+  orders Order[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -384,6 +387,101 @@ model CartItemAddOn {
   @@index([addOnId])
 }
 
+model Order {
+  id              String        @id @default(uuid())
+
+  orderNumber     String        @unique
+  customerId      String
+  customer        Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  vendorId        String
+  vendor          Vendor        @relation(fields: [vendorId], references: [id])
+
+  status          OrderStatus   @default(PENDING)
+  paymentMethod   PaymentMethod @default(COD)
+
+  subtotal         Float
+  tax              Float         @default(0)
+  serviceFee       Float         @default(0)
+  totalAmount      Float
+  note             String?       @db.Text
+  estimatedReadyAt DateTime?
+  confirmedAt      DateTime?
+  preparingAt      DateTime?
+  readyAt          DateTime?
+  completedAt      DateTime?
+  cancelledAt      DateTime?
+
+  orderItems       OrderItem[]
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([customerId])
+  @@index([vendorId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id              String   @id @default(uuid())
+
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId       String
+  product         Product  @relation(fields: [productId], references: [id])
+
+  productName     String
+  quantity        Int
+  unitPrice       Float
+  sizeName        String?
+  sizePrice       Float    @default(0)
+  lineTotal       Float
+  createdAt       DateTime @default(now())
+
+  orderItemChoiceOption  OrderItemChoiceOption[]
+  orderItemAddOn         OrderItemAddOn[]
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model OrderItemChoiceOption {
+  id             String    @id @default(uuid())
+
+  orderItemId    String
+  orderItem      OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  choiceOptionId String?
+  name           String
+  price          Float
+
+  @@index([orderItemId])
+}
+
+model OrderItemAddOn {
+  id          String    @id @default(uuid())
+
+  orderItemId String
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  addOnId     String?
+  name        String
+  price       Float
+
+  @@index([orderItemId])
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY_FOR_PICKUP
+  COMPLETED
+  CANCELLED
+}
+
 enum VerificationStatus {
   PENDING
   IN_REVIEW
@@ -392,7 +490,10 @@ enum VerificationStatus {
 }
 
 enum PaymentMethod {
-  COD 
+  COD
+  STRIPE
+  APPLE_PAY
+  GOOGLE_PAY
 }
 
 enum KycStatus {
