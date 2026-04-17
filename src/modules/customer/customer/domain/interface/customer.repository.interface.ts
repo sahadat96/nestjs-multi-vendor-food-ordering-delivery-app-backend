@@ -1,5 +1,5 @@
 import { CustomerEntity } from "../entities/customer.entity";
-
+import { NearbyVendorsQueryDto } from "../../presentation/dto/customer.dto";
 export interface ICustomerRepository {
 
   findByUserId(userId: string): Promise<CustomerEntity | null>;
@@ -19,4 +19,8 @@ export interface ICustomerRepository {
       address?: string;
     },
   ): Promise<any>;
+
+  findNearbyVendorCandidates(
+    query: NearbyVendorsQueryDto,
+  ): Promise<any[]>;
 }

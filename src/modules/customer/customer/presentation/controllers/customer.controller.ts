@@ -4,6 +4,7 @@ import {
   Body,
   UseGuards,
   Get,
+  Query,
 } from '@nestjs/common';
 import { CustomerService } from '../../application/customer.service';
 import { SetCustomerLocationDto } from '../dto/customer.dto';
@@ -16,6 +17,8 @@ import { CustomerResponseDto } from '../dto/customer.response.dto';
 import { ResponseMessage } from '@/common/decorators/response-message.decorator';
 import { HomeResponseDto } from '../dto/home.response.dto';
 import { HomeService } from '../../application/home.service';
+import { NearbyVendorsQueryDto } from '../dto/customer.dto';
+import { NearbyVendorsResponseDto } from '../dto/customer.response.dto';
 
 @Controller('customer')
 export class CustomerController {
@@ -42,6 +45,16 @@ export class CustomerController {
     @CurrentUser() user: AuthUser,
   ): Promise<HomeResponseDto> {
     return this.homeService.getHome(user.id);
+  }
+
+  @Get('nearby-vendors')
+  @UseGuards(RoleGuard)
+  @Roles(Role.USER) 
+  async getNearbyVendors(
+    @CurrentUser() user: AuthUser,
+    @Query() query: NearbyVendorsQueryDto,
+  ): Promise<NearbyVendorsResponseDto> {
+    return this.service.getNearbyVendors(user.id, query);
   }
 
 }

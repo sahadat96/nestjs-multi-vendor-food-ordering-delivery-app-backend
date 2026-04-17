@@ -65,13 +65,13 @@ model Otp {
 }
 
 model Vendor {
-  id              String   @id @default(uuid())
-  businessName    String?
-  publicEmail     String?
-  contactNumber   String?
-  bio             String?       @db.Text
-  coverImage      String?          
-  onboardingStep  Int           @default(1)
+  id                   String   @id @default(uuid())
+  businessName         String?
+  publicEmail          String?
+  contactNumber        String?
+  bio                  String?       @db.Text
+  coverImage           String?          
+  onboardingStep       Int           @default(1)
 
   ownerId              String   @unique
   owner                User     @relation(fields:[ownerId], references:[id])
@@ -94,6 +94,7 @@ model Vendor {
   vendorVerification   VendorVerification?
   categories           Category[]
   orders               Order[]
+  reviews              VendorReview[]
   
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -318,12 +319,12 @@ model Customer {
   isActive        Boolean  @default(true)
   preferredRadius Float? 
 
-  cart   Cart?
-  orders Order[]
+  cart            Cart?
+  orders          Order[]
+  reviews         VendorReview[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-
 }
 
 model Cart {
@@ -414,6 +415,7 @@ model Order {
   cancelledAt      DateTime?
 
   orderItems       OrderItem[]
+  reviews          VendorReview[]
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -472,6 +474,31 @@ model OrderItemAddOn {
   price       Float
 
   @@index([orderItemId])
+}
+
+model VendorReview {
+  id              String   @id @default(uuid())
+
+  vendorId        String
+  vendor          Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  customerId      String
+  customer        Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  orderId         String?
+  order           Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  rating          Int
+  reviewText      String?  @db.Text
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([vendorId])
+  @@index([customerId])
+  @@index([orderId])
+  @@index([createdAt])
+  @@unique([orderId])
 }
 
 enum OrderStatus {
