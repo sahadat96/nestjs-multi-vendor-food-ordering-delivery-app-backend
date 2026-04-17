@@ -494,11 +494,27 @@ model VendorReview {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  images          VendorReviewImage[]
+
   @@index([vendorId])
   @@index([customerId])
   @@index([orderId])
   @@index([createdAt])
   @@unique([orderId])
+}
+
+model VendorReviewImage {
+  id          String       @id @default(uuid())
+
+  reviewId    String
+  review      VendorReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  imageUrl     String
+  position     Int          @default(0)
+
+  createdAt    DateTime     @default(now())
+
+  @@index([reviewId])
 }
 
 enum OrderStatus {
