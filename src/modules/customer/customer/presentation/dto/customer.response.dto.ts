@@ -14,6 +14,9 @@ export class NearbyVendorCardResponseDto {
   isOpen!: boolean;
   statusLabel!: string;
   cuisines!: string[];
+
+  rating!: number;
+  reviewCount!: number;
 }
 
 export class NearbyVendorsResponseDto {

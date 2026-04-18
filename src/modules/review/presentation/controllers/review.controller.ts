@@ -23,9 +23,9 @@ export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
   @Post('create-review')
-  @UseInterceptors(FilesInterceptor('images', 5))
   @UseGuards(RoleGuard)
   @Roles(Role.USER) 
+  @UseInterceptors(FilesInterceptor('images', 5))
   @ResponseMessage('Review submitted successfully.')
   async createReview(
     @CurrentUser() user: AuthUser,

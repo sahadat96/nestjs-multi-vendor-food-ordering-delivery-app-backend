@@ -44,7 +44,7 @@ export class CustomerService {
     return CustomerMapper.toResponse(finalCustomer);
   }
 
-    async getNearbyVendors(
+  async getNearbyVendors(
     userId: string,
     query: NearbyVendorsQueryDto,
   ): Promise<NearbyVendorsResponseDto> {
@@ -83,17 +83,29 @@ export class CustomerService {
         };
       })
       .filter((vendor) => vendor.withinRadius)
-      .sort((a, b) => a.distanceKm - b.distanceKm);
+      .sort((a, b) => {
+        if (a.distanceKm !== b.distanceKm) {
+          return a.distanceKm - b.distanceKm;
+        }
+
+        if ((b.reviewAverage ?? 0) !== (a.reviewAverage ?? 0)) {
+          return (b.reviewAverage ?? 0) - (a.reviewAverage ?? 0);
+        }
+
+        return (b.reviewCount ?? 0) - (a.reviewCount ?? 0);
+      });
 
     const page = query.page ?? 1;
     const limit = query.limit ?? 10;
     const total = enriched.length;
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
     const start = (page - 1) * limit;
     const paginated = enriched.slice(start, start + limit);
 
     return {
-      items: paginated.map(CustomerMapper.toNearbyVendorCard),
+      items: paginated.map((vendor) =>
+        CustomerMapper.toNearbyVendorCard(vendor),
+      ),
       page,
       limit,
       total,
@@ -114,8 +126,8 @@ export class CustomerService {
     const dLng = toRad(lng2 - lng1);
 
     const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRad(lat1)) *
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) *
         Math.cos(toRad(lat2)) *
         Math.sin(dLng / 2) *
         Math.sin(dLng / 2);

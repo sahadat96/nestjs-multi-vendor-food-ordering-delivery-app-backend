@@ -59,7 +59,7 @@ export class CustomerRepository implements ICustomerRepository {
     });
   }
 
- async findNearbyVendorCandidates(
+  async findNearbyVendorCandidates(
     query: NearbyVendorsQueryDto,
   ): Promise<any[]> {
     const search = query.search?.trim();
@@ -166,6 +166,17 @@ export class CustomerRepository implements ICustomerRepository {
           },
         },
       },
+      orderBy: [
+        {
+          reviewAverage: 'desc',
+        },
+        {
+          reviewCount: 'desc',
+        },
+        {
+          createdAt: 'desc',
+        },
+      ],
     });
   }
 

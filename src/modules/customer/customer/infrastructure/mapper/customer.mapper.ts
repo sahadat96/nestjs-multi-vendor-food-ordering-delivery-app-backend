@@ -27,6 +27,9 @@ export class CustomerMapper {
       isOpen: vendor.availability?.isOpen ?? false,
       statusLabel: vendor.availability?.label ?? 'Unknown',
       cuisines: vendor.cuisines?.map((item: any) => item.cuisine.name) ?? [],
+
+      rating: Number((vendor.reviewAverage ?? 0).toFixed(1)),
+      reviewCount: vendor.reviewCount ?? 0,
     };
   }
 
