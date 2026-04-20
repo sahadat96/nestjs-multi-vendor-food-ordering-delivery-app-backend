@@ -1,9 +1,13 @@
 import { Vendor } from '../../domain/entities/vendor.entity';
-import { VendorMenuResponseDto } from '../../presentation/dto/vendor.response.dto';
+import { 
+   VendorMenuResponseDto,
+   VendorInfoResponseDto 
+  } from '../../presentation/dto/vendor.response.dto';
 
 export class VendorMapper {
 
   static toDomain(raw: any): Vendor {
+
     return new Vendor({
       id: raw.id,
       ownerId: raw.ownerId,
@@ -20,7 +24,7 @@ export class VendorMapper {
       subscriptionExpiry: raw.subscriptionExpiry ?? null,
 
       createdAt: raw.createdAt,
-      updatedAt: raw.updatedAt,
+      updatedAt: raw.updatedAt, 
     });
   }
 
@@ -93,4 +97,65 @@ export class VendorMapper {
       sections: Array.from(grouped.values()),
     };
   }
+
+  static toInfoResponse(vendor: any): VendorInfoResponseDto {
+    return {
+      id: vendor.id,
+      bio: vendor.bio ?? undefined,
+      publicEmail: vendor.publicEmail ?? undefined,
+      contactNumber: vendor.contactNumber ?? undefined,
+      address: vendor.serviceArea?.address ?? undefined,
+      latitude: vendor.serviceArea?.latitude ?? undefined,
+      longitude: vendor.serviceArea?.longitude ?? undefined,
+      radius: vendor.serviceArea?.radius ?? undefined,
+      openingHours: (vendor.operationHours ?? []).map((item: any) => ({
+        dayOfWeek: item.dayOfWeek,
+        dayLabel: VendorMapper.getDayLabel(item.dayOfWeek),
+        openTime: item.openTime,
+        closeTime: item.closeTime,
+        isClosed: item.isClosed,
+      })),
+      socialLinks: (vendor.socialLinks ?? []).map((item: any) => ({
+        platform: VendorMapper.detectSocialPlatform(item.url),
+        url: item.url,
+      })),
+    };
+  }
+
+  private static getDayLabel(dayOfWeek: number): string {
+    const days = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
+
+    return days[dayOfWeek] ?? 'Unknown';
+  }
+
+  private static detectSocialPlatform(url?: string | null): string {
+    if (!url) {
+      return 'Website';
+    }
+
+    const normalized = url.toLowerCase();
+
+    if (normalized.includes('instagram.com')) return 'Instagram';
+    if (normalized.includes('facebook.com')) return 'Facebook';
+    if (normalized.includes('tiktok.com')) return 'TikTok';
+    if (normalized.includes('youtube.com') || normalized.includes('youtu.be')) {
+      return 'YouTube';
+    }
+    if (normalized.includes('twitter.com') || normalized.includes('x.com')) {
+      return 'Twitter';
+    }
+    if (normalized.includes('whatsapp.com') || normalized.includes('wa.me')) {
+      return 'WhatsApp';
+    }
+
+    return 'Website';
+  } 
 }

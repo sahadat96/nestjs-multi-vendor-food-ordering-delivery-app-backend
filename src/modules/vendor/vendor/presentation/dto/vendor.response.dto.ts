@@ -32,3 +32,29 @@ export class VendorMenuResponseDto {
   vendor!: VendorMenuVendorInfoResponseDto;
   sections!: VendorMenuSectionResponseDto[];
 }
+
+export class VendorInfoOpeningHourResponseDto {
+  dayOfWeek!: number;
+  dayLabel!: string;
+  openTime?: string | null;
+  closeTime?: string | null;
+  isClosed!: boolean;
+}
+
+export class VendorInfoSocialLinkResponseDto {
+  platform!: string;
+  url!: string;
+}
+
+export class VendorInfoResponseDto {
+  id!: string;
+  bio?: string;
+  publicEmail?: string;
+  contactNumber?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+  openingHours!: VendorInfoOpeningHourResponseDto[];
+  socialLinks!: VendorInfoSocialLinkResponseDto[];
+}

@@ -118,4 +118,21 @@ export class VendorRepository implements IVendorRepository {
 
     return vendor;
   }
+
+  async findVendorInfoById(vendorId: string): Promise<any | null> {
+    return this.prisma.vendor.findUnique({
+      where: { id: vendorId },
+      include: {
+        serviceArea: true,
+        operationHours: {
+          orderBy: [
+            { dayOfWeek: 'asc' },
+            { priority: 'asc' },
+            { activeFrom: 'desc' },
+          ],
+        },
+        socialLinks: true,
+      },
+    });
+  }
 }

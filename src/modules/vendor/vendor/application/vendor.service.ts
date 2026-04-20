@@ -3,6 +3,7 @@ import type { IVendorRepository } from '../domain/interface/vendor.repository.in
 import { VendorMenuQueryDto } from '../presentation/dto/vendor.dto';
 import { VendorMenuResponseDto } from '../presentation/dto/vendor.response.dto';
 import { VendorMapper } from '../infrastructure/mapper/vendor.mapper';
+import { VendorInfoResponseDto } from '../presentation/dto/vendor.response.dto';
 
 @Injectable()
 export class VendorService {
@@ -29,7 +30,7 @@ export class VendorService {
   ): Promise<VendorMenuResponseDto> {
     const vendor = await this.vendorRepository.findVendorMenuById(vendorId, query);
 
-    if (!vendor) {
+    if (!vendor) {  
       throw new NotFoundException('Vendor not found');
     }
 
@@ -167,5 +168,17 @@ export class VendorService {
     }
 
     return address.split(',')[0]?.trim() || undefined;
+  }
+
+  async getVendorInfo(
+    vendorId: string,
+  ): Promise<VendorInfoResponseDto> {
+    const vendor = await this.vendorRepository.findVendorInfoById(vendorId);
+
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    return VendorMapper.toInfoResponse(vendor);
   }
 }

@@ -11,4 +11,6 @@ export interface IVendorRepository {
     vendorId: string,
     query: VendorMenuQueryDto,
   ): Promise<any | null>;
+
+  findVendorInfoById(vendorId: string): Promise<any | null>;
 }
