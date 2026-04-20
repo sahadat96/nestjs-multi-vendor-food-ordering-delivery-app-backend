@@ -98,6 +98,7 @@ model Vendor {
   categories           Category[]
   orders               Order[]
   reviews              VendorReview[]
+  truckGalleryImages   TruckGalleryImage[]
   
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -536,6 +537,22 @@ model VendorReviewTagMap {
 
   @@id([reviewId, tagId])
   @@index([tagId])
+}
+
+model TruckGalleryImage {
+  id         String   @id @default(uuid())
+
+  vendorId   String
+  vendor     Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  url        String
+  caption    String?
+  isPrimary  Boolean  @default(false)
+  position   Int      @default(0)
+
+  createdAt  DateTime @default(now())
+
+  @@index([vendorId])
 }
 
 enum OrderStatus {

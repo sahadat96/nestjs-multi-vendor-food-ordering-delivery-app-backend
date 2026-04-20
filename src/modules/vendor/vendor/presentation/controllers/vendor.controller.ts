@@ -20,8 +20,7 @@ export class VendorController {
 
   @Get('me')
   async getMyVendor(@Req() req: any) {
-    const userId = req.user.sub; 
-
+    const userId = req.user.sub;
     return this.VendorService.execute(userId);
   }
 
