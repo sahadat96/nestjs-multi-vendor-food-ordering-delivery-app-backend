@@ -8,8 +8,14 @@ import  { SetCustomerLocationDto } from '../presentation/dto/customer.dto';
 import { CustomerResponseDto } from '../presentation/dto/customer.response.dto';
 import { CustomerEntity } from '../domain/entities/customer.entity';
 import { CustomerMapper } from '../infrastructure/mapper/customer.mapper';
-import { NearbyVendorsQueryDto } from '../presentation/dto/customer.dto';
-import { NearbyVendorsResponseDto } from '../presentation/dto/customer.response.dto';
+import { 
+  NearbyVendorsQueryDto, 
+  TopPicksQueryDto,
+} from '../presentation/dto/customer.dto';
+import { 
+  NearbyVendorsResponseDto, 
+  TopPicksResponseDto,
+ } from '../presentation/dto/customer.response.dto';
 
 @Injectable()
 export class CustomerService {
@@ -105,6 +111,87 @@ export class CustomerService {
     return {
       items: paginated.map((vendor) =>
         CustomerMapper.toNearbyVendorCard(vendor),
+      ),
+      page,
+      limit,
+      total,
+      totalPages,
+    };
+  }
+
+  async getTopPicks(
+    userId: string,
+    query: TopPicksQueryDto,
+  ): Promise<TopPicksResponseDto> {
+    const customer = await this.repo.findByUserId(userId);
+
+    if (
+      !customer ||
+      !customer.isActive ||
+      customer.latitude === null ||
+      customer.longitude === null
+    ) {
+      throw new BadRequestException(
+        'Customer location is required to load top picks',
+      );
+    }
+
+    const products = await this.repo.findTopPickProducts(query);
+
+    const enriched = products
+      .map((product) => {
+        const vendorLat = product.vendor?.serviceArea?.latitude;
+        const vendorLng = product.vendor?.serviceArea?.longitude;
+        const radiusKm = product.vendor?.serviceArea?.radius ?? 0;
+
+        const distanceKm =
+          vendorLat !== undefined &&
+          vendorLat !== null &&
+          vendorLng !== undefined &&
+          vendorLng !== null
+            ? this.calculateDistanceKm(
+                customer.latitude!,
+                customer.longitude!,
+                vendorLat,
+                vendorLng,
+              )
+            : Number.MAX_SAFE_INTEGER;
+
+        const withinRadius = radiusKm > 0 ? distanceKm <= radiusKm : true;
+
+        return {
+          ...product,
+          distanceKm,
+          withinRadius,
+        };
+      })
+      .filter((product) => product.withinRadius)
+      .sort((a, b) => {
+        if ((b.vendor?.reviewAverage ?? 0) !== (a.vendor?.reviewAverage ?? 0)) {
+          return (b.vendor?.reviewAverage ?? 0) - (a.vendor?.reviewAverage ?? 0);
+        }
+
+        if ((b.vendor?.reviewCount ?? 0) !== (a.vendor?.reviewCount ?? 0)) {
+          return (b.vendor?.reviewCount ?? 0) - (a.vendor?.reviewCount ?? 0);
+        }
+
+        if (a.distanceKm !== b.distanceKm) {
+          return a.distanceKm - b.distanceKm;
+        }
+
+        return a.price - b.price;
+      });
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const total = enriched.length;
+    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+    const start = (page - 1) * limit;
+    const paginated = enriched.slice(start, start + limit);
+
+    return {
+      items: paginated.map((product) =>
+        CustomerMapper.toTopPickProductCard(product),
       ),
       page,
       limit,
@@ -213,6 +300,7 @@ export class CustomerService {
 
     return `${normalizedHour}:${minute}${suffix}`;
   }
+
 
 
 }

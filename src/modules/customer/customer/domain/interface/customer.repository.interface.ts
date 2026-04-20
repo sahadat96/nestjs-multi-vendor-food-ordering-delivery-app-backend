@@ -1,7 +1,9 @@
 import { CustomerEntity } from "../entities/customer.entity";
 import { NearbyVendorsQueryDto } from "../../presentation/dto/customer.dto";
-export interface ICustomerRepository {
+import { TopPicksQueryDto } from "../../presentation/dto/customer.dto";
 
+export interface ICustomerRepository {
+  
   findByUserId(userId: string): Promise<CustomerEntity | null>;
 
   create(data: {
@@ -22,5 +24,9 @@ export interface ICustomerRepository {
 
   findNearbyVendorCandidates(
     query: NearbyVendorsQueryDto,
+  ): Promise<any[]>;
+
+  findTopPickProducts(
+    query: TopPicksQueryDto,
   ): Promise<any[]>;
 }

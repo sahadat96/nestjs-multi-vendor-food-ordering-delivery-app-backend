@@ -4,6 +4,8 @@ import {
   NearbyVendorCardResponseDto,
 } from '../../presentation/dto/customer.response.dto';
 
+import { TopPickProductCardResponseDto } from '../../presentation/dto/customer.response.dto';
+
 export class CustomerMapper {
   static toResponse(entity: CustomerEntity): CustomerResponseDto {
     return {
@@ -41,5 +43,20 @@ export class CustomerMapper {
     }
 
     return address.split(',')[0]?.trim() || undefined;
+  }
+
+  static toTopPickProductCard(product: any): TopPickProductCardResponseDto {
+    return {
+      id: product.id,
+      name: product.name,
+      image: product.images?.[0]?.url ?? undefined,
+      price: product.price,
+      vendorId: product.vendorId,
+      vendorName: product.vendor?.businessName ?? 'Unnamed Vendor',
+      rating: Number((product.vendor?.reviewAverage ?? 0).toFixed(1)),
+      reviewCount: product.vendor?.reviewCount ?? 0,
+      categoryName: product.category?.name ?? undefined,
+      distanceKm: Number(product.distanceKm.toFixed(1)),
+    };
   }
 }

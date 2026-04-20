@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ICustomerRepository } from '../../domain/interface/customer.repository.interface';
 import { CustomerEntity } from '../../domain/entities/customer.entity';
-import { NearbyVendorsQueryDto } from '../../presentation/dto/customer.dto';
+import { NearbyVendorsQueryDto, TopPicksQueryDto } from '../../presentation/dto/customer.dto';
 import { Prisma, } from '@prisma/client';
 
 @Injectable()
@@ -180,4 +180,71 @@ export class CustomerRepository implements ICustomerRepository {
     });
   }
 
+  async findTopPickProducts(
+    query: TopPicksQueryDto,
+  ): Promise<any[]> {
+    const search = query.search?.trim();
+    const category = query.category?.trim();
+
+    const where: Prisma.ProductWhereInput = {
+      isActive: true,
+      vendor: {
+        serviceArea: {
+          isNot: null,
+        },
+      },
+    };
+
+    const andConditions: Prisma.ProductWhereInput[] = [];
+
+    if (search) {
+      andConditions.push({
+        name: {
+          contains: search,
+          mode: Prisma.QueryMode.insensitive,
+        },
+      });
+    }
+
+    if (category) {
+      andConditions.push({
+        category: {
+          name: {
+            contains: category,
+            mode: Prisma.QueryMode.insensitive,
+          },
+        },
+      });
+    }
+
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
+    }
+
+    return this.prisma.product.findMany({
+      where,
+      include: {
+        vendor: {
+          include: {
+            serviceArea: true,
+          },
+        },
+        category: true,
+        images: {
+          orderBy: { position: 'asc' },
+          take: 1,
+        },
+      },
+      orderBy: [
+        {
+          vendor: {
+            reviewAverage: 'desc',
+          },
+        },
+        {
+          createdAt: 'desc',
+        },
+      ],
+    });
+  }
 }
