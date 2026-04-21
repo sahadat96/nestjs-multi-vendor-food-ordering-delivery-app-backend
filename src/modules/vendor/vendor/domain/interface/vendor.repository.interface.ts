@@ -13,4 +13,16 @@ export interface IVendorRepository {
   ): Promise<any | null>;
 
   findVendorInfoById(vendorId: string): Promise<any | null>;
+
+  resetTruckGalleryPrimary(vendorId: string): Promise<void>;
+
+  createTruckGalleryImages(data: {
+    vendorId: string;
+    images: {
+      url: string;
+      caption?: string;
+      isPrimary?: boolean;
+      position?: number;
+    }[];
+  }): Promise<void>;
 }

@@ -3,6 +3,7 @@ import {
    VendorMenuResponseDto,
    VendorInfoResponseDto 
   } from '../../presentation/dto/vendor.response.dto';
+import { UploadTruckGalleryResponseDto } from '../../presentation/dto/vendor.response.dto';
 
 export class VendorMapper {
 
@@ -158,4 +159,10 @@ export class VendorMapper {
 
     return 'Website';
   } 
+
+  static toUploadTruckGalleryResponse(): UploadTruckGalleryResponseDto {
+    return {
+      message: 'Truck gallery images uploaded successfully',
+    };
+  }
 }

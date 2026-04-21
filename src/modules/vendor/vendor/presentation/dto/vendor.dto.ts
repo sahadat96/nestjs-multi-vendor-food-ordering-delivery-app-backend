@@ -4,8 +4,10 @@ import {
   IsString,
   Max,
   Min,
+  MaxLength,
+  IsBoolean,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export class VendorMenuQueryDto {
   @IsOptional()
@@ -28,4 +30,23 @@ export class VendorMenuQueryDto {
   @Min(1)
   @Max(100)
   limit?: number = 20;
+}
+
+
+export class UploadTruckGalleryDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  caption?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  isPrimary?: boolean;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  position?: number;
 }

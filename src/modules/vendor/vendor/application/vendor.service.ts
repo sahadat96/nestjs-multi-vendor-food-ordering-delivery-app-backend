@@ -1,16 +1,33 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { 
+  Injectable,
+  NotFoundException, 
+  Inject, 
+  BadRequestException
+} from '@nestjs/common';
+
 import type { IVendorRepository } from '../domain/interface/vendor.repository.interface';
-import { VendorMenuQueryDto } from '../presentation/dto/vendor.dto';
-import { VendorMenuResponseDto } from '../presentation/dto/vendor.response.dto';
 import { VendorMapper } from '../infrastructure/mapper/vendor.mapper';
-import { VendorInfoResponseDto } from '../presentation/dto/vendor.response.dto';
+
+import { 
+  VendorMenuQueryDto,
+  UploadTruckGalleryDto,
+ } from '../presentation/dto/vendor.dto';
+
+import { 
+  VendorMenuResponseDto,
+  UploadTruckGalleryResponseDto,
+  VendorInfoResponseDto,
+ } from '../presentation/dto/vendor.response.dto';
+
+import { LocalStorageService } from '@/common/storage/local.storage.service';
 
 @Injectable()
 export class VendorService {
 
   constructor(
     @Inject('IVendorRepository') 
-    private readonly vendorRepository: IVendorRepository
+    private readonly vendorRepository: IVendorRepository,
+    private readonly storageService: LocalStorageService
   ) {}
 
   async execute(ownerId: string) {
@@ -180,5 +197,43 @@ export class VendorService {
     }
 
     return VendorMapper.toInfoResponse(vendor);
+  }
+
+  async uploadTruckGalleryImages(
+    userId: string,
+    dto: UploadTruckGalleryDto,
+    files: Express.Multer.File[],
+  ): Promise<UploadTruckGalleryResponseDto> {
+    const vendor = await this.vendorRepository.findByOwnerId(userId);
+
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    if (!files || files.length === 0) {
+      throw new BadRequestException('At least one gallery image is required');
+    }
+
+    if (dto.isPrimary) {
+      await this.vendorRepository.resetTruckGalleryPrimary(vendor.id);
+    }
+
+    const folder = `vendor/truck-gallery/${vendor.id}`;
+
+    const uploadedUrls = await Promise.all(
+      files.map((file) => this.storageService.uploadFile(file, folder)),
+    );
+
+    await this.vendorRepository.createTruckGalleryImages({
+      vendorId: vendor.id,
+      images: uploadedUrls.map((url, index) => ({
+        url,
+        caption: dto.caption,
+        isPrimary: dto.isPrimary ?? false,
+        position: dto.position ?? index,
+      })),
+    });
+
+    return VendorMapper.toUploadTruckGalleryResponse();
   }
 }

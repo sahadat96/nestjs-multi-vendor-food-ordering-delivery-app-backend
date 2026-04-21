@@ -135,4 +135,31 @@ export class VendorRepository implements IVendorRepository {
       },
     });
   }
+
+  async resetTruckGalleryPrimary(vendorId: string): Promise<void> {
+    await this.prisma.truckGalleryImage.updateMany({
+      where: { vendorId },
+      data: { isPrimary: false },
+    });
+  }
+
+  async createTruckGalleryImages(data: {
+    vendorId: string;
+    images: {
+      url: string;
+      caption?: string;
+      isPrimary?: boolean;
+      position?: number;
+    }[];
+  }): Promise<void> {
+    await this.prisma.truckGalleryImage.createMany({
+      data: data.images.map((image, index) => ({
+        vendorId: data.vendorId,
+        url: image.url,
+        caption: image.caption,
+        isPrimary: image.isPrimary ?? false,
+        position: image.position ?? index,
+      })),
+    });
+  }
 }

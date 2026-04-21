@@ -58,3 +58,16 @@ export class VendorInfoResponseDto {
   openingHours!: VendorInfoOpeningHourResponseDto[];
   socialLinks!: VendorInfoSocialLinkResponseDto[];
 }
+
+export class TruckGalleryImageResponseDto {
+  id!: string;
+  url!: string;
+  caption?: string;
+  isPrimary!: boolean;
+  position!: number;
+  createdAt!: Date;
+}
+
+export class UploadTruckGalleryResponseDto {
+  message!: string;
+}
