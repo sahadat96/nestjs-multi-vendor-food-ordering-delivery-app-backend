@@ -11,9 +11,12 @@ import {
   UploadedFiles,
 } from '@nestjs/common';
 
+import { FilesInterceptor } from '@nestjs/platform-express';
+
 import { 
   VendorMenuQueryDto,
   UploadTruckGalleryDto,
+  VendorReviewsQueryDto,
  } from '../dto/vendor.dto';
 
 import { 
@@ -21,16 +24,18 @@ import {
   VendorInfoResponseDto,
   UploadTruckGalleryResponseDto,
   TruckGalleryResponseDto,
+  VendorReviewsResponseDto,
  } from '../dto/vendor.response.dto';
 
 import { VendorService } from '../../application/vendor.service';
+
 import { Public } from 'src/common/decorators/public.decorator';
 import { RoleGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { Role } from 'src/common/enums/role.enum';
-import { CurrentUser } from '@/modules/auth/decorators/get-user.decorator';
-import { FilesInterceptor } from '@nestjs/platform-express';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
+import { Role } from 'src/common/enums/role.enum';
+
+import { CurrentUser } from '@/modules/auth/decorators/get-user.decorator';
 import type { AuthUser } from '@/modules/auth/domain/interfaces/auth-user.interface';
 
 @Controller('vendor')
@@ -45,6 +50,7 @@ export class VendorController {
     return this.VendorService.execute(userId);
   }
 
+  @Public()
   @Get(':vendorId/menu')
   async getVendorMenu(
     @Param('vendorId') vendorId: string,
@@ -53,6 +59,7 @@ export class VendorController {
     return this.VendorService.getVendorMenu(vendorId, query);
   }
 
+  @Public()
   @Get(':vendorId/info')
   async getVendorInfo(
     @Param('vendorId') vendorId: string,
@@ -73,10 +80,20 @@ export class VendorController {
     return this.VendorService.uploadTruckGalleryImages(user.id, dto, files);
   }
 
+  @Public()
   @Get(':vendorId/truck-gallery')
   async getTruckGallery(
     @Param('vendorId') vendorId: string,
   ): Promise<TruckGalleryResponseDto> {
     return this.VendorService.getTruckGallery(vendorId);
+  }
+
+  @Public()
+  @Get(':vendorId/reviews')
+  async getVendorReviews(
+    @Param('vendorId') vendorId: string,
+    @Query() query: VendorReviewsQueryDto,
+  ): Promise<VendorReviewsResponseDto> {
+    return this.VendorService.getVendorReviews(vendorId, query);
   }
 }

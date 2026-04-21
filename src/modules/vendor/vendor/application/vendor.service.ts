@@ -11,6 +11,7 @@ import { VendorMapper } from '../infrastructure/mapper/vendor.mapper';
 import { 
   VendorMenuQueryDto,
   UploadTruckGalleryDto,
+  VendorReviewsQueryDto,
  } from '../presentation/dto/vendor.dto';
 
 import { 
@@ -18,6 +19,7 @@ import {
   UploadTruckGalleryResponseDto,
   VendorInfoResponseDto,
   TruckGalleryResponseDto,
+  VendorReviewsResponseDto,
  } from '../presentation/dto/vendor.response.dto';
 
 import { LocalStorageService } from '@/common/storage/local.storage.service';
@@ -248,5 +250,36 @@ export class VendorService {
     }
 
     return VendorMapper.toTruckGalleryResponse(vendor);
+  }
+
+   async getVendorReviews(
+    vendorId: string,
+    query: VendorReviewsQueryDto,
+  ): Promise<VendorReviewsResponseDto> {
+    const vendor = await this.vendorRepository.findVendorReviewSummaryById(vendorId);
+
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    const reviews = await this.vendorRepository.findVendorReviewsByVendorId(vendorId);
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const total = reviews.length;
+    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+    const start = (page - 1) * limit;
+    const paginated = reviews.slice(start, start + limit);
+
+    return VendorMapper.toVendorReviewsResponse({
+      vendorId: vendor.id,
+      reviewAverage: vendor.reviewAverage,
+      reviewCount: vendor.reviewCount,
+      reviews: paginated,
+      page,
+      limit,
+      total,
+      totalPages,
+    });
   }
 }

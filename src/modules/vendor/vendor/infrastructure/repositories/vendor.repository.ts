@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
+
 import { PrismaService } from 'src/prisma/prisma.service';
+import { Prisma, PrismaClient } from '@prisma/client';
+
 import { IVendorRepository } from '../../domain/interface/vendor.repository.interface';
 import { Vendor } from '../../domain/entities/vendor.entity';
+
 import { VendorMapper } from '../mapper/vendor.mapper';
-import { Prisma, PrismaClient } from '@prisma/client';
+
 import { VendorMenuQueryDto } from '../../presentation/dto/vendor.dto';
 
 @Injectable()
@@ -193,6 +197,53 @@ export class VendorRepository implements IVendorRepository {
             createdAt: true,
           },
         },
+      },
+    });
+  }
+
+  async findVendorReviewSummaryById(vendorId: string): Promise<{
+    id: string;
+    reviewAverage: number;
+    reviewCount: number;
+  } | null> {
+    return this.prisma.vendor.findUnique({
+      where: { id: vendorId },
+      select: {
+        id: true,
+        reviewAverage: true,
+        reviewCount: true,
+      },
+    });
+  }
+
+  async findVendorReviewsByVendorId(vendorId: string): Promise<any[]> {
+    return this.prisma.vendorReview.findMany({
+      where: { vendorId },
+      include: {
+        customer: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+              },
+            },
+          },
+        },
+        images: {
+          orderBy: {
+            position: 'asc',
+          },
+        },
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
   }

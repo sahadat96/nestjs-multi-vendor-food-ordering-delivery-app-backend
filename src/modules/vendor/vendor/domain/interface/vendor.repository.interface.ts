@@ -37,4 +37,14 @@ export interface IVendorRepository {
       createdAt: Date;
     }[];
   } | null>;
+
+  findVendorReviewSummaryById(vendorId: string): Promise<{
+    id: string;
+    reviewAverage: number;
+    reviewCount: number;
+  } | null>;
+
+  findVendorReviewsByVendorId(
+    vendorId: string,
+  ): Promise<any[]>;
 }
