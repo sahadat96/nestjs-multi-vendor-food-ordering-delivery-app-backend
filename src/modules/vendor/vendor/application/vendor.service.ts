@@ -17,6 +17,7 @@ import {
   VendorMenuResponseDto,
   UploadTruckGalleryResponseDto,
   VendorInfoResponseDto,
+  TruckGalleryResponseDto,
  } from '../presentation/dto/vendor.response.dto';
 
 import { LocalStorageService } from '@/common/storage/local.storage.service';
@@ -235,5 +236,17 @@ export class VendorService {
     });
 
     return VendorMapper.toUploadTruckGalleryResponse();
+  }
+
+  async getTruckGallery(
+    vendorId: string,
+  ): Promise<TruckGalleryResponseDto> {
+    const vendor = await this.vendorRepository.findTruckGalleryByVendorId(vendorId);
+
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    return VendorMapper.toTruckGalleryResponse(vendor);
   }
 }

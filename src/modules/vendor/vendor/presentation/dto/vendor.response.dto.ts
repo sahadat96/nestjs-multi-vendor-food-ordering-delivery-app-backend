@@ -71,3 +71,8 @@ export class TruckGalleryImageResponseDto {
 export class UploadTruckGalleryResponseDto {
   message!: string;
 }
+
+export class TruckGalleryResponseDto {
+  vendorId!: string;
+  items!: TruckGalleryImageResponseDto[];
+}

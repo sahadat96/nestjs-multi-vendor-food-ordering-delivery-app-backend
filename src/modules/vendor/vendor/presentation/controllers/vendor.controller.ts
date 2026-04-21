@@ -10,16 +10,20 @@ import {
   Body,
   UploadedFiles,
 } from '@nestjs/common';
-import { VendorService } from '../../application/vendor.service';
+
 import { 
   VendorMenuQueryDto,
   UploadTruckGalleryDto,
  } from '../dto/vendor.dto';
+
 import { 
   VendorMenuResponseDto,
   VendorInfoResponseDto,
   UploadTruckGalleryResponseDto,
+  TruckGalleryResponseDto,
  } from '../dto/vendor.response.dto';
+
+import { VendorService } from '../../application/vendor.service';
 import { Public } from 'src/common/decorators/public.decorator';
 import { RoleGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -28,7 +32,6 @@ import { CurrentUser } from '@/modules/auth/decorators/get-user.decorator';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 import type { AuthUser } from '@/modules/auth/domain/interfaces/auth-user.interface';
-
 
 @Controller('vendor')
 export class VendorController {
@@ -68,5 +71,12 @@ export class VendorController {
     @UploadedFiles() files: Express.Multer.File[],
   ): Promise<UploadTruckGalleryResponseDto> {
     return this.VendorService.uploadTruckGalleryImages(user.id, dto, files);
+  }
+
+  @Get(':vendorId/truck-gallery')
+  async getTruckGallery(
+    @Param('vendorId') vendorId: string,
+  ): Promise<TruckGalleryResponseDto> {
+    return this.VendorService.getTruckGallery(vendorId);
   }
 }

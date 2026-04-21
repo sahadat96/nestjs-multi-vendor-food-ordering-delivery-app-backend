@@ -1,9 +1,14 @@
 import { Vendor } from '../../domain/entities/vendor.entity';
+
 import { 
    VendorMenuResponseDto,
    VendorInfoResponseDto 
   } from '../../presentation/dto/vendor.response.dto';
-import { UploadTruckGalleryResponseDto } from '../../presentation/dto/vendor.response.dto';
+
+import { 
+  UploadTruckGalleryResponseDto,
+  TruckGalleryResponseDto,
+ } from '../../presentation/dto/vendor.response.dto';
 
 export class VendorMapper {
 
@@ -163,6 +168,30 @@ export class VendorMapper {
   static toUploadTruckGalleryResponse(): UploadTruckGalleryResponseDto {
     return {
       message: 'Truck gallery images uploaded successfully',
+    };
+  }
+
+   static toTruckGalleryResponse(vendor: {
+    id: string;
+    truckGalleryImages: {
+      id: string;
+      url: string;
+      caption: string | null;
+      isPrimary: boolean;
+      position: number;
+      createdAt: Date;
+    }[];
+  }): TruckGalleryResponseDto {
+    return {
+      vendorId: vendor.id,
+      items: vendor.truckGalleryImages.map((image) => ({
+        id: image.id,
+        url: image.url,
+        caption: image.caption ?? undefined,
+        isPrimary: image.isPrimary,
+        position: image.position,
+        createdAt: image.createdAt,
+      })),
     };
   }
 }

@@ -25,4 +25,16 @@ export interface IVendorRepository {
       position?: number;
     }[];
   }): Promise<void>;
+
+  findTruckGalleryByVendorId(vendorId: string): Promise<{
+    id: string;
+    truckGalleryImages: {
+      id: string;
+      url: string;
+      caption: string | null;
+      isPrimary: boolean;
+      position: number;
+      createdAt: Date;
+    }[];
+  } | null>;
 }
