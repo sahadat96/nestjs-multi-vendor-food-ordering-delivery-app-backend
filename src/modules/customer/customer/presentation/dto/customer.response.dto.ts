@@ -90,3 +90,32 @@ export class ExploreMapResponseDto {
   total!: number;
   totalPages!: number;
 }
+
+export class FoodCardResponseDto {
+  id!: string;
+  name!: string;
+  description!: string;
+  price!: number;
+  image?: string;
+
+  vendorId!: string;
+  vendorName!: string;
+
+  categoryName?: string;
+  cuisines!: string[];
+
+  rating!: number;
+  reviewCount!: number;
+
+  distanceKm!: number;
+  isOpen!: boolean;
+  statusLabel!: string;
+}
+
+export class FoodFilterResponseDto {
+  items!: FoodCardResponseDto[];
+  page!: number;
+  limit!: number;
+  total!: number;
+  totalPages!: number;
+}

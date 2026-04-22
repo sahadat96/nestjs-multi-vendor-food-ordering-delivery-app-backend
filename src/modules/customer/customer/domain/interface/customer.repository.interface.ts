@@ -2,8 +2,9 @@ import { CustomerEntity } from "../entities/customer.entity";
 import { 
   NearbyVendorsQueryDto,
   ExploreMapQueryDto,
+  FoodFilterQueryDto,
  } from "../../presentation/dto/customer.dto";
- 
+
 import { TopPicksQueryDto } from "../../presentation/dto/customer.dto";
 
 export interface ICustomerRepository {
@@ -36,5 +37,9 @@ export interface ICustomerRepository {
 
   findExploreMapVendorCandidates(
     query: ExploreMapQueryDto,
+  ): Promise<any[]>;
+
+  findFoodCandidates(
+    query: FoodFilterQueryDto,
   ): Promise<any[]>;
 }
