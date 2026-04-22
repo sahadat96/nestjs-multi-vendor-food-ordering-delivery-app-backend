@@ -2,6 +2,7 @@ import {
   Injectable,
   Inject,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 
 import type { ICustomerRepository } from '../domain/interface/customer.repository.interface';
@@ -502,6 +503,41 @@ export class CustomerService {
       total,
       totalPages,
     };
+  }
+
+  async toggleFavoriteProduct(
+    userId: string,
+    productId: string,
+  ): Promise<{ isFavorited: boolean }> {
+    const customer = await this.repo.findByUserId(userId);
+
+    if (!customer || !customer.isActive) {
+      throw new NotFoundException('Customer not found');
+    }
+
+    const product = await this.repo.findActiveProductById(productId);
+
+    if (!product) {
+      throw new NotFoundException('Product not found or inactive');
+    }
+
+    const existing = await this.repo.findFavoriteProduct(
+      customer.id,
+      productId,
+    );
+
+    if (existing) {
+      await this.repo.removeFavoriteProduct(existing.id);
+
+      return { isFavorited: false };
+    }
+
+    await this.repo.createFavoriteProduct({
+      customerId: customer.id,
+      productId,
+    });
+
+    return { isFavorited: true };
   }
 
 }
