@@ -4,6 +4,7 @@ import {
   NearbyVendorCardResponseDto,
   ExploreMapPinResponseDto,
   ExploreMapCardResponseDto,
+  FoodCardResponseDto,
 } from '../../presentation/dto/customer.response.dto';
 
 import { TopPickProductCardResponseDto } from '../../presentation/dto/customer.response.dto';
@@ -95,6 +96,30 @@ export class CustomerMapper {
       isOpen: vendor.availability?.isOpen ?? false,
       statusLabel: vendor.availability?.label ?? 'Unknown',
       cityLabel: CustomerMapper.extractCityLabel(vendor.serviceArea?.address),
+    };
+  }
+
+  static toFoodCard(product: any): FoodCardResponseDto {
+    return {
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      image: product.images?.[0]?.url ?? undefined,
+
+      vendorId: product.vendorId,
+      vendorName: product.vendor?.businessName ?? 'Unnamed Vendor',
+
+      categoryName: product.category?.name ?? undefined,
+      cuisines:
+        product.vendor?.cuisines?.map((item: any) => item.cuisine.name) ?? [],
+
+      rating: Number((product.vendor?.reviewAverage ?? 0).toFixed(1)),
+      reviewCount: product.vendor?.reviewCount ?? 0,
+
+      distanceKm: Number(product.distanceKm.toFixed(1)),
+      isOpen: product.availability?.isOpen ?? false,
+      statusLabel: product.availability?.label ?? 'Unknown',
     };
   }
 }

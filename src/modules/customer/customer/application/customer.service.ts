@@ -14,12 +14,14 @@ import {
   NearbyVendorsQueryDto, 
   TopPicksQueryDto,
   ExploreMapQueryDto,
+  FoodFilterQueryDto,
 } from '../presentation/dto/customer.dto';
 
 import { 
   NearbyVendorsResponseDto, 
   TopPicksResponseDto,
   ExploreMapResponseDto,
+  FoodFilterResponseDto,
  } from '../presentation/dto/customer.response.dto';
 
 @Injectable()
@@ -377,6 +379,124 @@ export class CustomerService {
       },
       pins: paginated.map((vendor) => CustomerMapper.toExploreMapPin(vendor)),
       cards: paginated.map((vendor) => CustomerMapper.toExploreMapCard(vendor)),
+      page,
+      limit,
+      total,
+      totalPages,
+    };
+  }
+
+  async getFoods(
+    userId: string,
+    query: FoodFilterQueryDto,
+  ): Promise<FoodFilterResponseDto> {
+    const customer = await this.repo.findByUserId(userId);
+
+    if (
+      !customer ||
+      !customer.isActive ||
+      customer.latitude == null ||
+      customer.longitude == null
+    ) {
+      throw new BadRequestException(
+        'Customer location is required to load foods',
+      );
+    }
+
+    const customerLat = customer.latitude;
+    const customerLng = customer.longitude;
+
+    const products = await this.repo.findFoodCandidates(query);
+    const radiusKm = query.radiusKm ?? 10;
+
+    const enriched = products
+      .map((product) => {
+        const vendorLat = product.vendor?.serviceArea?.latitude;
+        const vendorLng = product.vendor?.serviceArea?.longitude;
+
+        const distanceKm =
+          vendorLat != null && vendorLng != null
+            ? this.calculateDistanceKm(
+                customerLat,
+                customerLng,
+                vendorLat,
+                vendorLng,
+              )
+            : Number.MAX_SAFE_INTEGER;
+
+        const availability = this.resolveAvailability(
+          product.vendor?.operationHours ?? [],
+        );
+
+        return {
+          ...product,
+          distanceKm,
+          availability,
+        };
+      })
+      .filter((product) => product.distanceKm <= radiusKm)
+      .filter((product) => {
+        if (query.openNow === true) {
+          return product.availability.isOpen;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        const sortBy = query.sortBy ?? 'recommended';
+
+        switch (sortBy) {
+          case 'popular':
+            if ((b.vendor?.reviewCount ?? 0) !== (a.vendor?.reviewCount ?? 0)) {
+              return (b.vendor?.reviewCount ?? 0) - (a.vendor?.reviewCount ?? 0);
+            }
+            return (b.vendor?.reviewAverage ?? 0) - (a.vendor?.reviewAverage ?? 0);
+
+          case 'open_now':
+            if (a.availability.isOpen !== b.availability.isOpen) {
+              return a.availability.isOpen ? -1 : 1;
+            }
+            return a.distanceKm - b.distanceKm;
+
+          case 'top_rated':
+            if ((b.vendor?.reviewAverage ?? 0) !== (a.vendor?.reviewAverage ?? 0)) {
+              return (b.vendor?.reviewAverage ?? 0) - (a.vendor?.reviewAverage ?? 0);
+            }
+            return (b.vendor?.reviewCount ?? 0) - (a.vendor?.reviewCount ?? 0);
+
+          case 'nearby':
+          case 'close_by':
+            return a.distanceKm - b.distanceKm;
+
+          case 'price_low_to_high':
+            return a.price - b.price;
+
+          case 'price_high_to_low':
+            return b.price - a.price;
+
+          case 'recommended':
+          default:
+            if (a.availability.isOpen !== b.availability.isOpen) {
+              return a.availability.isOpen ? -1 : 1;
+            }
+            if ((b.vendor?.reviewAverage ?? 0) !== (a.vendor?.reviewAverage ?? 0)) {
+              return (b.vendor?.reviewAverage ?? 0) - (a.vendor?.reviewAverage ?? 0);
+            }
+            if ((b.vendor?.reviewCount ?? 0) !== (a.vendor?.reviewCount ?? 0)) {
+              return (b.vendor?.reviewCount ?? 0) - (a.vendor?.reviewCount ?? 0);
+            }
+            return a.distanceKm - b.distanceKm;
+        }
+      });
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const total = enriched.length;
+    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+    const start = (page - 1) * limit;
+    const paginated = enriched.slice(start, start + limit);
+
+    return {
+      items: paginated.map((product) => CustomerMapper.toFoodCard(product)),
       page,
       limit,
       total,
