@@ -150,6 +150,7 @@ model Product {
   images            ProductImage[]
   cartItems         CartItem[]
   orderItems        OrderItem[]
+  favoritedBy       FavoriteProduct[]
 
   createdAt   DateTime @default(now())
 }
@@ -323,9 +324,10 @@ model Customer {
   isActive        Boolean  @default(true)
   preferredRadius Float? 
 
-  cart            Cart?
-  orders          Order[]
-  reviews         VendorReview[]
+  cart             Cart?
+  orders           Order[]
+  reviews          VendorReview[]
+  favoriteProducts FavoriteProduct[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -553,6 +555,22 @@ model TruckGalleryImage {
   createdAt  DateTime @default(now())
 
   @@index([vendorId])
+}
+
+model FavoriteProduct {
+  id          String   @id @default(uuid())
+
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@unique([customerId, productId]) 
+  @@index([customerId])
+  @@index([productId])
 }
 
 enum OrderStatus {
