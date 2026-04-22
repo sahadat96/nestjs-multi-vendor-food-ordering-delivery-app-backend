@@ -42,4 +42,18 @@ export interface ICustomerRepository {
   findFoodCandidates(
     query: FoodFilterQueryDto,
   ): Promise<any[]>;
+
+  findActiveProductById(productId: string): Promise<{ id: string } | null>;
+
+  findFavoriteProduct(
+    customerId: string,
+    productId: string,
+  ): Promise<{ id: string } | null>;
+
+  createFavoriteProduct(data: {
+    customerId: string;
+    productId: string;
+  }): Promise<void>;
+
+  removeFavoriteProduct(favoriteId: string): Promise<void>;
 }
