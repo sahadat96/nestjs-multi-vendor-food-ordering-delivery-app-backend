@@ -17,6 +17,7 @@ import {
   FoodFilterQueryDto,
   FavoriteProductsQueryDto,
   SetCustomerLocationDto,
+  FavoriteVendorsQueryDto,
 } from '../presentation/dto/customer.dto';
 
 import { 
@@ -26,6 +27,7 @@ import {
   FoodFilterResponseDto,
   FavoriteProductsResponseDto,
   CustomerResponseDto,
+  FavoriteVendorsResponseDto,
  } from '../presentation/dto/customer.response.dto';
 
 import { VendorService } from '@/modules/vendor/vendor/application/vendor.service';
@@ -612,5 +614,86 @@ export class CustomerService {
     });
 
     return { isFavorited: true };
+  }
+
+  async getFavoriteVendors(
+    userId: string,
+    query: FavoriteVendorsQueryDto,
+  ): Promise<FavoriteVendorsResponseDto> {
+    const customer = await this.repo.findByUserId(userId);
+
+    if (!customer || !customer.isActive) {
+      throw new NotFoundException('Customer not found');
+    }
+
+    const favoriteVendors = await this.repo.findFavoriteVendors(
+      customer.id,
+      query,
+    );
+
+    const enriched = favoriteVendors
+      .map((item) => {
+        const vendor = item.vendor;
+
+        let distanceKm: number | undefined;
+
+        if (
+          customer.latitude != null &&
+          customer.longitude != null &&
+          vendor.serviceArea?.latitude != null &&
+          vendor.serviceArea?.longitude != null
+        ) {
+          distanceKm = this.calculateDistanceKm(
+            customer.latitude,
+            customer.longitude,
+            vendor.serviceArea.latitude,
+            vendor.serviceArea.longitude,
+          );
+        }
+
+        const availability = this.resolveAvailability(
+          vendor.operationHours ?? [],
+        );
+
+        return {
+          ...item,
+          distanceKm,
+          availability,
+        };
+      })
+      .sort((a, b) => {
+        if (
+          (a.distanceKm ?? Number.MAX_SAFE_INTEGER) !==
+          (b.distanceKm ?? Number.MAX_SAFE_INTEGER)
+        ) {
+          return (
+            (a.distanceKm ?? Number.MAX_SAFE_INTEGER) -
+            (b.distanceKm ?? Number.MAX_SAFE_INTEGER)
+          );
+        }
+
+        if ((b.vendor?.reviewAverage ?? 0) !== (a.vendor?.reviewAverage ?? 0)) {
+          return (b.vendor?.reviewAverage ?? 0) - (a.vendor?.reviewAverage ?? 0);
+        }
+
+        return (b.vendor?.reviewCount ?? 0) - (a.vendor?.reviewCount ?? 0);
+      });
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const total = enriched.length;
+    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+    const start = (page - 1) * limit;
+    const paginated = enriched.slice(start, start + limit);
+
+    return {
+      items: paginated.map((item) =>
+        CustomerMapper.toFavoriteVendorItem(item),
+      ),
+      page,
+      limit,
+      total,
+      totalPages,
+    };
   }
 }
