@@ -6,6 +6,7 @@ import {
   ExploreMapCardResponseDto,
   FoodCardResponseDto,
   FavoriteProductItemResponseDto,
+  FavoriteVendorItemResponseDto,
 } from '../../presentation/dto/customer.response.dto';
 
 import { TopPickProductCardResponseDto } from '../../presentation/dto/customer.response.dto';
@@ -141,6 +142,37 @@ export class CustomerMapper {
 
       rating: Number((product.vendor?.reviewAverage ?? 0).toFixed(1)),
       reviewCount: product.vendor?.reviewCount ?? 0,
+
+      isFavorited: true,
+    };
+  }
+  
+
+  static toFavoriteVendorItem(item: any): FavoriteVendorItemResponseDto {
+    const vendor = item.vendor;
+
+    return {
+      id: vendor.id,
+      businessName: vendor.businessName ?? 'Unnamed Vendor',
+      coverImage:
+        vendor.coverImage ??
+        vendor.products?.[0]?.images?.[0]?.url ??
+        undefined,
+
+      cuisines: vendor.cuisines?.map((entry: any) => entry.cuisine.name) ?? [],
+
+      rating: Number((vendor.reviewAverage ?? 0).toFixed(1)),
+      reviewCount: vendor.reviewCount ?? 0,
+
+      cityLabel: CustomerMapper.extractCityLabel(vendor.serviceArea?.address),
+
+      distanceKm:
+        item.distanceKm !== undefined
+          ? Number(item.distanceKm.toFixed(1))
+          : undefined,
+
+      isOpen: item.availability?.isOpen ?? false,
+      statusLabel: item.availability?.label ?? 'Unknown',
 
       isFavorited: true,
     };
