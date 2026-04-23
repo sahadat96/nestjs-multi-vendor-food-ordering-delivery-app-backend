@@ -10,6 +10,7 @@ import {
   TopPicksQueryDto,
   ExploreMapQueryDto,
   FoodFilterQueryDto,
+  FavoriteProductsQueryDto,
 } from '../../presentation/dto/customer.dto';
 
 @Injectable()
@@ -517,6 +518,80 @@ export class CustomerRepository implements ICustomerRepository {
   async removeFavoriteProduct(favoriteId: string): Promise<void> {
     await this.prisma.favoriteProduct.delete({
       where: { id: favoriteId },
+    });
+  }
+
+  async findFavoriteProducts(
+    customerId: string,
+    query: FavoriteProductsQueryDto,
+  ): Promise<any[]> {
+    const search = query.search?.trim();
+    const category = query.category?.trim();
+
+    const where: Prisma.FavoriteProductWhereInput = {
+      customerId,
+      product: {
+        isActive: true,
+      },
+    };
+
+    const andConditions: Prisma.FavoriteProductWhereInput[] = [];
+
+    if (search) {
+      andConditions.push({
+        product: {
+          OR: [
+            {
+              name: {
+                contains: search,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+            {
+              description: {
+                contains: search,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+          ],
+        },
+      });
+    }
+
+    if (category && category.toLowerCase() !== 'all') {
+      andConditions.push({
+        product: {
+          category: {
+            name: {
+              contains: category,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+        },
+      });
+    }
+
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
+    }
+
+    return this.prisma.favoriteProduct.findMany({
+      where,
+      include: {
+        product: {
+          include: {
+            category: true,
+            images: {
+              orderBy: { position: 'asc' },
+              take: 1,
+            },
+            vendor: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   }
 }
