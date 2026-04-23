@@ -145,3 +145,30 @@ export class FavoriteProductsResponseDto {
   total!: number;
   totalPages!: number;
 }
+
+export class FavoriteVendorItemResponseDto {
+  id!: string;
+  businessName!: string;
+  coverImage?: string;
+
+  cuisines!: string[];
+
+  rating!: number;
+  reviewCount!: number;
+
+  cityLabel?: string;
+  distanceKm?: number;
+
+  isOpen!: boolean;
+  statusLabel!: string;
+
+  isFavorited!: boolean;
+}
+
+export class FavoriteVendorsResponseDto {
+  items!: FavoriteVendorItemResponseDto[];
+  page!: number;
+  limit!: number;
+  total!: number;
+  totalPages!: number;
+}
