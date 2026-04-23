@@ -5,6 +5,7 @@ import {
   FoodFilterQueryDto,
   FavoriteProductsQueryDto,
   TopPicksQueryDto,
+  FavoriteVendorsQueryDto,
  } from "../../presentation/dto/customer.dto";
 
 export interface ICustomerRepository {
@@ -73,4 +74,9 @@ export interface ICustomerRepository {
   }): Promise<void>;
 
   removeFavoriteVendor(favoriteId: string): Promise<void>;
+
+   findFavoriteVendors(
+    customerId: string,
+    query: FavoriteVendorsQueryDto,
+  ): Promise<any[]>;
 }
