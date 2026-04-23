@@ -11,6 +11,7 @@ import {
   ExploreMapQueryDto,
   FoodFilterQueryDto,
   FavoriteProductsQueryDto,
+  FavoriteVendorsQueryDto,
 } from '../../presentation/dto/customer.dto';
 
 @Injectable()
@@ -629,6 +630,71 @@ export class CustomerRepository implements ICustomerRepository {
   async removeFavoriteVendor(favoriteId: string): Promise<void> {
     await this.prisma.favoriteVendor.delete({
       where: { id: favoriteId },
+    });
+  }
+  async findFavoriteVendors(
+    customerId: string,
+    query: FavoriteVendorsQueryDto,
+  ): Promise<any[]> {
+    const cuisine = query.cuisine?.trim();
+
+    const where: Prisma.FavoriteVendorWhereInput = {
+      customerId,
+    };
+
+    const andConditions: Prisma.FavoriteVendorWhereInput[] = [];
+
+    if (cuisine && cuisine.toLowerCase() !== 'all') {
+      andConditions.push({
+        vendor: {
+          cuisines: {
+            some: {
+              cuisine: {
+                name: {
+                  contains: cuisine,
+                  mode: Prisma.QueryMode.insensitive,
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
+    }
+
+    return this.prisma.favoriteVendor.findMany({
+      where,
+      include: {
+        vendor: {
+          include: {
+            serviceArea: true,
+            operationHours: true,
+            cuisines: {
+              include: {
+                cuisine: true,
+              },
+            },
+            products: {
+              where: {
+                isActive: true,
+              },
+              take: 1,
+              include: {
+                images: {
+                  orderBy: { position: 'asc' },
+                  take: 1,
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   }
 }
