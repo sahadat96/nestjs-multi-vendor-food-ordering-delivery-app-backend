@@ -24,6 +24,7 @@ import {
   TopPicksQueryDto,
   ExploreMapQueryDto,
   FoodFilterQueryDto,
+  FavoriteProductsQueryDto,
 } from '../dto/customer.dto';
 
 import { 
@@ -32,6 +33,7 @@ import {
   TopPicksResponseDto,
   ExploreMapResponseDto,
   FoodFilterResponseDto,
+  FavoriteProductsResponseDto,
 } from '../dto/customer.response.dto';
 
 @Controller('customer')
@@ -110,5 +112,15 @@ export class CustomerController {
     @Param('productId') productId: string,
   ): Promise<{ isFavorited: boolean }> {
     return this.service.toggleFavoriteProduct(user.id, productId);
+  }
+
+  @Get('favorites/products')
+  @UseGuards(RoleGuard)
+  @Roles(Role.USER)
+  async getFavoriteProducts(
+    @CurrentUser() user: AuthUser,
+    @Query() query: FavoriteProductsQueryDto,
+  ): Promise<FavoriteProductsResponseDto> {
+    return this.service.getFavoriteProducts(user.id, query);
   }
 }
