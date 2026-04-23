@@ -25,6 +25,7 @@ import {
   ExploreMapQueryDto,
   FoodFilterQueryDto,
   FavoriteProductsQueryDto,
+  FavoriteVendorsQueryDto,
 } from '../dto/customer.dto';
 
 import { 
@@ -34,6 +35,7 @@ import {
   ExploreMapResponseDto,
   FoodFilterResponseDto,
   FavoriteProductsResponseDto,
+  FavoriteVendorsResponseDto,
 } from '../dto/customer.response.dto';
 
 @Controller('customer')
@@ -133,5 +135,15 @@ export class CustomerController {
     @Param('vendorId') vendorId: string,
   ): Promise<{ isFavorited: boolean }> {
     return this.service.toggleFavoriteVendor(user.id, vendorId);
+  }
+
+  @Get('favorites/vendors')
+  @UseGuards(RoleGuard)
+  @Roles(Role.USER)
+  async getFavoriteVendors(
+    @CurrentUser() user: AuthUser,
+    @Query() query: FavoriteVendorsQueryDto,
+  ): Promise<FavoriteVendorsResponseDto> {
+    return this.service.getFavoriteVendors(user.id, query);
   }
 }
