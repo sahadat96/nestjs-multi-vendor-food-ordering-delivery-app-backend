@@ -574,4 +574,39 @@ export class CustomerService {
       totalPages,
     };
   }
+
+  async toggleFavoriteVendor(
+    userId: string,
+    vendorId: string,
+  ): Promise<{ isFavorited: boolean }> {
+    const customer = await this.repo.findByUserId(userId);
+
+    if (!customer || !customer.isActive) {
+      throw new NotFoundException('Customer not found');
+    }
+
+    const vendor = await this.repo.findVendorById(vendorId);
+
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    const existing = await this.repo.findFavoriteVendor(
+      customer.id,
+      vendorId,
+    );
+
+    if (existing) {
+      await this.repo.removeFavoriteVendor(existing.id);
+
+      return { isFavorited: false };
+    }
+
+    await this.repo.createFavoriteVendor({
+      customerId: customer.id,
+      vendorId,
+    });
+
+    return { isFavorited: true };
+  }
 }
