@@ -119,3 +119,29 @@ export class FoodFilterResponseDto {
   total!: number;
   totalPages!: number;
 }
+
+export class FavoriteProductItemResponseDto {
+  id!: string;
+  name!: string;
+  description!: string;
+  price!: number;
+  image?: string;
+
+  vendorId!: string;
+  vendorName!: string;
+
+  categoryName?: string;
+
+  rating!: number;
+  reviewCount!: number;
+
+  isFavorited!: boolean;
+}
+
+export class FavoriteProductsResponseDto {
+  items!: FavoriteProductItemResponseDto[];
+  page!: number;
+  limit!: number;
+  total!: number;
+  totalPages!: number;
+}
