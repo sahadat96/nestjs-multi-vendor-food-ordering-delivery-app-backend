@@ -26,4 +26,6 @@ export interface ICartRepository {
   createCartItem(input: CreateCartItemInput): Promise<void>;
 
   recalculateCartTotal(cartId: string): Promise<void>;
+
+  findCartListByCustomerId(customerId: string): Promise<any[]>;
 }

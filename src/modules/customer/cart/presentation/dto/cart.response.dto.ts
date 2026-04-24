@@ -43,3 +43,31 @@ export class CartResponseDto {
   itemCount!: number;
   updatedAt!: Date;
 }
+
+export class CartListItemDto {
+  id!: string;
+  productId!: string;
+  productName!: string;
+  productImage?: string;
+  quantity!: number;
+}
+
+export class CartListVendorDto {
+  id!: string;
+  businessName!: string;
+  coverImage?: string;
+  address?: string;
+}
+
+export class CartListItemResponseDto {
+  cartId!: string;
+  vendor!: CartListVendorDto;
+  items!: CartListItemDto[];
+  totalAmount!: number;
+  itemCount!: number;
+  updatedAt!: Date;
+}
+
+export class CartListResponseDto {
+  carts!: CartListItemResponseDto[];
+}

@@ -149,4 +149,48 @@ export class CartRepository implements ICartRepository {
       data: { totalAmount },
     });
   }
+  async findCartListByCustomerId(customerId: string): Promise<any[]> {
+    return this.prisma.cart.findMany({
+      where: {
+        customerId,
+        items: {
+          some: {},
+        },
+      },
+      include: {
+        vendor: {
+          include: {
+            serviceArea: true,
+            truckGalleryImages: {
+              where: {
+                isPrimary: true,
+              },
+              take: 1,
+            },
+          },
+        },
+        items: {
+          orderBy: {
+            createdAt: 'asc',
+          },
+          include: {
+            product: {
+              include: {
+                images: {
+                  orderBy: {
+                    position: 'asc',
+                  },
+                  take: 1,
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
+  }
+
 }
