@@ -100,6 +100,7 @@ model Vendor {
   reviews              VendorReview[]
   truckGalleryImages   TruckGalleryImage[]
   favoritedBy          FavoriteVendor[]
+  carts                Cart[]
   
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -252,8 +253,8 @@ model Category {
 
 model SizeOption {
   id        String   @id @default(uuid())
+
   productId String
-  
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   name      String   
@@ -261,7 +262,7 @@ model SizeOption {
 
   isRequired Boolean @default(false)
 
-  cartItem CartItem[]
+  cartItems CartItem[]
 
   createdAt DateTime @default(now())
 }
@@ -290,9 +291,9 @@ model AddOn {
   price     Float
 
   isRequired Boolean @default(false)
-  addOns        CartItemAddOn[]
+  cartItems  CartItemAddOn[]
 
-  createdAt DateTime @default(now())
+  createdAt  DateTime @default(now())
 }
 
 model ProductImage {
@@ -325,7 +326,7 @@ model Customer {
   isActive        Boolean  @default(true)
   preferredRadius Float? 
 
-  cart             Cart?
+  carts            Cart[]
   orders           Order[]
   reviews          VendorReview[]
   favoriteProducts FavoriteProduct[]
@@ -338,8 +339,11 @@ model Customer {
 model Cart {
   id          String     @id @default(uuid())
 
-  customerId  String     @unique
+  customerId  String     
   customer    Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  vendorId    String
+  vendor      Vendor     @relation(fields: [vendorId], references: [id], onDelete: Cascade)
 
   items       CartItem[]
 
@@ -347,6 +351,10 @@ model Cart {
 
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+
+  @@unique([customerId, vendorId])
+  @@index([customerId])
+  @@index([vendorId])
 }
 
 model CartItem {
@@ -372,7 +380,6 @@ model CartItem {
 
   @@index([cartId])
   @@index([productId])
-  @@index([sizeOptionId])
 }
 
 model CartItemChoiceOption {

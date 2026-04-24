@@ -19,8 +19,6 @@ export class VendorRepository implements IVendorRepository {
       where: { id: vendorId },
     });
 
-    console.log(vendorId);
-
     return vendorRecord ? VendorMapper.toDomain(vendorRecord) : null;
   }
 
