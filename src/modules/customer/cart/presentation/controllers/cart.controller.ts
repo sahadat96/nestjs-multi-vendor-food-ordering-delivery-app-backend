@@ -3,12 +3,21 @@ import {
   Controller,
   Post,
   UseGuards,
+  Get,
 } from '@nestjs/common';
+
+
+import { AddCartItemDto, } from '../dto/cart.dto';
+
+import { 
+  CartResponseDto,
+  CartListResponseDto,
+} from '../dto/cart.response.dto';
+
 import { CartService } from '../../application/cart.service';
 import { CurrentUser } from '@/modules/auth/decorators/get-user.decorator';
 import type { AuthUser } from '@/modules/auth/domain/interfaces/auth-user.interface';
-import { AddCartItemDto } from '../dto/cart.dto';
-import { CartResponseDto } from '../dto/cart.response.dto';
+
 import { ResponseMessage } from '@/common/decorators/response-message.decorator';
 import { RoleGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -27,6 +36,15 @@ export class CartController {
     @Body() dto: AddCartItemDto,
   ): Promise<CartResponseDto> {
     return this.cartService.addItem(user.id, dto);
+  }
+
+  @Get('get-cart-items')
+  @UseGuards(RoleGuard)
+  @Roles(Role.USER)
+  async getCartList(
+    @CurrentUser() user: AuthUser,
+  ): Promise<CartListResponseDto> {
+    return this.cartService.getCartList(user.id);
   }
 
 }
