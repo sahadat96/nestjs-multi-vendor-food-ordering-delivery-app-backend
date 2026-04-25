@@ -286,4 +286,19 @@ export class CartService {
     };
   }
 
+  private resolveAvailability(operationHours: any[]) {
+    const now = new Date();
+    const day = now.getDay();
+
+    const today = operationHours.find(
+      (o: any) => o.dayOfWeek === day,
+    );
+
+    if (!today || today.isClosed) {
+      return { isOpen: false, label: 'Closed' };
+    }
+
+    return { isOpen: true, label: 'Open Now' };
+  }
+
 }
