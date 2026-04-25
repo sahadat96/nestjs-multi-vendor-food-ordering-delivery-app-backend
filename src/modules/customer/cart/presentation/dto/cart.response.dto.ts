@@ -71,3 +71,65 @@ export class CartListItemResponseDto {
 export class CartListResponseDto {
   carts!: CartListItemResponseDto[];
 }
+
+export class CartValidationDto {
+  canCheckout!: boolean;
+  errors!: string[];
+}
+
+export class CartPricingDto {
+  subtotal!: number;
+  tax!: number;
+  serviceFee!: number;
+  total!: number;
+}
+
+export class CartVendorDto {
+  id!: string;
+  businessName!: string;
+  isOpen!: boolean;
+  statusLabel!: string;
+  address?: string;
+}
+
+export class CartDetailItemDto {
+  id!: string;
+  productId!: string;
+  productName!: string;
+  productImage?: string;
+
+  quantity!: number;
+
+  unitPrice!: number;
+  sizePrice!: number;
+  addOnTotal!: number;
+  lineTotal!: number;
+
+  note?: string;
+
+  isAvailable!: boolean;
+  unavailableReason?: string;
+
+  sizeOption?: {
+    id: string;
+    name: string;
+  };
+
+  addOns!: {
+    id: string;
+    name: string;
+    price: number;
+  }[];
+}
+
+export class CartDetailResponseDto {
+  cartId!: string;
+
+  vendor!: CartVendorDto;
+
+  items!: CartDetailItemDto[];
+
+  pricing!: CartPricingDto;
+
+  validation!: CartValidationDto;
+}
