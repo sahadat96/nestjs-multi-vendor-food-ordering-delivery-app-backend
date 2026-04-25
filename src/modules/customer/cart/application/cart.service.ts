@@ -123,4 +123,29 @@ export class CartService {
 
     return CartMapper.toCartListResponse(carts);
   }
+
+  async deleteCart(
+    userId: string,
+    cartId: string,
+  ): Promise<{ success: boolean }> {
+    const customer = await this.customerService.findActiveByUserId(userId);
+
+    if (!customer) {
+      throw new NotFoundException('Customer not found');
+    }
+
+    const cart = await this.cartRepository.findCartOwner(cartId);
+
+    if (!cart) {
+      throw new NotFoundException('Cart not found');
+    }
+
+    if (cart.customerId !== customer.id) {
+      throw new BadRequestException('Unauthorized cart access');
+    }
+
+    await this.cartRepository.deleteCart(cartId);
+
+    return { success: true };
+  }
 }
