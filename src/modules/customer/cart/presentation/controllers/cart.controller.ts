@@ -4,6 +4,8 @@ import {
   Post,
   UseGuards,
   Get,
+  Delete,
+  Param,
 } from '@nestjs/common';
 
 
@@ -38,7 +40,6 @@ export class CartController {
     return this.cartService.addItem(user.id, dto);
   }
 
-  // Get api for cart list
   @Get('get-cart-items')
   @UseGuards(RoleGuard)
   @Roles(Role.USER)
@@ -46,6 +47,17 @@ export class CartController {
     @CurrentUser() user: AuthUser,
   ): Promise<CartListResponseDto> {
     return this.cartService.getCartList(user.id);
+  }
+
+  @Delete(':cartId')
+  @UseGuards(RoleGuard)
+  @Roles(Role.USER)
+  @ResponseMessage('Cart deleted successfully')
+  async deleteCart(
+    @CurrentUser() user: AuthUser,
+    @Param('cartId') cartId: string,
+  ): Promise<{ success: boolean }> {
+    return this.cartService.deleteCart(user.id, cartId);
   }
 
 }
