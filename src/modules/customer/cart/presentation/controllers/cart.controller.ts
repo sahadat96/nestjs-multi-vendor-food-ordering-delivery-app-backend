@@ -14,6 +14,7 @@ import { AddCartItemDto, } from '../dto/cart.dto';
 import { 
   CartResponseDto,
   CartListResponseDto,
+  CartDetailResponseDto,
 } from '../dto/cart.response.dto';
 
 import { CartService } from '../../application/cart.service';
@@ -58,6 +59,16 @@ export class CartController {
     @Param('cartId') cartId: string,
   ): Promise<{ success: boolean }> {
     return this.cartService.deleteCart(user.id, cartId);
+  }
+
+  @Get('detail/:cartId')
+  @UseGuards(RoleGuard)
+  @Roles(Role.USER)
+  async getCartDetail(
+    @CurrentUser() user: AuthUser,
+    @Param('cartId') cartId: string,
+  ): Promise<CartDetailResponseDto> {
+    return this.cartService.getCartDetail(user.id, cartId);
   }
 
 }
