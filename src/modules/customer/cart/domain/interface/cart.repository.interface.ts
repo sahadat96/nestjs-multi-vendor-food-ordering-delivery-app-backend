@@ -28,4 +28,8 @@ export interface ICartRepository {
   recalculateCartTotal(cartId: string): Promise<void>;
 
   findCartListByCustomerId(customerId: string): Promise<any[]>;
+
+  findCartOwner(cartId: string): Promise<{ id: string; customerId: string } | null>;
+
+  deleteCart(cartId: string): Promise<void>;
 }
