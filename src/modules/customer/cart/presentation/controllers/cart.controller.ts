@@ -49,7 +49,7 @@ export class CartController {
     return this.cartService.getCartList(user.id);
   }
 
-  @Delete(':cartId')
+  @Delete('delete/:cartId')
   @UseGuards(RoleGuard)
   @Roles(Role.USER)
   @ResponseMessage('Cart deleted successfully')
