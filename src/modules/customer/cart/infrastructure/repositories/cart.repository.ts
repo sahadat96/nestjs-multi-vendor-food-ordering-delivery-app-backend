@@ -244,4 +244,21 @@ export class CartRepository implements ICartRepository {
     });
   }
 
+  async deleteCartItem(itemId: string): Promise<void> {
+    await this.prisma.cartItem.delete({
+      where: { id: itemId },
+    });
+  }
+
+  async deleteCartIfEmpty(cartId: string): Promise<void> {
+    const count = await this.prisma.cartItem.count({
+      where: { cartId },
+    });
+
+    if (count === 0) {
+      await this.prisma.cart.delete({
+        where: { id: cartId },
+      });
+    }
+  }
 }
