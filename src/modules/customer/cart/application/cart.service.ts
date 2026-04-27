@@ -430,4 +430,51 @@ export class CartService {
     };
   }
 
+  async decreaseItemQuantity(
+    userId: string,
+    itemId: string,
+  ): Promise<CartResponseDto | { message: string }> {
+    const { item, cartId } = await this.validateCartItemOwner(userId, itemId);
+
+    if (item.quantity <= 1) {
+      await this.cartRepository.deleteCartItem(item.id);
+      await this.cartRepository.deleteCartIfEmpty(cartId);
+
+      const cart = await this.cartRepository.findCartById(cartId);
+
+      if (!cart) {
+        return {
+          message: 'Cart item removed and cart is now empty',
+        };
+      }
+
+      await this.cartRepository.recalculateCartTotal(cartId);
+
+      const updatedCart = await this.cartRepository.findCartById(cartId);
+
+      if (!updatedCart) {
+        return {
+          message: 'Cart item removed and cart is now empty',
+        };
+      }
+
+      return CartMapper.toResponse(updatedCart);
+    }
+
+    await this.cartRepository.updateCartItemQuantity(
+      item.id,
+      item.quantity - 1,
+    );
+
+    await this.cartRepository.recalculateCartTotal(cartId);
+
+    const cart = await this.cartRepository.findCartById(cartId);
+
+    if (!cart) {
+      throw new NotFoundException('Cart not found');
+    }
+
+    return CartMapper.toResponse(cart);
+  }
+
 }
