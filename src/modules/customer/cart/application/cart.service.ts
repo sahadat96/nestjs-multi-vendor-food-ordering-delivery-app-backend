@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
   Inject,
+  ForbiddenException,
 } from '@nestjs/common';
 
 import type { ICartRepository } from '../domain/interface/cart.repository.interface';
@@ -369,6 +370,64 @@ export class CartService {
     const formattedHour = hour % 12 === 0 ? 12 : hour % 12;
 
     return `${formattedHour}:${minute} ${period}`;
+  }
+
+  async increaseItemQuantity(
+    userId: string,
+    itemId: string,
+  ): Promise<CartResponseDto> {
+    const { item, cartId } = await this.validateCartItemOwner(userId, itemId);
+
+    await this.cartRepository.updateCartItemQuantity(
+      item.id,
+      item.quantity + 1,
+    );
+
+    await this.cartRepository.recalculateCartTotal(cartId);
+
+    const cart = await this.cartRepository.findCartById(cartId);
+
+    if (!cart) {
+      throw new NotFoundException('Cart not found');
+    }
+
+    return CartMapper.toResponse(cart);
+  }
+
+  private async validateCartItemOwner(
+    userId: string,
+    itemId: string,
+  ): Promise<{
+    item: {
+      id: string;
+      cartId: string;
+      quantity: number;
+      cart: {
+        customerId: string;
+      };
+    };
+    cartId: string;
+  }> {
+    const customer = await this.customerService.findActiveByUserId(userId);
+
+    if (!customer) {
+      throw new NotFoundException('Customer not found');
+    }
+
+    const item = await this.cartRepository.findCartItemOwner(itemId);
+
+    if (!item) {
+      throw new NotFoundException('Cart item not found');
+    }
+
+    if (item.cart.customerId !== customer.id) {
+      throw new ForbiddenException('You cannot modify this cart item');
+    }
+
+    return {
+      item,
+      cartId: item.cartId,
+    };
   }
 
 }

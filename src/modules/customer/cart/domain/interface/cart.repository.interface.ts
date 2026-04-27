@@ -32,4 +32,19 @@ export interface ICartRepository {
   findCartOwner(cartId: string): Promise<{ id: string; customerId: string } | null>;
 
   deleteCart(cartId: string): Promise<void>;
+
+  findCartItemOwner(itemId: string): Promise<{
+    id: string;
+    cartId: string;
+    quantity: number;
+    cart: {
+      customerId: string;
+    };
+  } | null>;
+
+  updateCartItemQuantity(
+    itemId: string,
+    quantity: number,
+  ): Promise<void>
+
 }
