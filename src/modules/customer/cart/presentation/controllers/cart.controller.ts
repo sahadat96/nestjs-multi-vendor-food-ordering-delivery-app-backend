@@ -6,6 +6,7 @@ import {
   Get,
   Delete,
   Param,
+  Patch,
 } from '@nestjs/common';
 
 
@@ -61,7 +62,6 @@ export class CartController {
     return this.cartService.deleteCart(user.id, cartId);
   }
 
-  //Get cart detail
   @Get('detail/:cartId')
   @UseGuards(RoleGuard)
   @Roles(Role.USER)
@@ -70,6 +70,17 @@ export class CartController {
     @Param('cartId') cartId: string,
   ): Promise<CartDetailResponseDto> {
     return this.cartService.getCartDetail(user.id, cartId);
+  }
+
+  @Patch('items/:itemId/increase')
+  @UseGuards(RoleGuard)
+  @Roles(Role.USER)
+  @ResponseMessage('Cart item quantity increased successfully.')
+  async increaseItemQuantity(
+    @CurrentUser() user: AuthUser,
+    @Param('itemId') itemId: string,
+  ): Promise<CartResponseDto> {
+    return this.cartService.increaseItemQuantity(user.id, itemId);
   }
 
 }
