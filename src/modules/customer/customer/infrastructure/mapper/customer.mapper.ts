@@ -27,12 +27,11 @@ export class CustomerMapper {
     };
   }
 
-  static toNearbyVendorCard(vendor: any): NearbyVendorCardResponseDto {
+   toNearbyVendorCard(vendor: any): NearbyVendorCardResponseDto {
     return {
       id: vendor.id,
       businessName: vendor.businessName ?? 'Unnamed Vendor',
-      coverImage:
-        vendor.coverImage ??
+      coverImage: this.media.getUrl(vendor.coverImage) ??
         vendor.products?.[0]?.images?.[0]?.url ??
         undefined,
       distanceKm: Number(vendor.distanceKm.toFixed(1)),

@@ -127,7 +127,7 @@ export class CustomerService {
 
     return {
       items: paginated.map((vendor) =>
-        CustomerMapper.toNearbyVendorCard(vendor),
+        this.mapper.toNearbyVendorCard(vendor),
       ),
       page,
       limit,
