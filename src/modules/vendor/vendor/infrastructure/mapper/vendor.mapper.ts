@@ -49,7 +49,6 @@ export class VendorMapper {
       cityLabel?: string;
     },
   ): VendorMenuResponseDto {
-    console.log('mediaService:', this.mediaService);
     const grouped = new Map<
       string,
       {
@@ -85,7 +84,7 @@ export class VendorMapper {
         description: product.description,
         price: product.price,
         estimateCookTime: product.estimateCookTime,
-        image: product.images?.[0]?.url ?? undefined,
+        image: this.mediaService.getUrl(product.images?.[0]?.url),
         categoryName,
       });
     }
@@ -178,7 +177,7 @@ export class VendorMapper {
     };
   }
 
-   static toTruckGalleryResponse(vendor: {
+  toTruckGalleryResponse(vendor: {
     id: string;
     truckGalleryImages: {
       id: string;
@@ -193,7 +192,7 @@ export class VendorMapper {
       vendorId: vendor.id,
       items: vendor.truckGalleryImages.map((image) => ({
         id: image.id,
-        url: image.url,
+        url: this.mediaService.getUrl(image.url),
         caption: image.caption ?? undefined,
         isPrimary: image.isPrimary,
         position: image.position,

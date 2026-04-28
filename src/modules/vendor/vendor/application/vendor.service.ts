@@ -260,7 +260,7 @@ export class VendorService {
       throw new NotFoundException('Vendor not found');
     }
 
-    return VendorMapper.toTruckGalleryResponse(vendor);
+    return this.vendorMapper.toTruckGalleryResponse(vendor);
   }
 
    async getVendorReviews(

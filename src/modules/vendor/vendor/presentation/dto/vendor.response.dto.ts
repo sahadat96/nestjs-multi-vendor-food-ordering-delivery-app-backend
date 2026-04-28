@@ -61,7 +61,7 @@ export class VendorInfoResponseDto {
 
 export class TruckGalleryImageResponseDto {
   id!: string;
-  url!: string;
+  url?: string;
   caption?: string;
   isPrimary!: boolean;
   position!: number;
