@@ -5,12 +5,14 @@ import {
 } from '@nestjs/common';
 import type { IHomeRepository } from '../domain/interface/home.repository.interface';
 import { HomeResponseDto } from '../presentation/dto/home.response.dto';
+import { MediaService } from '@/common/media/media.service';
 
 @Injectable()
 export class HomeService {
   constructor(
     @Inject('IHomeRepository')
     private readonly homeRepository: IHomeRepository,
+    private readonly mediaService: MediaService,
   ) {}
 
   async getHome(userId: string): Promise<HomeResponseDto> {
@@ -127,8 +129,8 @@ export class HomeService {
       whatsNearMe: homepageVendors.slice(0, 6).map((vendor) => ({
         id: vendor.id,
         businessName: vendor.businessName ?? 'Unnamed Vendor',
-        coverImage:
-          vendor.coverImage ?? vendor.products[0]?.images[0]?.url ?? undefined,
+        coverImage: this.mediaService.getUrl(vendor.coverImage) ??
+        vendor.products[0]?.images[0]?.url ?? undefined,
         distanceKm: Number(vendor.distanceKm.toFixed(1)),
         cityLabel: this.extractCityLabel(vendor.serviceArea?.address),
         isOpen: vendor.availability.isOpen,
@@ -138,8 +140,8 @@ export class HomeService {
       recommendedForYou: homepageVendors.slice(0, 6).map((vendor) => ({
         id: vendor.id,
         businessName: vendor.businessName ?? 'Unnamed Vendor',
-        coverImage:
-          vendor.coverImage ?? vendor.products[0]?.images[0]?.url ?? undefined,
+        coverImage:this.mediaService.getUrl(vendor.coverImage) ??
+        vendor.products[0]?.images[0]?.url ?? undefined,
         distanceKm: Number(vendor.distanceKm.toFixed(1)),
         cityLabel: this.extractCityLabel(vendor.serviceArea?.address),
         isOpen: vendor.availability.isOpen,
@@ -149,7 +151,7 @@ export class HomeService {
       topPicksForYou: topPicksSorted.slice(0, 6).map((product) => ({
         id: product.id,
         name: product.name,
-        image: product.images[0]?.url,
+        image: this.mediaService.getUrl(product.images?.[0]?.url),
         price: product.price,
         vendorId: product.vendorId,
         vendorName: product.vendor.businessName ?? 'Unnamed Vendor',
@@ -167,7 +169,7 @@ export class HomeService {
       trySomethingNew: trySomethingNew.slice(0, 10).map((product) => ({
         id: product.id,
         name: product.name,
-        image: product.images[0]?.url,
+        image: this.mediaService.getUrl(product.images?.[0]?.url),
         price: product.price,
         vendorId: product.vendorId,
         vendorName: product.vendor.businessName ?? 'Unnamed Vendor',

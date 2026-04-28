@@ -4,8 +4,8 @@ import { Injectable } from '@nestjs/common';
 export class MediaService {
   private readonly baseUrl = process.env.MEDIA_BASE_URL;
 
-  getUrl(path: string | null | undefined): string | null {
-    if (!path) return null;
+  getUrl(path: string | null | undefined): string | undefined  {
+    if (!path) return undefined ;
 
     if (path.startsWith('http')) {
       return path;
@@ -14,7 +14,9 @@ export class MediaService {
     return `${this.baseUrl}${path}`;
   }
 
-  getUrls(paths: string[] = []): string[] {
-    return paths.map((p) => this.getUrl(p)!);
+  getUrls(paths: (string | null | undefined)[] = []): string[] {
+  return paths
+      .map((p) => this.getUrl(p))
+      .filter((url): url is string => !!url);
   }
 }
