@@ -18,6 +18,7 @@ import {
 
 import { CustomerService } from '../../customer/application/customer.service';
 import { ProductService } from '@/modules/product/application/product.service';
+import { MediaService } from '@/common/media/media.service';
 
 @Injectable()
 export class CartService {
@@ -27,6 +28,7 @@ export class CartService {
     private readonly customerService: CustomerService,
     private readonly productRepo: ProductService,
     private readonly cartMapper: CartMapper,
+    private readonly mediaService: MediaService,
   ) {}
 
   async addItem(
@@ -191,7 +193,7 @@ export class CartService {
         id: item.id,
         productId: item.productId,
         productName: item.product.name,
-        productImage: item.product.images?.[0]?.url,
+        productImage: this.mediaService.getUrl(item.product.images?.[0]?.url),
 
         quantity: item.quantity,
 
