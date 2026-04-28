@@ -27,7 +27,7 @@ export class CustomerMapper {
     };
   }
 
-   toNearbyVendorCard(vendor: any): NearbyVendorCardResponseDto {
+  toNearbyVendorCard(vendor: any): NearbyVendorCardResponseDto {
     return {
       id: vendor.id,
       businessName: vendor.businessName ?? 'Unnamed Vendor',
@@ -55,11 +55,11 @@ export class CustomerMapper {
     return address.split(',')[0]?.trim() || undefined;
   }
 
-  static toTopPickProductCard(product: any): TopPickProductCardResponseDto {
+  toTopPickProductCard(product: any): TopPickProductCardResponseDto {
     return {
       id: product.id,
       name: product.name,
-      image: product.images?.[0]?.url ?? undefined,
+      image: this.media.getUrl(product.images?.[0]?.url),
       price: product.price,
       vendorId: product.vendorId,
       vendorName: product.vendor?.businessName ?? 'Unnamed Vendor',
@@ -106,7 +106,7 @@ export class CustomerMapper {
     };
   }
 
-   toFoodCard(product: any): FoodCardResponseDto {
+  toFoodCard(product: any): FoodCardResponseDto {
     return {
       id: product.id,
       name: product.name,

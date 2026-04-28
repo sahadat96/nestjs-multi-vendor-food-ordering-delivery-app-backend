@@ -16,7 +16,7 @@ export class ProductDetailResponseDto extends ProductResponseDto {
 
   images!: {
     id: string;
-    url: string;
+    url?: string;
     isPrimary: boolean;
     position: number;
   }[];

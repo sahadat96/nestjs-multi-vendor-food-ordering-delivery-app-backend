@@ -10,12 +10,14 @@ import { ProductService } from './application/product.service';
 import { StorageModule } from '@/common/storage/storage.module';
 import { LocalStorageService } from '@/common/storage/local.storage.service';
 import { ProductRepository } from './infrastructure/repositories/product.repository';
+import { MediaModule } from '@/common/media/media.module';
 
 @Module({
   imports: [
     PrismaModule,
     VendorModule,
     StorageModule,
+    MediaModule,
   ],
   controllers: [
     CategoryController,

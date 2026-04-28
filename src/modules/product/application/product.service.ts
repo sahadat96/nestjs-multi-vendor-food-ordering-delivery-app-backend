@@ -17,6 +17,7 @@ import { SearchProductQueryDto } from '../presentation/dto/searchQuery.dto';
 import { UpdateProductStatusDto } from '../presentation/dto/product.dto';
 import { ProductDetailResponseDto } from '../presentation/dto/product.response.dto';
 import { ProductCart } from '../domain/entities/product.entity';
+import { MediaService } from '@/common/media/media.service';
 
 @Injectable()
 export class ProductService {
@@ -32,6 +33,8 @@ export class ProductService {
 
     @Inject('IStorageService')
     private readonly storage: IStorageService,
+    
+    private readonly mediaService: MediaService,
   ) {}
 
   async findActiveProductForCart( 
@@ -199,7 +202,7 @@ export class ProductService {
 
       images: product.images.map((img) => ({
         id: img.id,
-        url: img.url,
+        url: this.mediaService.getUrl(img.url),
         isPrimary: img.isPrimary,
         position: img.position,
       })),

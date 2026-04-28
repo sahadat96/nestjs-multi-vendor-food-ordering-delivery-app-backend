@@ -208,7 +208,7 @@ export class CustomerService {
 
     return {
       items: paginated.map((product) =>
-        CustomerMapper.toTopPickProductCard(product),
+        this.mapper.toTopPickProductCard(product),
       ),
       page,
       limit,

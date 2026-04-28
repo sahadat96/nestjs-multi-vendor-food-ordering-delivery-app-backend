@@ -114,7 +114,7 @@ export class ProductController {
     return this.service.deleteProduct(user.id, productId);
   }
 
-  @Get(':id')
+  @Get('get-specific/:id')
   @Public()
   async getProductDetail(
     @Param('id') id: string,
