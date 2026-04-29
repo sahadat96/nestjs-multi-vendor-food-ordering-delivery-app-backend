@@ -1,10 +1,12 @@
-import { IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsEnum, IsOptional, IsString, MaxLength, IsUUID } from 'class-validator';
 import { PaymentMethod } from '@prisma/client';
 
 export class CreateOrderDto {
-  @IsOptional()
+  @IsUUID()
+  cartId!: string;
+
   @IsEnum(PaymentMethod)
-  paymentMethod?: PaymentMethod;
+  paymentMethod!: PaymentMethod;
 
   @IsOptional()
   @IsString()
