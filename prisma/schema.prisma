@@ -408,6 +408,7 @@ model Order {
   id              String        @id @default(uuid())
 
   orderNumber     String        @unique
+  
   customerId      String
   customer        Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
