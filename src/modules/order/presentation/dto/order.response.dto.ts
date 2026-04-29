@@ -30,21 +30,8 @@ export class OrderItemResponseDto {
 export class CreateOrderResponseDto {
   id!: string;
   orderNumber!: string;
-  customerId!: string;
   vendorId!: string;
-
-  status!: OrderStatus;
-  paymentMethod!: PaymentMethod;
-
-  subtotal!: number;
-  tax!: number;
-  serviceFee!: number;
   totalAmount!: number;
-
-  note?: string;
-  estimatedReadyAt?: Date | null;
-
+  status!: string;
   createdAt!: Date;
-
-  orderItems!: OrderItemResponseDto[];
 }
