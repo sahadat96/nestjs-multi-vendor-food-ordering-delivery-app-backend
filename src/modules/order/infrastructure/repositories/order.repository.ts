@@ -107,6 +107,7 @@ export class OrderRepository implements IOrderRepository {
         id: orderId,
       },
       include: {
+        customer: true,
         vendor: {
           include: {
             serviceArea: true,

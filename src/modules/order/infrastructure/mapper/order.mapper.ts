@@ -7,6 +7,8 @@ import {
   OrderTrackStepDto,
 } from '../../presentation/dto/order.response.dto';
 
+
+
 export class OrderMapper {
 
   static toCreateResponse(order: any): CreateOrderResponseDto {
@@ -105,6 +107,12 @@ static toTrackResponse(order: any): OrderTrackResponseDto {
 
       placedAt: order.createdAt,
       estimatedReadyAt: order.estimatedReadyAt ?? null,
+
+      customerLocation: {
+        latitude: order.customer?.latitude ?? undefined,
+        longitude: order.customer?.longitude ?? undefined,
+        address: order.customer?.address ?? undefined,
+      },
 
       vendor: {
         id: order.vendor.id,

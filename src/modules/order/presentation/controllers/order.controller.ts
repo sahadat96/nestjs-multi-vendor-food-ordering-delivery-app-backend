@@ -48,7 +48,7 @@ export class OrderController {
     return this.orderService.getUserOrderSummary(user.id, orderId);
   }
 
-  @Get(':orderId/track')
+  @Get('user/:orderId/track')
   @UseGuards(RoleGuard)
   @Roles(Role.USER)
   async getUserOrderTrack(

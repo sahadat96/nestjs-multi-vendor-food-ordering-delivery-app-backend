@@ -129,7 +129,7 @@ export class OrderTrackStepDto {
     | 'READY_FOR_PICKUP'
     | 'COMPLETED'
     | 'CANCELLED';
-    
+
   title!: string;
   description!: string;
 
@@ -140,6 +140,12 @@ export class OrderTrackStepDto {
   estimatedTime?: Date | null;
 }
 
+export class OrderTrackCustomerLocationDto {
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+}
+
 export class OrderTrackResponseDto {
   id!: string;
   orderNumber!: string;
@@ -147,6 +153,8 @@ export class OrderTrackResponseDto {
 
   placedAt!: Date;
   estimatedReadyAt?: Date | null;
+
+  customerLocation?: OrderTrackCustomerLocationDto;
 
   vendor!: OrderTrackVendorDto;
 
