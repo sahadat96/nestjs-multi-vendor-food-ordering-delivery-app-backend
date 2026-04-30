@@ -57,3 +57,58 @@ export class CreateOrderResponseDto {
 
   orderItems!: OrderItemResponseDto[];
 }
+
+export class OrderSummaryVendorDto {
+  id!: string;
+  businessName!: string;
+  contactNumber?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+export class OrderSummaryItemDto {
+  id!: string;
+  productId!: string;
+  productName!: string;
+  quantity!: number;
+  unitPrice!: number;
+  sizeName?: string;
+  sizePrice!: number;
+  lineTotal!: number;
+
+  choiceOptions!: {
+    id: string;
+    name: string;
+    price: number;
+  }[];
+
+  addOns!: {
+    id: string;
+    name: string;
+    price: number;
+  }[];
+}
+
+export class OrderSummaryResponseDto {
+  id!: string;
+  orderNumber!: string;
+
+  status!: OrderStatus;
+  paymentMethod!: PaymentMethod;
+
+  estimatedReadyAt?: Date | null;
+
+  vendor!: OrderSummaryVendorDto;
+
+  items!: OrderSummaryItemDto[];
+
+  subtotal!: number;
+  tax!: number;
+  serviceFee!: number;
+  totalAmount!: number;
+
+  note?: string;
+
+  createdAt!: Date;
+}
