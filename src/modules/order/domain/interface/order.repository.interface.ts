@@ -41,4 +41,6 @@ export interface IOrderRepository {
   createOrderFromCart(input: CreateOrderFromCartInput): Promise<any>;
 
   findOrderSummaryById(orderId: string): Promise<any | null>;
+
+  findOrderTrackById(orderId: string): Promise<any | null>;
 }
