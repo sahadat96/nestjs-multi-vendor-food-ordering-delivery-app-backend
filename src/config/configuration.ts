@@ -6,7 +6,6 @@ export default () => ({
     frontendUrl: process.env.FRONTEND_URL || '*',
   },
 
-  
   database: {
     url: process.env.DATABASE_URL,
   },
@@ -33,6 +32,5 @@ export default () => ({
     pass: process.env.SMTP_PASS,
     from: process.env.MAIL_FROM || '"No Reply" <no-reply@example.com>',
   },
-
   
 });

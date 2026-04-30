@@ -42,6 +42,6 @@ export class OrderController {
     @CurrentUser() user: AuthUser,
     @Param('orderId') orderId: string,
   ): Promise<OrderSummaryResponseDto> {
-    return this.orderService.getOrderSummary(user.id, orderId);
+    return this.orderService.getUserOrderSummary(user.id, orderId);
   }
 }
