@@ -3,12 +3,19 @@ import {
   Inject,
   BadRequestException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 
 import type { IOrderRepository } from '../domain/interface/order.repository.interface';
-import { CreateOrderDto } from '../presentation/dto/create-order.dto';
-import { CreateOrderResponseDto } from '../presentation/dto/order.response.dto';
+
 import { OrderMapper } from '../infrastructure/mapper/order.mapper';
+
+import { CreateOrderDto } from '../presentation/dto/create-order.dto';
+import { 
+  CreateOrderResponseDto,
+  OrderSummaryResponseDto,
+} from '../presentation/dto/order.response.dto';
+
 import { CustomerService } from '@/modules/customer/customer/application/customer.service';
 import { CartService } from '@/modules/customer/cart/application/cart.service';
 
@@ -100,4 +107,28 @@ export class OrderService {
   private generateOrderNumber(): string {
     return `ORD-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
   }
+
+  async getUserOrderSummary(
+    userId: string,
+    orderId: string,
+  ): Promise<OrderSummaryResponseDto> {
+    const customer = await this.customerService.findActiveByUserId(userId);
+
+    if (!customer) {
+      throw new NotFoundException('Customer not found');
+    }
+
+    const order = await this.orderRepository.findOrderSummaryById(orderId);
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    if (order.customerId !== customer.id) {
+      throw new ForbiddenException('You cannot access this order');
+    }
+
+    return OrderMapper.toSummaryResponse(order);
+  }
+
 }

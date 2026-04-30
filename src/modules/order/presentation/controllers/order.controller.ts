@@ -38,10 +38,10 @@ export class OrderController {
   @Get('user/:orderId/summary')
   @UseGuards(RoleGuard)
   @Roles(Role.USER)
-  async getOrderSummary(
+  async getUserOrderSummary(
     @CurrentUser() user: AuthUser,
     @Param('orderId') orderId: string,
   ): Promise<OrderSummaryResponseDto> {
-    return this.service.getOrderSummary(user.id, orderId);
+    return this.orderService.getOrderSummary(user.id, orderId);
   }
 }
