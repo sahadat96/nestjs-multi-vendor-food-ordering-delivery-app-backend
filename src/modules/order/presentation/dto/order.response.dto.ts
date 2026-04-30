@@ -123,8 +123,13 @@ export class OrderTrackVendorDto {
 }
 
 export class OrderTrackStepDto {
-  key!: OrderStatus;
-
+  status!: 
+    | 'ORDER_CONFIRMED'
+    | 'PREPARING'
+    | 'READY_FOR_PICKUP'
+    | 'COMPLETED'
+    | 'CANCELLED';
+    
   title!: string;
   description!: string;
 
