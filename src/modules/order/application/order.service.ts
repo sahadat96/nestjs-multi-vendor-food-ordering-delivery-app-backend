@@ -14,6 +14,7 @@ import { CreateOrderDto } from '../presentation/dto/create-order.dto';
 import { 
   CreateOrderResponseDto,
   OrderSummaryResponseDto,
+  OrderTrackResponseDto,
 } from '../presentation/dto/order.response.dto';
 
 import { CustomerService } from '@/modules/customer/customer/application/customer.service';
@@ -151,5 +152,28 @@ export class OrderService {
 
     return OrderMapper.toUserOrserSummaryResponse(order);
   }
+
+    async getUserOrderTrack(
+      userId: string,
+      orderId: string,
+    ): Promise<OrderTrackResponseDto> {
+      const customer = await this.customerService.findActiveByUserId(userId);
+
+      if (!customer) {
+        throw new NotFoundException('Customer not found');
+      }
+
+      const order = await this.orderRepository.findOrderTrackById(orderId);
+
+      if (!order) {
+        throw new NotFoundException('Order not found');
+      }
+
+      if (order.customerId !== customer.id) {
+        throw new ForbiddenException('You cannot access this order');
+      }
+
+      return OrderMapper.toTrackResponse(order);
+    }
 
 }
