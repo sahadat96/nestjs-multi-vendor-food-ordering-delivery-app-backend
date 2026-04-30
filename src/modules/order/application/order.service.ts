@@ -128,7 +128,7 @@ export class OrderService {
       throw new ForbiddenException('You cannot access this order');
     }
 
-    return OrderMapper.toSummaryResponse(order);
+    return OrderMapper.toUserOrserSummaryResponse(order);
   }
 
 }
