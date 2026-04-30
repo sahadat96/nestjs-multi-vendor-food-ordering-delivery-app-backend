@@ -59,7 +59,7 @@ export class OrderController {
     return this.orderService.getUserOrderTrack(user.id, orderId);
   }
 
-  @Patch(':orderId/cancel')
+  @Patch('user/:orderId/cancel')
   @UseGuards(RoleGuard)
   @Roles(Role.USER)
   @ResponseMessage('Order cancelled successfully.')
