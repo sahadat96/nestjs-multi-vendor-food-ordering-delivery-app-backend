@@ -36,5 +36,8 @@ export interface CreateOrderItemInput {
 }
 
 export interface IOrderRepository {
+  
   createOrderFromCart(input: CreateOrderFromCartInput): Promise<any>;
+
+  findOrderSummaryById(orderId: string): Promise<any | null>;
 }
