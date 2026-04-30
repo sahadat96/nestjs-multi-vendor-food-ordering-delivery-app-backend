@@ -100,4 +100,19 @@ export class OrderRepository implements IOrderRepository {
       },
     });
   }
+
+  async findOrderTrackById(orderId: string): Promise<any | null> {
+    return this.prisma.order.findUnique({
+      where: {
+        id: orderId,
+      },
+      include: {
+        vendor: {
+          include: {
+            serviceArea: true,
+          },
+        },
+      },
+    });
+  }
 }
