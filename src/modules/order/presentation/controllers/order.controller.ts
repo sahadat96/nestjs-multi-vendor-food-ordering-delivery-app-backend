@@ -3,7 +3,11 @@ import {
   Controller,
   Post,
   UseGuards,
+  Get,
+  Param,
 } from '@nestjs/common';
+
+import { OrderSummaryResponseDto } from '../dto/order.response.dto';
 
 import { CurrentUser } from '@/modules/auth/decorators/get-user.decorator';
 import type { AuthUser } from '@/modules/auth/domain/interfaces/auth-user.interface';
@@ -29,5 +33,15 @@ export class OrderController {
     @Body() dto: CreateOrderDto,
   ): Promise<CreateOrderResponseDto> {
     return this.orderService.createOrder(user.id, dto);
+  }
+
+  @Get('user/:orderId/summary')
+  @UseGuards(RoleGuard)
+  @Roles(Role.USER)
+  async getOrderSummary(
+    @CurrentUser() user: AuthUser,
+    @Param('orderId') orderId: string,
+  ): Promise<OrderSummaryResponseDto> {
+    return this.service.getOrderSummary(user.id, orderId);
   }
 }
