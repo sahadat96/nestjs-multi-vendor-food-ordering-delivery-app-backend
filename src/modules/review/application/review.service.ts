@@ -10,7 +10,7 @@ import { OrderStatus } from '@prisma/client';
 
 import type { IVendorTruckReviewRepository} from '../domain/interface/review.repository.interface';
 
-import { ReviewMapper } from '../infrastructure/mapper/review.mapper';
+import { VendorTruckReviewMapper } from '../infrastructure/mapper/review.mapper';
 
 import { CreateVendorTruckReviewDto } from '../presentation/dto/review.dto';
 import { CreateVendorTruckReviewResponseDto } from '../presentation/dto/review.response.dto';

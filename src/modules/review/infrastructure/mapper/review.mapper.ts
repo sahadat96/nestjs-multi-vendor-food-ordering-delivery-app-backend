@@ -1,15 +1,14 @@
-import { CreateReviewResponseDto } from '../../presentation/dto/review.response.dto';
+import { CreateVendorTruckReviewResponseDto } from '../../presentation/dto/review.response.dto';
 
-export class ReviewMapper {
-  static toCreateResponse(review: any): CreateReviewResponseDto {
+export class VendorTruckReviewMapper {
+
+  static toCreateResponse(review: any): CreateVendorTruckReviewResponseDto {
     return {
       id: review.id,
       vendorId: review.vendorId,
       customerId: review.customerId,
-      orderId: review.orderId,
       rating: review.rating,
       reviewText: review.reviewText ?? undefined,
-      createdAt: review.createdAt,
       images: review.images.map((image: any) => ({
         id: image.id,
         imageUrl: image.imageUrl,
@@ -19,6 +18,7 @@ export class ReviewMapper {
         id: entry.tag.id,
         name: entry.tag.name,
       })),
+      createdAt: review.createdAt,
     };
   }
 }
