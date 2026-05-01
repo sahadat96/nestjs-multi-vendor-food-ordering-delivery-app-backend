@@ -29,6 +29,7 @@ export class ReviewService {
     private readonly storage: IStorageService,
     private readonly customerService: CustomerService,
     private readonly vendorService: VendorService,
+    private readonly vendorTruckReviewMapper: VendorTruckReviewMapper,
   ) {}
 
    async createVendorTruckReview(
@@ -90,6 +91,6 @@ export class ReviewService {
       tagIds,
     });
 
-    return VendorTruckReviewMapper.toCreateResponse(review);
+    return this.vendorTruckReviewMapper.toCreateResponse(review);
   }
 }

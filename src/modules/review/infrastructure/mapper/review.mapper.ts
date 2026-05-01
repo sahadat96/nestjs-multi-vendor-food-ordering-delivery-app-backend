@@ -1,8 +1,12 @@
+import { Injectable } from '@nestjs/common';
 import { CreateVendorTruckReviewResponseDto } from '../../presentation/dto/review.response.dto';
+import { MediaService } from '@/common/media/media.service';
 
+@Injectable()
 export class VendorTruckReviewMapper {
+constructor(private readonly mediaService:MediaService){}
 
-  static toCreateResponse(review: any): CreateVendorTruckReviewResponseDto {
+  toCreateResponse(review: any): CreateVendorTruckReviewResponseDto {
     return {
       id: review.id,
       vendorId: review.vendorId,
@@ -11,7 +15,7 @@ export class VendorTruckReviewMapper {
       reviewText: review.reviewText ?? undefined,
       images: review.images.map((image: any) => ({
         id: image.id,
-        imageUrl: image.imageUrl,
+        imageUrl: this.mediaService.getUrl(image.imageUrl) ,
         position: image.position,
       })),
       tags: review.tags.map((entry: any) => ({

@@ -24,7 +24,7 @@ import { Role } from 'src/common/enums/role.enum';
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
-  @Post()
+  @Post('create-truck-review')
   @UseGuards(RoleGuard)
   @Roles(Role.USER)
   @UseInterceptors(FilesInterceptor('images', 5))
