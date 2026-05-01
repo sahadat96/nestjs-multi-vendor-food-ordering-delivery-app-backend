@@ -12,10 +12,13 @@ import type { IReviewRepository} from '../domain/interface/review.repository.int
 
 import { ReviewMapper } from '../infrastructure/mapper/review.mapper';
 
-import { CreateReviewDto } from '../presentation/dto/review.dto';
-import { CreateReviewResponseDto } from '../presentation/dto/review.response.dto';
+import { CreateVendorTruckReviewDto } from '../presentation/dto/review.dto';
+import { CreateVendorTruckReviewResponseDto } from '../presentation/dto/review.response.dto';
 
 import type { IStorageService } from '@/common/storage/storage.interface';
+import { CustomerService } from '@/modules/customer/customer/application/customer.service';
+import { VendorService } from '@/modules/vendor/vendor/application/vendor.service';
+
 @Injectable()
 export class ReviewService {
   constructor(
@@ -24,82 +27,69 @@ export class ReviewService {
 
     @Inject('IStorageService')
     private readonly storage: IStorageService,
+    private readonly customerService: CustomerService,
+    private readonly vendorService: VendorService,
   ) {}
 
-  // async createReview(
-  //   userId: string,
-  //   dto: CreateReviewDto,
-  //   files?: Express.Multer.File[],
-  // ): Promise<CreateReviewResponseDto> {
-  //   const customer = await this.reviewRepository.findCustomerByUserId(userId);
+   async createVendorTruckReview(
+    userId: string,
+    dto: CreateVendorTruckReviewDto,
+    files?: Express.Multer.File[],
+  ): Promise<CreateVendorTruckReviewResponseDto> {
+    const customer = await this.customerService.findActiveByUserId(userId);
 
-  //   if (!customer || !customer.isActive) {
-  //     throw new NotFoundException('Active customer not found');
-  //   }
+    if (!customer) {
+      throw new NotFoundException('Customer not found');
+    }
 
-  //   const order = await this.reviewRepository.findCompletedOrderForReview(
-  //     dto.orderId,
-  //   );
+    const vendor = await this.vendorService.findByVendorId(dto.vendorId);
 
-  //   if (!order) {
-  //     throw new NotFoundException('Order not found');
-  //   }
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
 
-  //   if (order.customerId !== customer.id) {
-  //     throw new ForbiddenException('You cannot review this order');
-  //   }
+    const existingReview = await this.reviewRepository.findExistingReview({
+      vendorId: dto.vendorId,
+      customerId: customer.id,
+    });
 
-  //   if (order.status !== OrderStatus.COMPLETED) {
-  //     throw new BadRequestException(
-  //       'You can only review completed orders',
-  //     );
-  //   }
+    if (existingReview) {
+      throw new BadRequestException(
+        'You have already reviewed this truck',
+      );
+    }
 
-  //   const existingReview =
-  //     await this.reviewRepository.findExistingReviewByOrderId(dto.orderId);
+    const tagIds = dto.tagIds ?? [];
 
-  //   if (existingReview) {
-  //     throw new BadRequestException('Review already submitted for this order');
-  //   }
+    if (tagIds.length) {
+      const tags = await this.reviewRepository.validateTags(tagIds);
 
-  //   let validTagIds: string[] = [];
+      if (tags.length !== tagIds.length) {
+        throw new BadRequestException('One or more review tags are invalid');
+      }
+    }
 
-  //   if (dto.tagIds?.length) {
-  //     validTagIds = await this.reviewRepository.validateReviewTagIds(dto.tagIds);
+    const imageUrls: string[] = [];
 
-  //     if (validTagIds.length !== dto.tagIds.length) {
-  //       throw new BadRequestException('One or more review tags are invalid');
-  //     }
-  //   }
+    if (files?.length) {
+      const folder = `vendor/truck-reviews/${dto.vendorId}`;
 
-  //   let imageUrls: string[] = [];
+      const uploadedUrls = await Promise.all(
+        files.map((file) => this.storage.uploadFile(file, folder)),
+      );
 
-  //   if (files?.length) {
-  //     const folder = `review/${order.vendorId}/${dto.orderId}`;
+      imageUrls.push(...uploadedUrls);
+    }
 
-  //     imageUrls = await Promise.all(
-  //       files.map((file) => this.storage.uploadFile(file, folder)),
-  //     );
-  //   }
+    const review = await this.reviewRepository.createReview({
+      vendorId: dto.vendorId,
+      customerId: customer.id,
+      rating: dto.rating,
+      reviewText: dto.reviewText,
+      imageUrls,
+      tagIds,
+    });
 
-  //   const review = await this.reviewRepository.createReview({
-  //     vendorId: order.vendorId,
-  //     customerId: customer.id,
-  //     orderId: order.id,
-  //     rating: dto.rating,
-  //     reviewText: dto.reviewText,
-  //     imageUrls,
-  //     tagIds: validTagIds,
-  //   });
-
-  //   const stats = await this.reviewRepository.getVendorReviewStats(order.vendorId);
-
-  //   await this.reviewRepository.updateVendorReviewSummary(
-  //     order.vendorId,
-  //     stats.average,
-  //     stats.count,
-  //   );
-
-  //   return ReviewMapper.toCreateResponse(review);
-  // }
+    return VendorTruckReviewMapper.toCreateResponse(review);
+  }
 }
