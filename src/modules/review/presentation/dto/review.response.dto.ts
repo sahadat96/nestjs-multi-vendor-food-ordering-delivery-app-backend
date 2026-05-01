@@ -1,22 +1,25 @@
-export class ReviewImageResponseDto {
+export class VendorTruckReviewImageResponseDto {
   id!: string;
   imageUrl!: string;
   position!: number;
 }
 
-export class ReviewTagResponseDto {
+export class VendorTruckReviewTagResponseDto {
   id!: string;
   name!: string;
 }
 
-export class CreateReviewResponseDto {
+export class CreateVendorTruckReviewResponseDto {
   id!: string;
+
   vendorId!: string;
   customerId!: string;
-  orderId!: string;
+
   rating!: number;
   reviewText?: string;
+
+  images!: VendorTruckReviewImageResponseDto[];
+  tags!: VendorTruckReviewTagResponseDto[];
+
   createdAt!: Date;
-  images!: ReviewImageResponseDto[];
-  tags!: ReviewTagResponseDto[];
 }
