@@ -199,17 +199,17 @@ export class VendorService {
     return address.split(',')[0]?.trim() || undefined;
   }
 
-  // async getVendorInfo(
-  //   vendorId: string,
-  // ): Promise<VendorInfoResponseDto> {
-  //   const vendor = await this.vendorRepository.findVendorInfoById(vendorId);
+  async getVendorInfo(
+    vendorId: string,
+  ): Promise<VendorInfoResponseDto> {
+    const vendor = await this.vendorRepository.findVendorInfoById(vendorId);
 
-  //   if (!vendor) {
-  //     throw new NotFoundException('Vendor not found');
-  //   }
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
 
-  //   return VendorMapper.toInfoResponse(vendor);
-  // }
+    return VendorMapper.toInfoResponse(vendor);
+  }
 
   async uploadTruckGalleryImages(
     userId: string,

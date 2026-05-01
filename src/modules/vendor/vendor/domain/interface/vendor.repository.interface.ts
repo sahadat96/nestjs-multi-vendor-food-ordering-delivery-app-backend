@@ -39,10 +39,4 @@ export interface IVendorRepository {
   //   }[];
   // } | null>;
 
-  // findVendorReviewSummaryById(vendorId: string): Promise<{
-  //   id: string;
-  //   reviewAverage: number;
-  //   reviewCount: number;
-  // } | null>;
-
 }

@@ -209,19 +209,4 @@ export class VendorRepository implements IVendorRepository {
   //   });
   // }
 
-  // async findVendorReviewSummaryById(vendorId: string): Promise<{
-  //   id: string;
-  //   reviewAverage: number;
-  //   reviewCount: number;
-  // } | null> {
-  //   return this.prisma.vendor.findUnique({
-  //     where: { id: vendorId },
-  //     select: {
-  //       id: true,
-  //       reviewAverage: true,
-  //       reviewCount: true,
-  //     },
-  //   });
-  // }
-
 }

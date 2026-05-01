@@ -77,36 +77,3 @@ export class TruckGalleryResponseDto {
   items!: TruckGalleryImageResponseDto[];
 }
 
-export class VendorReviewTagItemResponseDto {
-  id!: string;
-  name!: string;
-}
-
-export class VendorReviewImageItemResponseDto {
-  id!: string;
-  imageUrl!: string;
-  position!: number;
-}
-
-export class VendorReviewItemResponseDto {
-  id!: string;
-  customerId!: string;
-  customerName!: string;
-  customerAvatar?: string;
-  rating!: number;
-  reviewText?: string;
-  createdAt!: Date;
-  tags!: VendorReviewTagItemResponseDto[];
-  images!: VendorReviewImageItemResponseDto[];
-}
-
-export class VendorReviewsResponseDto {
-  vendorId!: string;
-  reviewAverage!: number;
-  reviewCount!: number;
-  items!: VendorReviewItemResponseDto[];
-  page!: number;
-  limit!: number;
-  total!: number;
-  totalPages!: number;
-}

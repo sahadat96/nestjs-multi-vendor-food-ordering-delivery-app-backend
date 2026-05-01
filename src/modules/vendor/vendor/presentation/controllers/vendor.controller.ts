@@ -16,7 +16,6 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { 
   VendorMenuQueryDto,
   UploadTruckGalleryDto,
-  VendorReviewsQueryDto,
  } from '../dto/vendor.dto';
 
 import { 
@@ -24,7 +23,6 @@ import {
   VendorInfoResponseDto,
   UploadTruckGalleryResponseDto,
   TruckGalleryResponseDto,
-  VendorReviewsResponseDto,
  } from '../dto/vendor.response.dto';
 
 import { VendorService } from '../../application/vendor.service';
@@ -59,13 +57,13 @@ export class VendorController {
     return this.VendorService.getVendorMenu(vendorId, query);
   }
 
-  // @Public()
-  // @Get(':vendorId/info')
-  // async getVendorInfo(
-  //   @Param('vendorId') vendorId: string,
-  // ): Promise<VendorInfoResponseDto> {
-  //   return this.VendorService.getVendorInfo(vendorId);
-  // }
+  @Public()
+  @Get(':vendorId/info')
+  async getVendorInfo(
+    @Param('vendorId') vendorId: string,
+  ): Promise<VendorInfoResponseDto> {
+    return this.VendorService.getVendorInfo(vendorId);
+  }
 
   @Post('truck-gallery/upload')
   @UseGuards(RoleGuard)

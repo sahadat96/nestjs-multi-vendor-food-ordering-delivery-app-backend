@@ -4,7 +4,6 @@ import { Vendor } from '../../domain/entities/vendor.entity';
 import { 
    VendorMenuResponseDto,
    VendorInfoResponseDto,
-   VendorReviewsResponseDto,
 } from '../../presentation/dto/vendor.response.dto';
 
 import { 
