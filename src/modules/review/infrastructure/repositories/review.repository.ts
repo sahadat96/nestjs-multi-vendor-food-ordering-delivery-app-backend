@@ -2,14 +2,25 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 import { Prisma, OrderStatus } from '@prisma/client';
 
+import { VendorTruckReviewsQueryDto } from '../../presentation/dto/review.dto';
+
 import type {
   CreateVendorTruckReviewInput,
   IVendorTruckReviewRepository,
 } from '../../domain/interface/review.repository.interface';
 
+
 @Injectable()
 export class VendorTruckReviewRepository implements IVendorTruckReviewRepository {
   constructor(private readonly prisma: PrismaService) {}
+
+  async countVendorTruckReviews(vendorId: string): Promise<number> {
+    return this.prisma.vendorTruckReview.count({
+      where: {
+        vendorId,
+      },
+    });
+  }
 
   async findExistingReview(data: {
     vendorId: string;
@@ -117,7 +128,7 @@ export class VendorTruckReviewRepository implements IVendorTruckReviewRepository
       });
     });
   }
-  
+
   async findAllTags(): Promise<
     {
       id: string;
@@ -134,4 +145,63 @@ export class VendorTruckReviewRepository implements IVendorTruckReviewRepository
       },
     });
   }
+
+  async findVendorReviewSummary(vendorId: string): Promise<{
+    id: string;
+    truckReviewAverage: number;
+    truckReviewCount: number;
+  } | null> {
+    return this.prisma.vendor.findUnique({
+      where: { id: vendorId },
+      select: {
+        id: true,
+        truckReviewAverage: true,
+        truckReviewCount: true,
+      },
+    });
+  }
+
+  async findVendorTruckReviews(
+    vendorId: string,
+    query: VendorTruckReviewsQueryDto,
+  ): Promise<any[]> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const skip = (page - 1) * limit;
+
+    return this.prisma.vendorTruckReview.findMany({
+      where: {
+        vendorId,
+      },
+      include: {
+        customer: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+        images: {
+          orderBy: {
+            position: 'asc',
+          },
+        },
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip,
+      take: limit,
+    });
+  }
+
 }
