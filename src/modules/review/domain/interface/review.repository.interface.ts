@@ -1,3 +1,5 @@
+import { VendorTruckReviewsQueryDto } from "../../presentation/dto/review.dto";
+
 export interface CreateVendorTruckReviewInput {
   vendorId: string;
   customerId: string;
@@ -24,4 +26,17 @@ export interface IVendorTruckReviewRepository {
       name: string;
     }[]
   >;
+
+  findVendorReviewSummary(vendorId: string): Promise<{
+    id: string;
+    truckReviewAverage: number;
+    truckReviewCount: number;
+  } | null>;
+
+  findVendorTruckReviews(
+    vendorId: string,
+    query: VendorTruckReviewsQueryDto,
+  ): Promise<any[]>;
+
+  countVendorTruckReviews(vendorId: string): Promise<number>;
 }
