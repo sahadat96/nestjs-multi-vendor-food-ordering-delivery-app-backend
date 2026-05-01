@@ -12,10 +12,14 @@ import type { IVendorTruckReviewRepository} from '../domain/interface/review.rep
 
 import { VendorTruckReviewMapper } from '../infrastructure/mapper/review.mapper';
 
-import { CreateVendorTruckReviewDto } from '../presentation/dto/review.dto';
+import { 
+  CreateVendorTruckReviewDto,
+  VendorTruckReviewsQueryDto,
+ } from '../presentation/dto/review.dto';
 import { 
   CreateVendorTruckReviewResponseDto,
   VendorTruckReviewTagListResponseDto,
+  VendorTruckReviewsResponseDto,
 } from '../presentation/dto/review.response.dto';
 
 import type { IStorageService } from '@/common/storage/storage.interface';
@@ -34,6 +38,32 @@ export class ReviewService {
     private readonly vendorService: VendorService,
     private readonly vendorTruckReviewMapper: VendorTruckReviewMapper,
   ) {}
+
+  async getVendorTruckReviews(
+    vendorId: string,
+    query: VendorTruckReviewsQueryDto,
+  ): Promise<VendorTruckReviewsResponseDto> {
+    const vendor = await this.reviewRepository.findVendorReviewSummary(vendorId);
+
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    const [reviews, total] = await Promise.all([
+      this.reviewRepository.findVendorTruckReviews(vendorId, query),
+      this.reviewRepository.countVendorTruckReviews(vendorId),
+    ]);
+
+    return this.vendorTruckReviewMapper.toReviewListResponse({
+      vendorId: vendor.id,
+      reviewAverage: vendor.truckReviewAverage,
+      reviewCount: vendor.truckReviewCount,
+      reviews,
+      page: query.page ?? 1,
+      limit: query.limit ?? 10,
+      total,
+    });
+  }
 
    async createVendorTruckReview(
     userId: string,
