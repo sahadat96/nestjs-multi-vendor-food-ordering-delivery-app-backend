@@ -5,12 +5,16 @@ import {
   UploadedFiles,
   UseInterceptors,
   UseGuards,
+  Get,
 } from '@nestjs/common';
 
 import { FilesInterceptor } from '@nestjs/platform-express';
 
 import { CreateVendorTruckReviewDto } from '../dto/review.dto';
-import { CreateVendorTruckReviewResponseDto } from '../dto/review.response.dto';
+import { 
+  CreateVendorTruckReviewResponseDto,
+  VendorTruckReviewTagListResponseDto,
+} from '../dto/review.response.dto';
 
 import { CurrentUser } from '@/modules/auth/decorators/get-user.decorator';
 import type { AuthUser } from '@/modules/auth/domain/interfaces/auth-user.interface';
@@ -35,5 +39,10 @@ export class ReviewController {
     @UploadedFiles() files?: Express.Multer.File[],
   ): Promise<CreateVendorTruckReviewResponseDto> {
     return this.reviewService.createVendorTruckReview(user.id, dto, files);
+  }
+
+  @Get('tags')
+  async getReviewTags(): Promise<VendorTruckReviewTagListResponseDto> {
+    return this.reviewService.getReviewTags();
   }
 }
