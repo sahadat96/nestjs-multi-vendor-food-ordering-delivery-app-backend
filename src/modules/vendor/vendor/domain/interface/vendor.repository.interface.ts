@@ -15,7 +15,7 @@ export interface IVendorRepository {
 
   findVendorInfoById(vendorId: string): Promise<any | null>;
 
-  resetTruckGalleryPrimary(vendorId: string): Promise<void>;
+  // resetTruckGalleryPrimary(vendorId: string): Promise<void>;
 
   createTruckGalleryImages(data: {
     vendorId: string;
@@ -27,23 +27,23 @@ export interface IVendorRepository {
     }[];
   }): Promise<void>;
 
-  findTruckGalleryByVendorId(vendorId: string): Promise<{
-    id: string;
-    truckGalleryImages: {
-      id: string;
-      url: string;
-      caption: string | null;
-      isPrimary: boolean;
-      position: number;
-      createdAt: Date;
-    }[];
-  } | null>;
+  // findTruckGalleryByVendorId(vendorId: string): Promise<{
+  //   id: string;
+  //   truckGalleryImages: {
+  //     id: string;
+  //     url: string;
+  //     caption: string | null;
+  //     isPrimary: boolean;
+  //     position: number;
+  //     createdAt: Date;
+  //   }[];
+  // } | null>;
 
-  findVendorReviewSummaryById(vendorId: string): Promise<{
-    id: string;
-    reviewAverage: number;
-    reviewCount: number;
-  } | null>;
+  // findVendorReviewSummaryById(vendorId: string): Promise<{
+  //   id: string;
+  //   reviewAverage: number;
+  //   reviewCount: number;
+  // } | null>;
 
   findVendorReviewsByVendorId(
     vendorId: string,

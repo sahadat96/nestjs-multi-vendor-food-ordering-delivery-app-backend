@@ -59,13 +59,13 @@ export class VendorController {
     return this.VendorService.getVendorMenu(vendorId, query);
   }
 
-  @Public()
-  @Get(':vendorId/info')
-  async getVendorInfo(
-    @Param('vendorId') vendorId: string,
-  ): Promise<VendorInfoResponseDto> {
-    return this.VendorService.getVendorInfo(vendorId);
-  }
+  // @Public()
+  // @Get(':vendorId/info')
+  // async getVendorInfo(
+  //   @Param('vendorId') vendorId: string,
+  // ): Promise<VendorInfoResponseDto> {
+  //   return this.VendorService.getVendorInfo(vendorId);
+  // }
 
   @Post('truck-gallery/upload')
   @UseGuards(RoleGuard)
@@ -80,20 +80,20 @@ export class VendorController {
     return this.VendorService.uploadTruckGalleryImages(user.id, dto, files);
   }
 
-  @Public()
-  @Get(':vendorId/truck-gallery')
-  async getTruckGallery(
-    @Param('vendorId') vendorId: string,
-  ): Promise<TruckGalleryResponseDto> {
-    return this.VendorService.getTruckGallery(vendorId);
-  }
+  // @Public()
+  // @Get(':vendorId/truck-gallery')
+  // async getTruckGallery(
+  //   @Param('vendorId') vendorId: string,
+  // ): Promise<TruckGalleryResponseDto> {
+  //   return this.VendorService.getTruckGallery(vendorId);
+  // }
 
-  @Public()
-  @Get(':vendorId/reviews')
-  async getVendorReviews(
-    @Param('vendorId') vendorId: string,
-    @Query() query: VendorReviewsQueryDto,
-  ): Promise<VendorReviewsResponseDto> {
-    return this.VendorService.getVendorReviews(vendorId, query);
-  }
+  // @Public()
+  // @Get(':vendorId/reviews')
+  // async getVendorReviews(
+  //   @Param('vendorId') vendorId: string,
+  //   @Query() query: VendorReviewsQueryDto,
+  // ): Promise<VendorReviewsResponseDto> {
+  //   return this.VendorService.getVendorReviews(vendorId, query);
+  // }
 }

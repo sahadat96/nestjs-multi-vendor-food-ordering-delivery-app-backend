@@ -9,34 +9,34 @@ export interface CreateReviewInput {
 }
 
 export interface IReviewRepository {
-  findCustomerByUserId(userId: string): Promise<{
-    id: string;
-    isActive: boolean;
-  } | null>;
+  // findCustomerByUserId(userId: string): Promise<{
+  //   id: string;
+  //   isActive: boolean;
+  // } | null>;
 
-  findCompletedOrderForReview(orderId: string): Promise<{
-    id: string;
-    customerId: string;
-    vendorId: string;
-    status: string;
-  } | null>;
+  // findCompletedOrderForReview(orderId: string): Promise<{
+  //   id: string;
+  //   customerId: string;
+  //   vendorId: string;
+  //   status: string;
+  // } | null>;
 
-  findExistingReviewByOrderId(orderId: string): Promise<{
-    id: string;
-  } | null>;
+  // findExistingReviewByOrderId(orderId: string): Promise<{
+  //   id: string;
+  // } | null>;
 
-  validateReviewTagIds(tagIds: string[]): Promise<string[]>;
+  // validateReviewTagIds(tagIds: string[]): Promise<string[]>;
 
-  createReview(input: CreateReviewInput): Promise<any>;
+  // createReview(input: CreateReviewInput): Promise<any>;
 
-  getVendorReviewStats(vendorId: string): Promise<{
-    average: number;
-    count: number;
-  }>;
+  // getVendorReviewStats(vendorId: string): Promise<{
+  //   average: number;
+  //   count: number;
+  // }>;
 
-  updateVendorReviewSummary(
-    vendorId: string,
-    average: number,
-    count: number,
-  ): Promise<void>;
+  // updateVendorReviewSummary(
+  //   vendorId: string,
+  //   average: number,
+  //   count: number,
+  // ): Promise<void>;
 }

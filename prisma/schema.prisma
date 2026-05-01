@@ -85,8 +85,8 @@ model Vendor {
   subscriptionStatus   SubscriptionStatus @default(INACTIVE)
   subscriptionExpiry   DateTime?
 
-  reviewAverage         Float    @default(0)
-  reviewCount           Int      @default(0)
+  truckReviewAverage   Float    @default(0)
+  truckReviewCount     Int      @default(0)
 
   kycProfile           KycProfile?
   products             Product[] 
@@ -97,10 +97,10 @@ model Vendor {
   vendorVerification   VendorVerification?
   categories           Category[]
   orders               Order[]
-  reviews              VendorReview[]
-  truckGalleryImages   TruckGalleryImage[]
   favoritedBy          FavoriteVendor[]
   carts                Cart[]
+  truckReviews         VendorTruckReview[]
+  truckGalleryImages   TruckGalleryImage[]
   
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -328,9 +328,9 @@ model Customer {
 
   carts            Cart[]
   orders           Order[]
-  reviews          VendorReview[]
   favoriteProducts FavoriteProduct[]
   favoriteVendors  FavoriteVendor[]
+  truckReviews     VendorTruckReview[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -431,7 +431,6 @@ model Order {
   cancelledAt      DateTime?
 
   orderItems       OrderItem[]
-  reviews          VendorReview?
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -492,81 +491,6 @@ model OrderItemAddOn {
   @@index([orderItemId])
 }
 
-model VendorReview {
-  id              String   @id @default(uuid())
-
-  vendorId        String
-  vendor          Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
-
-  customerId      String
-  customer        Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
-  orderId         String?
-  order           Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
-
-  rating          Int
-  reviewText      String?  @db.Text
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  images          VendorReviewImage[]
-  tags            VendorReviewTagMap[]
-
-  @@index([vendorId])
-  @@index([customerId])
-  @@index([orderId])
-  @@index([createdAt])
-  @@unique([orderId])
-}
-
-model VendorReviewImage {
-  id          String       @id @default(uuid())
-
-  reviewId    String
-  review      VendorReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-
-  imageUrl     String
-  position     Int          @default(0)
-
-  createdAt    DateTime     @default(now())
-
-  @@index([reviewId])
-}
-
-model ReviewTag {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  reviews     VendorReviewTagMap[]  
-}
-
-model VendorReviewTagMap {
-  reviewId    String
-  tagId       String
-
-  review      VendorReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  tag         ReviewTag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([reviewId, tagId])
-  @@index([tagId])
-}
-
-model TruckGalleryImage {
-  id         String   @id @default(uuid())
-
-  vendorId   String
-  vendor     Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
-
-  url        String
-  caption    String?
-  isPrimary  Boolean  @default(false)
-  position   Int      @default(0)
-
-  createdAt  DateTime @default(now())
-
-  @@index([vendorId])
-}
-
 model FavoriteProduct {
   id          String   @id @default(uuid())
 
@@ -596,6 +520,78 @@ model FavoriteVendor {
 
   @@unique([customerId, vendorId]) 
   @@index([customerId])
+  @@index([vendorId])
+}
+
+model VendorTruckReview {
+  id          String   @id @default(uuid())
+
+  vendorId    String
+  vendor      Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  rating      Int
+  reviewText  String?  @db.Text
+
+  images      VendorTruckReviewImage[]
+  tags        VendorTruckReviewTagMap[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([vendorId, customerId])
+  @@index([vendorId])
+  @@index([customerId])
+  @@index([createdAt])
+}
+
+model VendorTruckReviewImage {
+  id        String            @id @default(uuid())
+
+  reviewId  String
+  review    VendorTruckReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  imageUrl  String
+  position  Int               @default(0)
+
+  createdAt DateTime          @default(now())
+
+  @@index([reviewId])
+}
+
+model VendorTruckReviewTag {
+  id       String                    @id @default(uuid())
+  name     String                    @unique
+
+  reviews  VendorTruckReviewTagMap[]
+}
+
+model VendorTruckReviewTagMap {
+  reviewId String
+  tagId    String
+
+  review   VendorTruckReview     @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  tag      VendorTruckReviewTag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([reviewId, tagId])
+  @@index([tagId])
+}
+
+model TruckGalleryImage {
+  id         String   @id @default(uuid())
+
+  vendorId   String
+  vendor     Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  url        String
+  caption    String?
+  isPrimary  Boolean  @default(false)
+  position   Int      @default(0)
+
+  createdAt  DateTime @default(now())
+
   @@index([vendorId])
 }
 

@@ -177,10 +177,10 @@ export class CustomerRepository implements ICustomerRepository {
       },
       orderBy: [
         {
-          reviewAverage: 'desc',
+          truckReviewAverage: 'desc',
         },
         {
-          reviewCount: 'desc',
+          truckReviewCount: 'desc',
         },
         {
           createdAt: 'desc',
@@ -247,7 +247,7 @@ export class CustomerRepository implements ICustomerRepository {
       orderBy: [
         {
           vendor: {
-            reviewAverage: 'desc',
+            truckReviewAverage: 'desc',
           },
         },
         {
@@ -373,8 +373,8 @@ export class CustomerRepository implements ICustomerRepository {
         },
       },
       orderBy: [
-        { reviewAverage: 'desc' },
-        { reviewCount: 'desc' },
+        { truckReviewAverage: 'desc' },
+        { truckReviewCount: 'desc' },
         { createdAt: 'desc' },
       ],
     });

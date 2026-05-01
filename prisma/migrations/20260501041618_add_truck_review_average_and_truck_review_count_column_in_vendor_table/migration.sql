@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Vendor" ADD COLUMN     "truckReviewAverage" DOUBLE PRECISION NOT NULL DEFAULT 0,
+ADD COLUMN     "truckReviewCount" INTEGER NOT NULL DEFAULT 0;

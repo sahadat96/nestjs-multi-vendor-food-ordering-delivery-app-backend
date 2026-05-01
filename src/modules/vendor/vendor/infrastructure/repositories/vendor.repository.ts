@@ -27,8 +27,6 @@ export class VendorRepository implements IVendorRepository {
       where: { ownerId },
     });
 
-    console.log(ownerId);
-
     return vendorRecord ? VendorMapper.toDomain(vendorRecord) : null;
   }
 
@@ -150,12 +148,12 @@ export class VendorRepository implements IVendorRepository {
     });
   }
 
-  async resetTruckGalleryPrimary(vendorId: string): Promise<void> {
-    await this.prisma.truckGalleryImage.updateMany({
-      where: { vendorId },
-      data: { isPrimary: false },
-    });
-  }
+  // async resetTruckGalleryPrimary(vendorId: string): Promise<void> {
+  //   await this.prisma.vendorTruckReviewImage.updateMany({
+  //     where: { vendorId },
+  //     data: { isPrimary: false },
+  //   });
+  // }
 
   async createTruckGalleryImages(data: {
     vendorId: string;
@@ -166,7 +164,7 @@ export class VendorRepository implements IVendorRepository {
       position?: number;
     }[];
   }): Promise<void> {
-    await this.prisma.truckGalleryImage.createMany({
+    await this.prisma.truckGalleryImage .createMany({
       data: data.images.map((image, index) => ({
         vendorId: data.vendorId,
         url: image.url,
@@ -177,57 +175,57 @@ export class VendorRepository implements IVendorRepository {
     });
   }
 
-  async findTruckGalleryByVendorId(vendorId: string): Promise<{
-    id: string;
-    truckGalleryImages: {
-      id: string;
-      url: string;
-      caption: string | null;
-      isPrimary: boolean;
-      position: number;
-      createdAt: Date;
-    }[];
-  } | null> {
-    return this.prisma.vendor.findUnique({
-      where: { id: vendorId },
-      select: {
-        id: true,
-        truckGalleryImages: {
-          orderBy: [
-            { isPrimary: 'desc' },
-            { position: 'asc' },
-            { createdAt: 'asc' },
-          ],
-          select: {
-            id: true,
-            url: true,
-            caption: true,
-            isPrimary: true,
-            position: true,
-            createdAt: true,
-          },
-        },
-      },
-    });
-  }
+  // async findTruckGalleryByVendorId(vendorId: string): Promise<{
+  //   id: string;
+  //   truckGalleryImages: {
+  //     id: string;
+  //     url: string;
+  //     caption: string | null;
+  //     isPrimary: boolean;
+  //     position: number;
+  //     createdAt: Date;
+  //   }[];
+  // } | null> {
+  //   return this.prisma.vendor.findUnique({
+  //     where: { id: vendorId },
+  //     select: {
+  //       id: true,
+  //       truckGalleryImages: {
+  //         orderBy: [
+  //           { isPrimary: 'desc' },
+  //           { position: 'asc' },
+  //           { createdAt: 'asc' },
+  //         ],
+  //         select: {
+  //           id: true,
+  //           url: true,
+  //           caption: true,
+  //           isPrimary: true,
+  //           position: true,
+  //           createdAt: true,
+  //         },
+  //       },
+  //     },
+  //   });
+  // }
 
-  async findVendorReviewSummaryById(vendorId: string): Promise<{
-    id: string;
-    reviewAverage: number;
-    reviewCount: number;
-  } | null> {
-    return this.prisma.vendor.findUnique({
-      where: { id: vendorId },
-      select: {
-        id: true,
-        reviewAverage: true,
-        reviewCount: true,
-      },
-    });
-  }
+  // async findVendorReviewSummaryById(vendorId: string): Promise<{
+  //   id: string;
+  //   reviewAverage: number;
+  //   reviewCount: number;
+  // } | null> {
+  //   return this.prisma.vendor.findUnique({
+  //     where: { id: vendorId },
+  //     select: {
+  //       id: true,
+  //       reviewAverage: true,
+  //       reviewCount: true,
+  //     },
+  //   });
+  // }
 
   async findVendorReviewsByVendorId(vendorId: string): Promise<any[]> {
-    return this.prisma.vendorReview.findMany({
+    return this.prisma.vendorTruckReview.findMany({
       where: { vendorId },
       include: {
         customer: {

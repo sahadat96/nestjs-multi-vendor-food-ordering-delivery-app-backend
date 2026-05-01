@@ -201,17 +201,17 @@ export class VendorService {
     return address.split(',')[0]?.trim() || undefined;
   }
 
-  async getVendorInfo(
-    vendorId: string,
-  ): Promise<VendorInfoResponseDto> {
-    const vendor = await this.vendorRepository.findVendorInfoById(vendorId);
+  // async getVendorInfo(
+  //   vendorId: string,
+  // ): Promise<VendorInfoResponseDto> {
+  //   const vendor = await this.vendorRepository.findVendorInfoById(vendorId);
 
-    if (!vendor) {
-      throw new NotFoundException('Vendor not found');
-    }
+  //   if (!vendor) {
+  //     throw new NotFoundException('Vendor not found');
+  //   }
 
-    return VendorMapper.toInfoResponse(vendor);
-  }
+  //   return VendorMapper.toInfoResponse(vendor);
+  // }
 
   async uploadTruckGalleryImages(
     userId: string,
@@ -228,9 +228,9 @@ export class VendorService {
       throw new BadRequestException('At least one gallery image is required');
     }
 
-    if (dto.isPrimary) {
-      await this.vendorRepository.resetTruckGalleryPrimary(vendor.id);
-    }
+    // if (dto.isPrimary) {
+    //   await this.vendorRepository.resetTruckGalleryPrimary(vendor.id);
+    // }
 
     const folder = `vendor/truck-gallery/${vendor.id}`;
 
@@ -251,46 +251,46 @@ export class VendorService {
     return VendorMapper.toUploadTruckGalleryResponse();
   }
 
-  async getTruckGallery(
-    vendorId: string,
-  ): Promise<TruckGalleryResponseDto> {
-    const vendor = await this.vendorRepository.findTruckGalleryByVendorId(vendorId);
+  // async getTruckGallery(
+  //   vendorId: string,
+  // ): Promise<TruckGalleryResponseDto> {
+  //   const vendor = await this.vendorRepository.findTruckGalleryByVendorId(vendorId);
 
-    if (!vendor) {
-      throw new NotFoundException('Vendor not found');
-    }
+  //   if (!vendor) {
+  //     throw new NotFoundException('Vendor not found');
+  //   }
 
-    return this.vendorMapper.toTruckGalleryResponse(vendor);
-  }
+  //   return this.vendorMapper.toTruckGalleryResponse(vendor);
+  // }
 
-   async getVendorReviews(
-    vendorId: string,
-    query: VendorReviewsQueryDto,
-  ): Promise<VendorReviewsResponseDto> {
-    const vendor = await this.vendorRepository.findVendorReviewSummaryById(vendorId);
+  //  async getVendorReviews(
+  //   vendorId: string,
+  //   query: VendorReviewsQueryDto,
+  // ): Promise<VendorReviewsResponseDto> {
+  //   const vendor = await this.vendorRepository.findVendorReviewSummaryById(vendorId);
 
-    if (!vendor) {
-      throw new NotFoundException('Vendor not found');
-    }
+  //   if (!vendor) {
+  //     throw new NotFoundException('Vendor not found');
+  //   }
 
-    const reviews = await this.vendorRepository.findVendorReviewsByVendorId(vendorId);
+  //   const reviews = await this.vendorRepository.findVendorReviewsByVendorId(vendorId);
 
-    const page = query.page ?? 1;
-    const limit = query.limit ?? 10;
-    const total = reviews.length;
-    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
-    const start = (page - 1) * limit;
-    const paginated = reviews.slice(start, start + limit);
+  //   const page = query.page ?? 1;
+  //   const limit = query.limit ?? 10;
+  //   const total = reviews.length;
+  //   const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+  //   const start = (page - 1) * limit;
+  //   const paginated = reviews.slice(start, start + limit);
 
-    return VendorMapper.toVendorReviewsResponse({
-      vendorId: vendor.id,
-      reviewAverage: vendor.reviewAverage,
-      reviewCount: vendor.reviewCount,
-      reviews: paginated,
-      page,
-      limit,
-      total,
-      totalPages,
-    });
-  }
+  //   return VendorMapper.toVendorReviewsResponse({
+  //     vendorId: vendor.id,
+  //     reviewAverage: vendor.reviewAverage,
+  //     reviewCount: vendor.reviewCount,
+  //     reviews: paginated,
+  //     page,
+  //     limit,
+  //     total,
+  //     totalPages,
+  //   });
+  // }
 }
