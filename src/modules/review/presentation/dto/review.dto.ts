@@ -1,4 +1,4 @@
-import { Transform } from 'class-transformer';
+import { Transform, Type} from 'class-transformer';
 import {
   ArrayUnique,
   IsArray,
@@ -44,4 +44,19 @@ export class CreateVendorTruckReviewDto {
   @ArrayUnique()
   @IsUUID('4', { each: true })
   tagIds?: string[];
+}
+
+export class VendorTruckReviewsQueryDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(50)
+  limit?: number = 10;
 }
