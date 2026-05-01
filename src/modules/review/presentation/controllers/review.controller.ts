@@ -10,7 +10,7 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 
 import { CreateVendorTruckReviewDto } from '../dto/review.dto';
-import { CreateReviewResponseDto } from '../dto/review.response.dto';
+import { CreateVendorTruckReviewResponseDto } from '../dto/review.response.dto';
 
 import { CurrentUser } from '@/modules/auth/decorators/get-user.decorator';
 import type { AuthUser } from '@/modules/auth/domain/interfaces/auth-user.interface';
@@ -24,16 +24,16 @@ import { Role } from 'src/common/enums/role.enum';
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
-  // @Post('create-review')
-  // @UseGuards(RoleGuard)
-  // @Roles(Role.USER) 
-  // @UseInterceptors(FilesInterceptor('images', 5))
-  // @ResponseMessage('Review submitted successfully.')
-  // async createReview(
-  //   @CurrentUser() user: AuthUser,
-  //   @Body() dto: CreateReviewDto,
-  //   @UploadedFiles() files?: Express.Multer.File[],
-  // ): Promise<CreateReviewResponseDto> {
-  //   return this.reviewService.createReview(user.id, dto, files);
-  // }
+  @Post()
+  @UseGuards(RoleGuard)
+  @Roles(Role.USER)
+  @UseInterceptors(FilesInterceptor('images', 5))
+  @ResponseMessage('Truck review submitted successfully.')
+  async createVendorTruckReview(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: CreateVendorTruckReviewDto,
+    @UploadedFiles() files?: Express.Multer.File[],
+  ): Promise<CreateVendorTruckReviewResponseDto> {
+    return this.reviewService.createVendorTruckReview(user.id, dto, files);
+  }
 }
