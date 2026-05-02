@@ -26,6 +26,7 @@ import {
   FoodFilterQueryDto,
   FavoriteProductsQueryDto,
   FavoriteVendorsQueryDto,
+  CustomerAdvancedSearchQueryDto,
 } from '../dto/customer.dto';
 
 import { 
@@ -36,6 +37,7 @@ import {
   FoodFilterResponseDto,
   FavoriteProductsResponseDto,
   FavoriteVendorsResponseDto,
+  CustomerAdvancedSearchResponseDto,
 } from '../dto/customer.response.dto';
 
 @Controller('customer')
@@ -146,4 +148,15 @@ export class CustomerController {
   ): Promise<FavoriteVendorsResponseDto> {
     return this.service.getFavoriteVendors(user.id, query);
   }
+
+@Get('food-advhance-search')
+@UseGuards(RoleGuard)
+@Roles(Role.USER)
+async advancedSearch(
+  @CurrentUser() user: AuthUser,
+  @Query() query: CustomerAdvancedSearchQueryDto,
+): Promise<CustomerAdvancedSearchResponseDto> {
+  return this.service.advancedSearch(user.id, query);
+}
+
 }
