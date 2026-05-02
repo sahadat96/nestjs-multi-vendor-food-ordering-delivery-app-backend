@@ -205,4 +205,132 @@ export class VendorTruckReviewRepository implements IVendorTruckReviewRepository
     });
   }
 
+   async findOrderItemForReview(orderItemId: string): Promise<any | null> {
+    return this.prisma.orderItem.findUnique({
+      where: {
+        id: orderItemId,
+      },
+      include: {
+        order: {
+          select: {
+            id: true,
+            customerId: true,
+            status: true,
+          },
+        },
+        product: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findExistingReviewByOrderItem(
+    orderItemId: string,
+  ): Promise<{ id: string } | null> {
+    return this.prisma.foodReview.findUnique({
+      where: {
+        orderItemId,
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+
+  async foodReviewValidateTags(
+    tagIds: string[],
+  ): Promise<{ id: string; name: string }[]> {
+    if (!tagIds.length) {
+      return [];
+    }
+
+    return this.prisma.foodReviewTag.findMany({
+      where: {
+        id: {
+          in: tagIds,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+  }
+
+  async createFoodReview(data: CreateFoodReviewInput): Promise<any> {
+    return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const review = await tx.foodReview.create({
+        data: {
+          productId: data.productId,
+          customerId: data.customerId,
+          orderItemId: data.orderItemId,
+          rating: data.rating,
+          reviewText: data.reviewText,
+        },
+      });
+
+      if (data.imageUrls?.length) {
+        await tx.foodReviewImage.createMany({
+          data: data.imageUrls.map((imageUrl, index) => ({
+            reviewId: review.id,
+            imageUrl,
+            position: index,
+          })),
+        });
+      }
+
+      if (data.tagIds?.length) {
+        await tx.foodReviewTagMap.createMany({
+          data: data.tagIds.map((tagId) => ({
+            reviewId: review.id,
+            tagId,
+          })),
+        });
+      }
+
+      const aggregate = await tx.foodReview.aggregate({
+        where: {
+          productId: data.productId,
+        },
+        _avg: {
+          rating: true,
+        },
+        _count: {
+          id: true,
+        },
+      });
+
+      await tx.product.update({
+        where: {
+          id: data.productId,
+        },
+        data: {
+          foodReviewAverage: aggregate._avg.rating ?? 0,
+          foodReviewCount: aggregate._count.id,
+        },
+      });
+
+      return tx.foodReview.findUnique({
+        where: {
+          id: review.id,
+        },
+        include: {
+          images: {
+            orderBy: {
+              position: 'asc',
+            },
+          },
+          tags: {
+            include: {
+              tag: true,
+            },
+          },
+        },
+      });
+    });
+  }
+
 }

@@ -58,5 +58,5 @@ export interface IVendorTruckReviewRepository {
 
   foodReviewValidateTags(tagIds: string[]): Promise<{ id: string; name: string }[]>;
 
-  createReview(data: CreateFoodReviewInput): Promise<any>;
+  createFoodReview(data: CreateFoodReviewInput): Promise<any>;
 }

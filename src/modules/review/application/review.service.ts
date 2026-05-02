@@ -197,7 +197,7 @@ export class ReviewService {
       imageUrls.push(...uploadedUrls);
     }
 
-    const review = await this.reviewRepository.createReview({
+    const review = await this.reviewRepository.createFoodReview({
       productId: orderItem.productId,
       customerId: customer.id,
       orderItemId: orderItem.id,
