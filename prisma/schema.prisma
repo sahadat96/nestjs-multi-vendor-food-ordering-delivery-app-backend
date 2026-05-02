@@ -617,6 +617,7 @@ model FoodReview {
   reviewText  String?  @db.Text
 
   images      FoodReviewImage[]
+  tags        FoodReviewTagMap[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -639,6 +640,24 @@ model FoodReviewImage {
   createdAt DateTime   @default(now())
 
   @@index([reviewId])
+}
+
+model FoodReviewTag {
+  id       String             @id @default(uuid())
+  name     String             @unique
+
+  reviews  FoodReviewTagMap[]
+}
+
+model FoodReviewTagMap {
+  reviewId String
+  tagId    String
+
+  review   FoodReview    @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  tag      FoodReviewTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([reviewId, tagId])
+  @@index([tagId])
 }
 
 enum OrderStatus {
