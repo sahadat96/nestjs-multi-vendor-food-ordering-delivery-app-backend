@@ -9,6 +9,16 @@ export interface CreateVendorTruckReviewInput {
   tagIds?: string[];
 }
 
+export interface CreateFoodReviewInput {
+  productId: string;
+  customerId: string;
+  orderItemId: string;
+  rating: number;
+  reviewText?: string;
+  imageUrls?: string[];
+  tagIds?: string[];
+}
+
 export interface IVendorTruckReviewRepository {
 
   findExistingReview(data: {
@@ -39,4 +49,14 @@ export interface IVendorTruckReviewRepository {
   ): Promise<any[]>;
 
   countVendorTruckReviews(vendorId: string): Promise<number>;
+
+  findOrderItemForReview(orderItemId: string): Promise<any | null>;
+
+  findExistingReviewByOrderItem(
+    orderItemId: string,
+  ): Promise<{ id: string } | null>;
+
+  foodReviewValidateTags(tagIds: string[]): Promise<{ id: string; name: string }[]>;
+
+  createReview(data: CreateFoodReviewInput): Promise<any>;
 }

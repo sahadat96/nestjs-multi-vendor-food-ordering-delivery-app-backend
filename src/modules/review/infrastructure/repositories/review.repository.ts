@@ -7,6 +7,7 @@ import { VendorTruckReviewsQueryDto } from '../../presentation/dto/review.dto';
 import type {
   CreateVendorTruckReviewInput,
   IVendorTruckReviewRepository,
+  CreateFoodReviewInput,
 } from '../../domain/interface/review.repository.interface';
 
 
