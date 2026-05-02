@@ -7,6 +7,7 @@ import {
   Min,
   IsBoolean,
   IsIn,
+  IsEnum,
 } from 'class-validator';
 
 import { Type, Transform } from 'class-transformer';
@@ -193,6 +194,75 @@ export class FavoriteVendorsQueryDto {
   @IsOptional()
   @IsString()
   cuisine?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(50)
+  limit?: number = 10;
+}
+
+export enum CustomerSearchType {
+  FOOD = 'FOOD',
+  TRUCK = 'TRUCK',
+}
+
+export enum CustomerSearchSortBy {
+  RECOMMENDED = 'recommended',
+  POPULAR = 'popular',
+  OPEN_NOW = 'open_now',
+  CLOSE_BY = 'close_by',
+  TOP_RATED = 'top_rated',
+  NEARBY = 'nearby',
+  PRICE_LOW_TO_HIGH = 'price_low_to_high',
+  PRICE_HIGH_TO_LOW = 'price_high_to_low',
+}
+
+export class CustomerAdvancedSearchQueryDto {
+  @IsEnum(CustomerSearchType)
+  type!: CustomerSearchType;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @IsOptional()
+  @IsString()
+  category?: string;
+
+  @IsOptional()
+  @IsString()
+  cuisine?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @Max(5)
+  minRating?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0.1)
+  @Max(100)
+  radiusKm?: number = 10;
+
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  openNow?: boolean;
+
+  @IsOptional()
+  @IsEnum(CustomerSearchSortBy)
+  sortBy?: CustomerSearchSortBy = CustomerSearchSortBy.RECOMMENDED;
 
   @IsOptional()
   @Type(() => Number)
