@@ -18,6 +18,9 @@ import {
   FavoriteProductsQueryDto,
   SetCustomerLocationDto,
   FavoriteVendorsQueryDto,
+  CustomerAdvancedSearchQueryDto,
+  CustomerSearchSortBy,
+  CustomerSearchType,
 } from '../presentation/dto/customer.dto';
 
 import { 
@@ -28,6 +31,7 @@ import {
   FavoriteProductsResponseDto,
   CustomerResponseDto,
   FavoriteVendorsResponseDto,
+  CustomerAdvancedSearchResponseDto,
  } from '../presentation/dto/customer.response.dto';
 
 import { VendorService } from '@/modules/vendor/vendor/application/vendor.service';
@@ -696,5 +700,275 @@ export class CustomerService {
       total,
       totalPages,
     };
+  }
+
+  async advancedSearch(
+    userId: string,
+    query: CustomerAdvancedSearchQueryDto,
+  ): Promise<CustomerAdvancedSearchResponseDto> {
+    const customer = await this.repo.findByUserId(userId);
+
+    if (
+      !customer ||
+      !customer.isActive ||
+      customer.latitude == null ||
+      customer.longitude == null
+    ) {
+      throw new BadRequestException(
+        'Customer location is required to search',
+      );
+    }
+
+    const customerLat = customer.latitude;
+    const customerLng = customer.longitude;
+    const radiusKm = query.radiusKm ?? 10;
+
+    if (query.type === CustomerSearchType.FOOD) {
+      return this.searchFoods(
+        customer.id,
+        customerLat,
+        customerLng,
+        radiusKm,
+        query,
+      );
+    }
+
+    return this.searchTrucks(
+      customer.id,
+      customerLat,
+      customerLng,
+      radiusKm,
+      query,
+    );
+  }
+
+  private async searchFoods(
+    customerId: string,
+    customerLat: number,
+    customerLng: number,
+    radiusKm: number,
+    query: CustomerAdvancedSearchQueryDto,
+  ): Promise<CustomerAdvancedSearchResponseDto> {
+    const [products, favoriteProductIds] = await Promise.all([
+      this.repo.findFoodSearchCandidates(query),
+      this.repo.findFavoriteProductIds(customerId),
+    ]);
+
+    const favoriteSet = new Set(favoriteProductIds);
+
+    const enriched = products
+      .map((product) => {
+        const vendorLat = product.vendor?.serviceArea?.latitude;
+        const vendorLng = product.vendor?.serviceArea?.longitude;
+
+        const distanceKm =
+          vendorLat != null && vendorLng != null
+            ? this.calculateDistanceKm(
+                customerLat,
+                customerLng,
+                vendorLat,
+                vendorLng,
+              )
+            : Number.MAX_SAFE_INTEGER;
+
+        const availability = this.resolveAvailability(
+          product.vendor?.operationHours ?? [],
+        );
+
+        return {
+          ...product,
+          distanceKm,
+          availability,
+        };
+      })
+      .filter((product) => product.distanceKm <= radiusKm)
+      .filter((product) => {
+        if (query.openNow === true) {
+          return product.availability.isOpen;
+        }
+
+        return true;
+      });
+
+    const sorted = this.sortFoods(enriched, query.sortBy);
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const total = sorted.length;
+    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+    const start = (page - 1) * limit;
+    const paginated = sorted.slice(start, start + limit);
+
+    return {
+      type: 'FOOD',
+      search: query.search,
+      items: paginated.map((product) =>
+        CustomerMapper.toAdvancedFoodItem(product, favoriteSet),
+      ),
+      page,
+      limit,
+      total,
+      totalPages,
+    };
+  }
+
+  private async searchTrucks(
+    customerId: string,
+    customerLat: number,
+    customerLng: number,
+    radiusKm: number,
+    query: CustomerAdvancedSearchQueryDto,
+  ): Promise<CustomerAdvancedSearchResponseDto> {
+    const [vendors, favoriteVendorIds] = await Promise.all([
+      this.repo.findTruckSearchCandidates(query),
+      this.repo.findFavoriteVendorIds(customerId),
+    ]);
+
+    const favoriteSet = new Set(favoriteVendorIds);
+
+    const enriched = vendors
+      .map((vendor) => {
+        const distanceKm = this.calculateDistanceKm(
+          customerLat,
+          customerLng,
+          vendor.serviceArea.latitude,
+          vendor.serviceArea.longitude,
+        );
+
+        const availability = this.resolveAvailability(vendor.operationHours ?? []);
+
+        return {
+          ...vendor,
+          distanceKm,
+          availability,
+        };
+      })
+      .filter((vendor) => vendor.distanceKm <= radiusKm)
+      .filter((vendor) => {
+        if (query.openNow === true) {
+          return vendor.availability.isOpen;
+        }
+
+        return true;
+      });
+
+    const sorted = this.sortTrucks(enriched, query.sortBy);
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const total = sorted.length;
+    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+    const start = (page - 1) * limit;
+    const paginated = sorted.slice(start, start + limit);
+
+    return {
+      type: 'TRUCK',
+      search: query.search,
+      items: paginated.map((vendor) =>
+        CustomerMapper.toAdvancedTruckItem(vendor, favoriteSet),
+      ),
+      page,
+      limit,
+      total,
+      totalPages,
+    };
+  }
+
+  private sortFoods(
+    items: any[],
+    sortBy?: CustomerSearchSortBy,
+  ): any[] {
+    const selectedSort = sortBy ?? CustomerSearchSortBy.RECOMMENDED;
+
+    return [...items].sort((a, b) => {
+      switch (selectedSort) {
+        case CustomerSearchSortBy.POPULAR:
+          return (b.foodReviewCount ?? 0) - (a.foodReviewCount ?? 0);
+
+        case CustomerSearchSortBy.OPEN_NOW:
+          if (a.availability.isOpen !== b.availability.isOpen) {
+            return a.availability.isOpen ? -1 : 1;
+          }
+          return a.distanceKm - b.distanceKm;
+
+        case CustomerSearchSortBy.TOP_RATED:
+          if ((b.foodReviewAverage ?? 0) !== (a.foodReviewAverage ?? 0)) {
+            return (b.foodReviewAverage ?? 0) - (a.foodReviewAverage ?? 0);
+          }
+          return (b.foodReviewCount ?? 0) - (a.foodReviewCount ?? 0);
+
+        case CustomerSearchSortBy.NEARBY:
+        case CustomerSearchSortBy.CLOSE_BY:
+          return a.distanceKm - b.distanceKm;
+
+        case CustomerSearchSortBy.PRICE_LOW_TO_HIGH:
+          return a.price - b.price;
+
+        case CustomerSearchSortBy.PRICE_HIGH_TO_LOW:
+          return b.price - a.price;
+
+        case CustomerSearchSortBy.RECOMMENDED:
+        default:
+          if (a.availability.isOpen !== b.availability.isOpen) {
+            return a.availability.isOpen ? -1 : 1;
+          }
+
+          if ((b.foodReviewAverage ?? 0) !== (a.foodReviewAverage ?? 0)) {
+            return (b.foodReviewAverage ?? 0) - (a.foodReviewAverage ?? 0);
+          }
+
+          if ((b.foodReviewCount ?? 0) !== (a.foodReviewCount ?? 0)) {
+            return (b.foodReviewCount ?? 0) - (a.foodReviewCount ?? 0);
+          }
+
+          return a.distanceKm - b.distanceKm;
+      }
+    });
+  }
+
+  private sortTrucks(
+    items: any[],
+    sortBy?: CustomerSearchSortBy,
+  ): any[] {
+    const selectedSort = sortBy ?? CustomerSearchSortBy.RECOMMENDED;
+
+    return [...items].sort((a, b) => {
+      switch (selectedSort) {
+        case CustomerSearchSortBy.POPULAR:
+          return (b.truckReviewCount ?? 0) - (a.truckReviewCount ?? 0);
+
+        case CustomerSearchSortBy.OPEN_NOW:
+          if (a.availability.isOpen !== b.availability.isOpen) {
+            return a.availability.isOpen ? -1 : 1;
+          }
+          return a.distanceKm - b.distanceKm;
+
+        case CustomerSearchSortBy.TOP_RATED:
+          if ((b.truckReviewAverage ?? 0) !== (a.truckReviewAverage ?? 0)) {
+            return (b.truckReviewAverage ?? 0) - (a.truckReviewAverage ?? 0);
+          }
+          return (b.truckReviewCount ?? 0) - (a.truckReviewCount ?? 0);
+
+        case CustomerSearchSortBy.NEARBY:
+        case CustomerSearchSortBy.CLOSE_BY:
+          return a.distanceKm - b.distanceKm;
+
+        case CustomerSearchSortBy.RECOMMENDED:
+        default:
+          if (a.availability.isOpen !== b.availability.isOpen) {
+            return a.availability.isOpen ? -1 : 1;
+          }
+
+          if ((b.truckReviewAverage ?? 0) !== (a.truckReviewAverage ?? 0)) {
+            return (b.truckReviewAverage ?? 0) - (a.truckReviewAverage ?? 0);
+          }
+
+          if ((b.truckReviewCount ?? 0) !== (a.truckReviewCount ?? 0)) {
+            return (b.truckReviewCount ?? 0) - (a.truckReviewCount ?? 0);
+          }
+
+          return a.distanceKm - b.distanceKm;
+      }
+    });
   }
 }

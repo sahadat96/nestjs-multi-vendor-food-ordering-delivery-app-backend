@@ -149,14 +149,13 @@ export class CustomerController {
     return this.service.getFavoriteVendors(user.id, query);
   }
 
-@Get('food-advhance-search')
-@UseGuards(RoleGuard)
-@Roles(Role.USER)
-async advancedSearch(
-  @CurrentUser() user: AuthUser,
-  @Query() query: CustomerAdvancedSearchQueryDto,
-): Promise<CustomerAdvancedSearchResponseDto> {
-  return this.service.advancedSearch(user.id, query);
-}
-
+  @Get('food-advhance-search')
+  @UseGuards(RoleGuard)
+  @Roles(Role.USER)
+  async advancedSearch(
+    @CurrentUser() user: AuthUser,
+    @Query() query: CustomerAdvancedSearchQueryDto,
+  ): Promise<CustomerAdvancedSearchResponseDto> {
+    return this.service.advancedSearch(user.id, query);
+  }
 }
