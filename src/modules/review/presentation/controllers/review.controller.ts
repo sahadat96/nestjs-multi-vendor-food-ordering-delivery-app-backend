@@ -15,11 +15,13 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { 
   CreateVendorTruckReviewDto,
   VendorTruckReviewsQueryDto,
+  CreateFoodReviewDto,
  } from '../dto/review.dto';
 import { 
   CreateVendorTruckReviewResponseDto,
   VendorTruckReviewTagListResponseDto,
   VendorTruckReviewsResponseDto,
+  CreateFoodReviewResponseDto
 } from '../dto/review.response.dto';
 
 import { CurrentUser } from '@/modules/auth/decorators/get-user.decorator';
@@ -58,5 +60,18 @@ export class ReviewController {
     @Query() query: VendorTruckReviewsQueryDto,
   ): Promise<VendorTruckReviewsResponseDto> {
     return this.reviewService.getVendorTruckReviews(vendorId, query);
+  }
+
+  @Post('create-food-review')
+  @UseGuards(RoleGuard)
+  @Roles(Role.USER)
+  @UseInterceptors(FilesInterceptor('images', 5))
+  @ResponseMessage('Food review submitted successfully.')
+  async createFoodReview(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: CreateFoodReviewDto,
+    @UploadedFiles() files?: Express.Multer.File[],
+  ): Promise<CreateFoodReviewResponseDto> {
+    return this.reviewService.createFoodReview(user.id, dto, files);
   }
 }
