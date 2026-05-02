@@ -146,6 +146,9 @@ model Product {
   categoryId        String?
   category          Category? @relation(fields: [categoryId], references: [id])
 
+  foodReviewAverage Float     @default(0)
+  foodReviewCount   Int       @default(0)
+
   sizeOptions       SizeOption[]
   choiceOptions     ChoiceOption[]
   addOns            AddOn[]
@@ -153,6 +156,7 @@ model Product {
   cartItems         CartItem[]
   orderItems        OrderItem[]
   favoritedBy       FavoriteProduct[]
+  foodReview        FoodReview[]
 
   createdAt   DateTime @default(now())
 }
@@ -331,6 +335,7 @@ model Customer {
   favoriteProducts FavoriteProduct[]
   favoriteVendors  FavoriteVendor[]
   truckReviews     VendorTruckReview[]
+  foodReviews      FoodReview[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -460,6 +465,7 @@ model OrderItem {
 
   orderItemChoiceOption  OrderItemChoiceOption[]
   orderItemAddOn         OrderItemAddOn[]
+  foodReview             FoodReview?
 
   @@index([orderId])
   @@index([productId])
@@ -593,6 +599,46 @@ model TruckGalleryImage {
   createdAt  DateTime @default(now())
 
   @@index([vendorId])
+}
+
+model FoodReview {
+  id          String   @id @default(uuid())
+
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  orderItemId String
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  rating      Int
+  reviewText  String?  @db.Text
+
+  images      FoodReviewImage[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([orderItemId])
+  @@index([productId])
+  @@index([customerId])
+  @@index([createdAt])
+}
+
+model FoodReviewImage {
+  id        String     @id @default(uuid())
+
+  reviewId  String
+  review    FoodReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  imageUrl  String
+  position  Int        @default(0)
+
+  createdAt DateTime   @default(now())
+
+  @@index([reviewId])
 }
 
 enum OrderStatus {
