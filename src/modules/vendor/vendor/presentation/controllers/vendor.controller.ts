@@ -23,6 +23,7 @@ import {
   VendorInfoResponseDto,
   UploadTruckGalleryResponseDto,
   TruckGalleryResponseDto,
+  VendorHomeResponseDto,
  } from '../dto/vendor.response.dto';
 
 import { VendorService } from '../../application/vendor.service';
@@ -85,5 +86,14 @@ export class VendorController {
   // ): Promise<TruckGalleryResponseDto> {
   //   return this.VendorService.getTruckGallery(vendorId);
   // }
+
+  @Get('home')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  async getVendorHome(
+    @CurrentUser() user: AuthUser,
+  ): Promise<VendorHomeResponseDto> {
+    return this.VendorService.getVendorHome(user.id);
+  }
 
 }
