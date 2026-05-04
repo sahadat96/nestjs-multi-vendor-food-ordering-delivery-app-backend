@@ -71,12 +71,12 @@ export class OrderController {
     return this.orderService.userCancelOrder(user.id, orderId);
   }
 
-@Get('vendor/active-order')
-@UseGuards(RoleGuard)
-@Roles(Role.VENDOR)
-async getVendorActiveOrders(
-  @CurrentUser() user: AuthUser,
-): Promise<VendorActiveOrdersResponseDto> {
-  return this.orderService.getVendorActiveOrders(user.id);
-}
+  @Get('vendor/active-order')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  async getVendorActiveOrders(
+    @CurrentUser() user: AuthUser,
+  ): Promise<VendorActiveOrdersResponseDto> {
+    return this.orderService.getVendorActiveOrders(user.id);
+  }
 }

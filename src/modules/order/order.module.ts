@@ -6,11 +6,13 @@ import { OrderRepository } from './infrastructure/repositories/order.repository'
 import { CustomerModule } from '../customer/customer/customer.module';
 import { CartModule } from '../customer/cart/cart.module';
 import { PrismaService } from '@/prisma/prisma.service';
+import { VendorModule } from '../vendor/vendor/vendor.module';
 
 @Module({
   imports: [
     CustomerModule, 
     CartModule, 
+    VendorModule,
   ],
   controllers: [OrderController],
   providers: [

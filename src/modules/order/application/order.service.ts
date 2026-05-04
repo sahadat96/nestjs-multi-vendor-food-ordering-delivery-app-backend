@@ -17,10 +17,12 @@ import {
   CreateOrderResponseDto,
   OrderSummaryResponseDto,
   OrderTrackResponseDto,
+  VendorActiveOrdersResponseDto,
 } from '../presentation/dto/order.response.dto';
 
 import { CustomerService } from '@/modules/customer/customer/application/customer.service';
 import { CartService } from '@/modules/customer/cart/application/cart.service';
+import { VendorService } from '@/modules/vendor/vendor/application/vendor.service';
 
 @Injectable()
 export class OrderService {
@@ -29,6 +31,7 @@ export class OrderService {
     private readonly orderRepository: IOrderRepository,
     private readonly customerService: CustomerService,
     private readonly cartService: CartService,
+    private readonly vendorService: VendorService,
   ) {}
 
   async createOrder(
@@ -155,28 +158,28 @@ export class OrderService {
     return OrderMapper.toUserOrserSummaryResponse(order);
   }
 
-    async getUserOrderTrack(
-      userId: string,
-      orderId: string,
-    ): Promise<OrderTrackResponseDto> {
-      const customer = await this.customerService.findActiveByUserId(userId);
+  async getUserOrderTrack(
+    userId: string,
+    orderId: string,
+  ): Promise<OrderTrackResponseDto> {
+    const customer = await this.customerService.findActiveByUserId(userId);
 
-      if (!customer) {
-        throw new NotFoundException('Customer not found');
-      }
-
-      const order = await this.orderRepository.findOrderTrackById(orderId);
-
-      if (!order) {
-        throw new NotFoundException('Order not found');
-      }
-
-      if (order.customerId !== customer.id) {
-        throw new ForbiddenException('You cannot access this order');
-      }
-
-      return OrderMapper.toTrackResponse(order);
+    if (!customer) {
+      throw new NotFoundException('Customer not found');
     }
+
+    const order = await this.orderRepository.findOrderTrackById(orderId);
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    if (order.customerId !== customer.id) {
+      throw new ForbiddenException('You cannot access this order');
+    }
+
+    return OrderMapper.toTrackResponse(order);
+  }
 
   async userCancelOrder(
     userId: string,
@@ -217,6 +220,22 @@ export class OrderService {
       status === OrderStatus.PENDING ||
       status === OrderStatus.CONFIRMED
     );
+  }
+
+  async getVendorActiveOrders(
+    userId: string,
+  ): Promise<VendorActiveOrdersResponseDto> {
+    const vendor = await this.vendorService.execute(userId);
+
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    const orders = await this.orderRepository.findActiveOrdersByVendorId(
+      vendor.id,
+    );
+
+    return OrderMapper.toVendorActiveOrdersResponse(orders);
   }
 
 }
