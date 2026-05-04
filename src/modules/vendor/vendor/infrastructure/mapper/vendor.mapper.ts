@@ -206,7 +206,7 @@ export class VendorMapper {
     };
   }
 
-  static toVendorHomeResponse(data: {
+  toVendorHomeResponse(data: {
     vendor: any;
     stats: {
       todaySale: number;
@@ -235,7 +235,7 @@ export class VendorMapper {
       vendor: {
         id: vendor.id,
         businessName: vendor.businessName ?? 'Unnamed Vendor',
-        coverImage: vendor.coverImage ?? undefined,
+        coverImage: this.mediaService.getUrl( vendor.coverImage),
         address: vendor.serviceArea?.address ?? undefined,
         latitude: vendor.serviceArea?.latitude ?? undefined,
         longitude: vendor.serviceArea?.longitude ?? undefined,

@@ -266,10 +266,10 @@ export class VendorService {
     });
 
     const isLive = false;
-    
+
     const unreadNotificationCount = 0;
 
-    return VendorMapper.toVendorHomeResponse({
+    return this.vendorMapper.toVendorHomeResponse({
       vendor,
       stats,
       unreadNotificationCount,
