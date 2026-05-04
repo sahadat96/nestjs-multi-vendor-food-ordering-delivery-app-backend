@@ -79,35 +79,41 @@ export class CartRepository implements ICartRepository {
     });
   }
 
-  async createCartItem(input: CreateCartItemInput): Promise<void> {
+  async createCartItems(inputs: CreateCartItemInput[]): Promise<void> {
+    if (!inputs.length) {
+      return;
+    }
+
     await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      const item = await tx.cartItem.create({
-        data: {
-          cartId: input.cartId,
-          productId: input.productId,
-          quantity: input.quantity,
-          price: input.price,
-          sizeOptionId: input.sizeOptionId,
-          note: input.note,
-        },
-      });
-
-      if (input.choiceOptionIds?.length) {
-        await tx.cartItemChoiceOption.createMany({
-          data: input.choiceOptionIds.map((choiceOptionId) => ({
-            cartItemId: item.id,
-            choiceOptionId,
-          })),
+      for (const input of inputs) {
+        const item = await tx.cartItem.create({
+          data: {
+            cartId: input.cartId,
+            productId: input.productId,
+            quantity: input.quantity,
+            price: input.price,
+            sizeOptionId: input.sizeOptionId,
+            note: input.note,
+          },
         });
-      }
 
-      if (input.addOnIds?.length) {
-        await tx.cartItemAddOn.createMany({
-          data: input.addOnIds.map((addOnId) => ({
-            cartItemId: item.id,
-            addOnId,
-          })),
-        });
+        if (input.choiceOptionIds?.length) {
+          await tx.cartItemChoiceOption.createMany({
+            data: input.choiceOptionIds.map((choiceOptionId) => ({
+              cartItemId: item.id,
+              choiceOptionId,
+            })),
+          });
+        }
+
+        if (input.addOnIds?.length) {
+          await tx.cartItemAddOn.createMany({
+            data: input.addOnIds.map((addOnId) => ({
+              cartItemId: item.id,
+              addOnId,
+            })),
+          });
+        }
       }
     });
   }

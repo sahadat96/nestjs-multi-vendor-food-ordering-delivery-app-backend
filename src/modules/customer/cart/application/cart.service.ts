@@ -6,10 +6,13 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 
-import type { ICartRepository } from '../domain/interface/cart.repository.interface';
+import type { ICartRepository, CreateCartItemInput } from '../domain/interface/cart.repository.interface';
 import { CartMapper } from '../infrastructure/mapper/cart.mapper';
 
-import { AddCartItemDto } from '../presentation/dto/cart.dto';
+import { 
+  AddCartItemsDto,
+  AddCartItemPayloadDto
+} from '../presentation/dto/cart.dto';
 import { 
   CartResponseDto,
   CartListResponseDto,
@@ -31,9 +34,9 @@ export class CartService {
     private readonly mediaService: MediaService,
   ) {}
 
-  async addItem(
+ async addItems(
     userId: string,
-    dto: AddCartItemDto,
+    dto: AddCartItemsDto,
   ): Promise<CartResponseDto> {
     const customer = await this.customerService.findActiveByUserId(userId);
 
@@ -41,31 +44,74 @@ export class CartService {
       throw new NotFoundException('Customer not found');
     }
 
-    const product = await this.productRepo.findActiveProductForCart(
-      dto.productId,
+    const normalizedItems = this.normalizeRequestedItems(dto.items);
+
+    const productResults = await Promise.all(
+      normalizedItems.map((item) =>
+        this.productRepo.findActiveProductForCart(item.productId),
+      ),
     );
 
-    if (!product) {
-      throw new NotFoundException('Product not found or inactive');
+    const products = this.assertProductsFound(
+      productResults,
+      normalizedItems,
+    );
+
+    const productMap = new Map<string, (typeof products)[number]>();
+
+    for (const product of products) {
+      productMap.set(product.id, product);
     }
 
-    this.validateProductOptions(dto, product);
+    const vendorIds = new Set(products.map((product) => product.vendorId));
+
+    if (vendorIds.size > 1) {
+      throw new BadRequestException(
+        'All selected items must belong to the same vendor',
+      );
+    }
+
+    const vendorId = products[0].vendorId;
+
+    for (const item of normalizedItems) {
+      const product = productMap.get(item.productId);
+
+      if (!product) {
+        throw new NotFoundException(
+          `Product not found or inactive: ${item.productId}`,
+        );
+      }
+
+      this.validateProductOptions(item, product);
+    }
 
     const cart = await this.cartRepository.findOrCreateCart({
       customerId: customer.id,
-      vendorId: product.vendorId,
+      vendorId,
     });
 
-    await this.cartRepository.createCartItem({
-      cartId: cart.id,
-      productId: product.id,
-      quantity: dto.quantity,
-      price: product.price,
-      sizeOptionId: dto.sizeOptionId,
-      note: dto.note,
-      choiceOptionIds: dto.choiceOptionIds,
-      addOnIds: dto.addOnIds,
+    const createInputs: CreateCartItemInput[] = normalizedItems.map((item) => {
+      const product = productMap.get(item.productId);
+
+      if (!product) {
+        throw new NotFoundException(
+          `Product not found or inactive: ${item.productId}`,
+        );
+      }
+
+      return {
+        cartId: cart.id,
+        productId: product.id,
+        quantity: item.quantity,
+        price: product.price,
+        sizeOptionId: item.sizeOptionId,
+        note: item.note,
+        choiceOptionIds: item.choiceOptionIds,
+        addOnIds: item.addOnIds,
+      };
     });
+
+    await this.cartRepository.createCartItems(createInputs);
 
     await this.cartRepository.recalculateCartTotal(cart.id);
 
@@ -82,8 +128,36 @@ export class CartService {
     return this.cartRepository.findCartById(cartId);
   }
 
+  private assertProductsFound<T>(
+    products: Array<T | null>,
+    requestedItems: AddCartItemPayloadDto[],
+  ): T[] {
+    const missingProductIndex = products.findIndex(
+      (product) => product === null,
+    );
+
+    if (missingProductIndex !== -1) {
+      throw new NotFoundException(
+        `Product not found or inactive: ${requestedItems[missingProductIndex].productId}`,
+      );
+    }
+
+    return products.filter((product): product is T => product !== null);
+  }
+
+  private normalizeRequestedItems(
+    items: AddCartItemPayloadDto[],
+  ): AddCartItemPayloadDto[] {
+    return items.map((item) => ({
+      ...item,
+      quantity: item.quantity ?? 1,
+      choiceOptionIds: item.choiceOptionIds ?? [],
+      addOnIds: item.addOnIds ?? [],
+    }));
+  }
+
   private validateProductOptions(
-    dto: AddCartItemDto,
+    dto: AddCartItemPayloadDto,
     product: any,
   ): void {
     if (dto.sizeOptionId) {
@@ -92,7 +166,9 @@ export class CartService {
       );
 
       if (!validSize) {
-        throw new BadRequestException('Invalid size option');
+        throw new BadRequestException(
+          `Invalid size option for product ${product.name}`,
+        );
       }
     }
 
@@ -103,7 +179,9 @@ export class CartService {
 
       for (const choiceOptionId of dto.choiceOptionIds) {
         if (!validChoiceIds.has(choiceOptionId)) {
-          throw new BadRequestException('Invalid choice option');
+          throw new BadRequestException(
+            `Invalid choice option for product ${product.name}`,
+          );
         }
       }
     }
@@ -115,7 +193,9 @@ export class CartService {
 
       for (const addOnId of dto.addOnIds) {
         if (!validAddOnIds.has(addOnId)) {
-          throw new BadRequestException('Invalid add-on');
+          throw new BadRequestException(
+            `Invalid add-on for product ${product.name}`,
+          );
         }
       }
     }

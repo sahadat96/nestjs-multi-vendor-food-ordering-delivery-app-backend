@@ -12,41 +12,62 @@ export class CartMapper {
   constructor(private readonly mediaService:MediaService){}
 
   static toResponse(cart: any): CartResponseDto {
+    const items = cart.items ?? [];
+
     return {
       id: cart.id,
       customerId: cart.customerId,
       vendorId: cart.vendorId,
       vendorName: cart.vendor?.businessName ?? 'Unnamed Vendor',
-      totalAmount: cart.totalAmount,
-      itemCount: cart.items.reduce(
+
+      totalAmount: Number(cart.totalAmount.toFixed(2)),
+
+      itemCount: items.reduce(
         (acc: number, item: any) => acc + item.quantity,
         0,
       ),
+
       updatedAt: cart.updatedAt,
-      items: cart.items.map((item: any) => {
+
+      items: items.map((item: any) => {
         const sizePrice = item.sizeOption?.price ?? 0;
+
+        const choiceOptionTotal = item.choiceOptions.reduce(
+          (acc: number, entry: any) => acc + entry.choiceOption.price,
+          0,
+        );
 
         const addOnTotal = item.addOns.reduce(
           (acc: number, entry: any) => acc + entry.addOn.price,
           0,
         );
 
-        const lineTotal =
-          (item.price + sizePrice + addOnTotal) * item.quantity;
+        const unitTotal =
+          item.price + sizePrice + choiceOptionTotal + addOnTotal;
+
+        const lineTotal = unitTotal * item.quantity;
 
         return {
           id: item.id,
+
           productId: item.productId,
           productName: item.product.name,
           productImage: item.product.images?.[0]?.url,
+
           vendorId: item.product.vendorId,
           vendorName: item.product.vendor?.businessName ?? 'Unnamed Vendor',
+
           quantity: item.quantity,
+
           unitBasePrice: item.price,
           sizePrice,
+          choiceOptionTotal,
           addOnTotal,
-          lineTotal,
+          unitTotal,
+          lineTotal: Number(lineTotal.toFixed(2)),
+
           note: item.note ?? undefined,
+
           sizeOption: item.sizeOption
             ? {
                 id: item.sizeOption.id,
@@ -54,11 +75,13 @@ export class CartMapper {
                 price: item.sizeOption.price,
               }
             : undefined,
+
           choiceOptions: item.choiceOptions.map((entry: any) => ({
             id: entry.choiceOption.id,
             name: entry.choiceOption.name,
             price: entry.choiceOption.price,
           })),
+
           addOns: item.addOns.map((entry: any) => ({
             id: entry.addOn.id,
             name: entry.addOn.name,

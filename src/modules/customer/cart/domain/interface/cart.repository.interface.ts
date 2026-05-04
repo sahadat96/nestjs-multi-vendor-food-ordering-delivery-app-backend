@@ -16,14 +16,14 @@ export interface CreateCartItemInput {
 }
 
 export interface ICartRepository {
-  findOrCreateCart(data: {
+   findOrCreateCart(data: {
     customerId: string;
     vendorId: string;
   }): Promise<CartOwnerView>;
 
   findCartById(cartId: string): Promise<any | null>;
 
-  createCartItem(input: CreateCartItemInput): Promise<void>;
+  createCartItems(inputs: CreateCartItemInput[]): Promise<void>;
 
   recalculateCartTotal(cartId: string): Promise<void>;
 

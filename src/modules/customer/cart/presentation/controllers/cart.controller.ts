@@ -9,8 +9,7 @@ import {
   Patch,
 } from '@nestjs/common';
 
-
-import { AddCartItemDto, } from '../dto/cart.dto';
+import { AddCartItemsDto, } from '../dto/cart.dto';
 
 import { 
   CartResponseDto,
@@ -37,9 +36,9 @@ export class CartController {
   @ResponseMessage('Item added to cart successfully.')
   async addItem(
     @CurrentUser() user: AuthUser,
-    @Body() dto: AddCartItemDto,
+    @Body() dto: AddCartItemsDto,
   ): Promise<CartResponseDto> {
-    return this.cartService.addItem(user.id, dto);
+    return this.cartService.addItems(user.id, dto);
   }
 
   @Get('get-cart-items')
