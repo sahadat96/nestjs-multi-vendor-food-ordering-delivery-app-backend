@@ -76,9 +76,12 @@ async function bootstrap() {
   }
 
   const port = configService.get<number>('PORT') || 3000;
-  const host = configService.get<string>('HOST') || '0.0.0.0';
+  // const host = configService.get<string>('HOST') || '0.0.0.0';
 
-  await app.listen(port, host);
+  await app.listen(
+    port,
+   // host,
+  );
 
   console.log(`API: http://localhost:${port}/api/v1`);
   if (nodeEnv !== 'production') {
