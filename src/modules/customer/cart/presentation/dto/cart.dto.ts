@@ -7,9 +7,13 @@ import {
   IsUUID,
   MaxLength,
   Min,
+  ArrayMinSize,
+  ValidateNested,
 } from 'class-validator';
 
-export class AddCartItemDto {
+import { Type } from 'class-transformer';
+
+export class AddCartItemPayloadDto {
   @IsUUID()
   productId!: string;
 
@@ -39,12 +43,10 @@ export class AddCartItemDto {
   note?: string;
 }
 
-export class CartItemChoiceOptionDto {
-  @IsUUID()
-  choiceOptionId!: string;
-}
-
-export class CartItemAddOnDto {
-  @IsUUID()
-  addOnId!: string;
+export class AddCartItemsDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => AddCartItemPayloadDto)
+  items!: AddCartItemPayloadDto[];
 }
