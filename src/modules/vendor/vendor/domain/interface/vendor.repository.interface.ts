@@ -39,4 +39,17 @@ export interface IVendorRepository {
   //   }[];
   // } | null>;
 
+  findVendorHomeByOwnerId(ownerId: string): Promise<any | null>;
+
+  getVendorTodayStats(data: {
+    vendorId: string;
+    startOfDay: Date;
+    endOfDay: Date;
+  }): Promise<{
+    todaySale: number;
+    ordersCompleted: number;
+    pendingOrders: number;
+    cancelledOrders: number;
+  }>;
+
 }
