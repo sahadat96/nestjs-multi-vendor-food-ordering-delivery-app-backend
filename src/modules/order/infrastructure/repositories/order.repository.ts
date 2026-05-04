@@ -138,4 +138,43 @@ export class OrderRepository implements IOrderRepository {
       },
     });
   }
+
+  async findActiveOrdersByVendorId(vendorId: string): Promise<any[]> {
+    return this.prisma.order.findMany({
+      where: {
+        vendorId,
+        status: {
+          in: [
+            OrderStatus.PENDING,
+            OrderStatus.CONFIRMED,
+            OrderStatus.PREPARING,
+            OrderStatus.READY_FOR_PICKUP,
+          ],
+        },
+      },
+      include: {
+        customer: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+        orderItems: {
+          orderBy: {
+            createdAt: 'asc',
+          },
+        },
+      },
+      orderBy: [
+        {
+          createdAt: 'asc',
+        },
+      ],
+    });
+  }
 }
