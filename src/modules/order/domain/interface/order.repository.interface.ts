@@ -59,4 +59,11 @@ export interface IOrderRepository {
     orderId: string;
     cancelledAt: Date;
   }): Promise<any>;
+
+  findVendorOrderForAction(orderId: string): Promise<any | null>;
+
+  acceptVendorOrder(data: {
+    orderId: string;
+    confirmedAt: Date;
+  }): Promise<any>;
 }
