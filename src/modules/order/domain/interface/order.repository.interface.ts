@@ -71,4 +71,9 @@ export interface IOrderRepository {
     orderId: string;
     readyAt: Date;
   }): Promise<any>;
+
+   completeVendorOrder(data: {
+    orderId: string;
+    completedAt: Date;
+  }): Promise<any>;
 }
