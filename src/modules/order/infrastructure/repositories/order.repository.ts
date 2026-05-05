@@ -351,4 +351,29 @@ export class OrderRepository implements IOrderRepository {
       },
     });
   }
+
+  async completeVendorOrder(data: {
+    orderId: string;
+    completedAt: Date;
+  }): Promise<any> {
+    return this.prisma.order.update({
+      where: {
+        id: data.orderId,
+      },
+      data: {
+        status: OrderStatus.COMPLETED,
+        completedAt: data.completedAt,
+      },
+      select: {
+        id: true,
+        orderNumber: true,
+        status: true,
+        confirmedAt: true,
+        preparingAt: true,
+        readyAt: true,
+        completedAt: true,
+        cancelledAt: true,
+      },
+    });
+  }
 }
