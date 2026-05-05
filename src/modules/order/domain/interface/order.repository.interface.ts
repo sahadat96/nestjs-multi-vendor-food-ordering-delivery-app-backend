@@ -66,4 +66,9 @@ export interface IOrderRepository {
     orderId: string;
     confirmedAt: Date;
   }): Promise<any>;
+
+  markVendorOrderReadyForPickup(data: {
+    orderId: string;
+    readyAt: Date;
+  }): Promise<any>;
 }
