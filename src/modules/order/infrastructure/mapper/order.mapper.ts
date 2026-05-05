@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import { OrderStatus } from '@prisma/client';
 
 import { 
@@ -8,7 +9,11 @@ import {
   VendorActiveOrdersResponseDto,
 } from '../../presentation/dto/order.response.dto';
 
+import { MediaService } from '@/common/media/media.service';
+
+@Injectable()
 export class OrderMapper {
+  constructor(private readonly mediaService:MediaService){}
 
   static toCreateResponse(order: any): CreateOrderResponseDto {
     return {
@@ -219,47 +224,108 @@ static toTrackResponse(order: any): OrderTrackResponseDto {
     );
   }
 
-  static toVendorActiveOrdersResponse(
+ toVendorActiveOrdersResponse(
     orders: any[],
+    now: Date = new Date(),
   ): VendorActiveOrdersResponseDto {
     return {
       total: orders.length,
-      items: orders.map((order) => ({
-        id: order.id,
-        orderNumber: order.orderNumber,
-        status: order.status,
-
-        customer: {
-          id: order.customer.id,
-          name:
-            order.customer.user?.name ??
-            order.customer.user?.email ??
-            'Customer',
-          avatar: order.customer.avatar ?? undefined,
-        },
-
-        items: order.orderItems.map((item: any) => ({
-          id: item.id,
-          productName: item.productName,
-          quantity: item.quantity,
-          sizeName: item.sizeName ?? undefined,
-          lineTotal: item.lineTotal,
-        })),
-
-        itemCount: order.orderItems.reduce(
+      items: orders.map((order) => {
+        const itemCount = order.orderItems.reduce(
           (sum: number, item: any) => sum + item.quantity,
           0,
-        ),
+        );
 
-        totalAmount: order.totalAmount,
-        createdAt: order.createdAt,
-        estimatedReadyAt: order.estimatedReadyAt ?? null,
+        const uniqueItemCount = order.orderItems.length;
 
-        statusLabel: OrderMapper.getVendorOrderStatusLabel(order.status),
-        actionLabel: OrderMapper.getVendorOrderActionLabel(order.status),
-        timeLabel: OrderMapper.getVendorOrderTimeLabel(order),
-      })),
+        const timeMeta = OrderMapper.getVendorOrderTimeMeta(order, now);
+
+        return {
+          id: order.id,
+          orderNumber: order.orderNumber,
+          status: order.status,
+
+          customer: {
+            id: order.customer.id,
+            name:
+              order.customer.user?.name ??
+              order.customer.user?.email ??
+              'Customer',
+            imageUrl: this.mediaService.getUrl(order.customer.avatar),
+          },
+
+          items: order.orderItems.map((item: any) =>
+            OrderMapper.toVendorActiveOrderItem(item),
+          ),
+
+          itemCount,
+          uniqueItemCount,
+          itemSummaryLabel: OrderMapper.buildItemSummaryLabel(itemCount),
+
+          totalAmount: order.totalAmount,
+
+          createdAt: order.createdAt,
+          estimatedReadyAt: order.estimatedReadyAt ?? null,
+
+          statusLabel: OrderMapper.getVendorOrderStatusLabel(order.status),
+          actionLabel: OrderMapper.getVendorOrderActionLabel(order.status),
+
+          timeLabel: timeMeta.timeLabel,
+          isLate: timeMeta.isLate,
+          minutesLate: timeMeta.minutesLate,
+          minutesLeft: timeMeta.minutesLeft,
+        };
+      }),
     };
+  }
+
+  private static toVendorActiveOrderItem(item: any) {
+    const choiceOptions = item.orderItemChoiceOption.map((choice: any) => ({
+      id: choice.id,
+      choiceOptionId: choice.choiceOptionId,
+      name: choice.name,
+      price: choice.price,
+    }));
+
+    const addOns = item.orderItemAddOn.map((addon: any) => ({
+      id: addon.id,
+      addOnId: addon.addOnId,
+      name: addon.name,
+      price: addon.price,
+    }));
+
+    const optionNames = [
+      item.sizeName,
+      ...choiceOptions.map((choice: any) => choice.name),
+      ...addOns.map((addon: any) => addon.name),
+    ].filter(Boolean);
+
+    return {
+      id: item.id,
+
+      productName: item.productName,
+      quantity: item.quantity,
+
+      unitPrice: item.unitPrice,
+
+      sizeName: item.sizeName ?? undefined,
+      sizePrice: item.sizePrice,
+
+      choiceOptions,
+      addOns,
+
+      lineTotal: item.lineTotal,
+
+      displayText: optionNames.length
+        ? `${item.quantity} x ${item.productName} (${optionNames.join(', ')})`
+        : `${item.quantity} x ${item.productName}`,
+    };
+  }
+
+  private static buildItemSummaryLabel(itemCount: number): string {
+    const itemWord = itemCount === 1 ? 'item' : 'items';
+
+    return `${itemCount} ${itemWord} in single order`;
   }
 
   private static getVendorOrderStatusLabel(status: OrderStatus): string {
@@ -296,25 +362,77 @@ static toTrackResponse(order: any): OrderTrackResponseDto {
     }
   }
 
-  private static getVendorOrderTimeLabel(order: any): string {
+  private static getVendorOrderTimeMeta(
+    order: any,
+    now: Date,
+  ): {
+    timeLabel: string;
+    isLate: boolean;
+    minutesLate: number;
+    minutesLeft: number;
+  } {
     if (order.status === OrderStatus.PENDING) {
-      return OrderMapper.formatTime(order.createdAt);
+      return {
+        timeLabel: OrderMapper.formatTime(order.createdAt),
+        isLate: false,
+        minutesLate: 0,
+        minutesLeft: 0,
+      };
+    }
+
+    if (order.status === OrderStatus.READY_FOR_PICKUP) {
+      return {
+        timeLabel: 'Ready now',
+        isLate: false,
+        minutesLate: 0,
+        minutesLeft: 0,
+      };
     }
 
     if (
       order.status === OrderStatus.CONFIRMED ||
       order.status === OrderStatus.PREPARING
     ) {
-      return order.estimatedReadyAt
-        ? `${OrderMapper.diffMinutesFromNow(order.estimatedReadyAt)} min left`
-        : 'Preparing';
+      if (!order.estimatedReadyAt) {
+        return {
+          timeLabel: 'Preparing',
+          isLate: false,
+          minutesLate: 0,
+          minutesLeft: 0,
+        };
+      }
+
+      const estimatedReadyAt = new Date(order.estimatedReadyAt);
+
+      const diffMinutes = Math.ceil(
+        (estimatedReadyAt.getTime() - now.getTime()) / 60000,
+      );
+
+      if (diffMinutes < 0) {
+        const minutesLate = Math.abs(diffMinutes);
+
+        return {
+          timeLabel: `${minutesLate} min late`,
+          isLate: true,
+          minutesLate,
+          minutesLeft: 0,
+        };
+      }
+
+      return {
+        timeLabel: `${diffMinutes} min left`,
+        isLate: false,
+        minutesLate: 0,
+        minutesLeft: diffMinutes,
+      };
     }
 
-    if (order.status === OrderStatus.READY_FOR_PICKUP) {
-      return 'Ready now';
-    }
-
-    return '';
+    return {
+      timeLabel: '',
+      isLate: false,
+      minutesLate: 0,
+      minutesLeft: 0,
+    };
   }
 
   private static formatTime(date: Date): string {
@@ -323,10 +441,5 @@ static toTrackResponse(order: any): OrderTrackResponseDto {
       minute: '2-digit',
       hour12: true,
     }).format(new Date(date));
-  }
-
-  private static diffMinutesFromNow(date: Date): number {
-    const diffMs = new Date(date).getTime() - Date.now();
-    return Math.max(0, Math.ceil(diffMs / 60000));
   }
 }

@@ -32,6 +32,7 @@ export class OrderService {
     private readonly customerService: CustomerService,
     private readonly cartService: CartService,
     private readonly vendorService: VendorService,
+    private readonly orderMapper: OrderMapper,
   ) {}
 
   async createOrder(
@@ -235,7 +236,7 @@ export class OrderService {
       vendor.id,
     );
 
-    return OrderMapper.toVendorActiveOrdersResponse(orders, new Date());
+    return this.orderMapper.toVendorActiveOrdersResponse(orders, new Date());
   }
 
 }

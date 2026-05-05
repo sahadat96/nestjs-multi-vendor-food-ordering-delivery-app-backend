@@ -7,17 +7,21 @@ import { CustomerModule } from '../customer/customer/customer.module';
 import { CartModule } from '../customer/cart/cart.module';
 import { PrismaService } from '@/prisma/prisma.service';
 import { VendorModule } from '../vendor/vendor/vendor.module';
+import { OrderMapper } from './infrastructure/mapper/order.mapper';
+import { MediaModule } from '@/common/media/media.module';
 
 @Module({
   imports: [
     CustomerModule, 
     CartModule, 
     VendorModule,
+    MediaModule,
   ],
   controllers: [OrderController],
   providers: [
     OrderService,
     PrismaService,
+    OrderMapper,
     {
       provide: 'IOrderRepository',
       useClass: OrderRepository,

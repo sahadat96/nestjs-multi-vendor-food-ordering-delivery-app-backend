@@ -168,7 +168,7 @@ export class OrderTrackResponseDto {
 export class VendorActiveOrderCustomerDto {
   id!: string;
   name!: string;
-  avatar?: string;
+  imageUrl?: string;
 }
 
 export class VendorActiveOrderChoiceOptionDto {
