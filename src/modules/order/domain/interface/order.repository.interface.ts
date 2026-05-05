@@ -50,4 +50,6 @@ export interface IOrderRepository {
   }): Promise<any>;
 
   findActiveOrdersByVendorId(vendorId: string): Promise<any[]>;
+
+  findVendorOrderDetailById(orderId: string): Promise<any | null>;
 }
