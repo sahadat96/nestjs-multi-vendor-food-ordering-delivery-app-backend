@@ -281,4 +281,49 @@ export class OrderRepository implements IOrderRepository {
       },
     });
   }
+
+  async findVendorOrderForAction(orderId: string): Promise<any | null> {
+    return this.prisma.order.findUnique({
+      where: {
+        id: orderId,
+      },
+      select: {
+        id: true,
+        orderNumber: true,
+        vendorId: true,
+        status: true,
+        confirmedAt: true,
+        preparingAt: true,
+        readyAt: true,
+        completedAt: true,
+        cancelledAt: true,
+      },
+    });
+  }
+
+  async acceptVendorOrder(data: {
+    orderId: string;
+    confirmedAt: Date;
+  }): Promise<any> {
+    return this.prisma.order.update({
+      where: {
+        id: data.orderId,
+      },
+      data: {
+        status: OrderStatus.CONFIRMED,
+        confirmedAt: data.confirmedAt,
+        preparingAt: data.confirmedAt,
+      },
+      select: {
+        id: true,
+        orderNumber: true,
+        status: true,
+        confirmedAt: true,
+        preparingAt: true,
+        readyAt: true,
+        completedAt: true,
+        cancelledAt: true,
+      },
+    });
+  }
 }
