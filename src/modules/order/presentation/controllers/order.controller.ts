@@ -19,6 +19,7 @@ import {
   VendorActiveOrdersResponseDto,
   VendorOrderDetailResponseDto,
   CancelVendorOrderResponseDto,
+  VendorOrderActionResponseDto,
 } from '../dto/order.response.dto';
 
 import { CurrentUser } from '@/modules/auth/decorators/get-user.decorator';
@@ -104,5 +105,16 @@ export class OrderController {
     @Param('orderId') orderId: string,
   ): Promise<CancelVendorOrderResponseDto> {
     return this.orderService.cancelVendorOrder(user.id, orderId);
+  }
+
+  @Patch('vendor/:orderId/accept')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  @ResponseMessage('Order accepted successfully.')
+  async acceptVendorOrder(
+    @CurrentUser() user: AuthUser,
+    @Param('orderId') orderId: string,
+  ): Promise<VendorOrderActionResponseDto> {
+    return this.orderService.acceptVendorOrder(user.id, orderId);
   }
 } 
