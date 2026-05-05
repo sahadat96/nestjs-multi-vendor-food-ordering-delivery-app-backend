@@ -369,4 +369,27 @@ export class OrderService {
       'Order marked as ready for pickup.',
     );
   }
+
+  private async getVendorOwnedOrderForAction(
+    userId: string,
+    orderId: string,
+  ): Promise<any> {
+    const vendor = await this.vendorService.execute(userId);
+
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    const order = await this.orderRepository.findVendorOrderForAction(orderId);
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    if (order.vendorId !== vendor.id) {
+      throw new ForbiddenException('You cannot update this order');
+    }
+
+    return order;
+  }
 }
