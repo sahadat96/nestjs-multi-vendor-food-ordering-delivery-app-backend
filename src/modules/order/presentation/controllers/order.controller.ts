@@ -14,6 +14,7 @@ import {
   OrderTrackResponseDto,
   CreateOrderResponseDto,
   VendorActiveOrdersResponseDto,
+  VendorOrderDetailResponseDto,
 } from '../dto/order.response.dto';
 
 import { CurrentUser } from '@/modules/auth/decorators/get-user.decorator';
@@ -78,5 +79,15 @@ export class OrderController {
     @CurrentUser() user: AuthUser,
   ): Promise<VendorActiveOrdersResponseDto> {
     return this.orderService.getVendorActiveOrders(user.id);
+  }
+
+  @Get('vendor/:orderId')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  async getVendorOrderDetail(
+    @CurrentUser() user: AuthUser,
+    @Param('orderId') orderId: string,
+  ): Promise<VendorOrderDetailResponseDto> {
+    return this.orderService.getVendorOrderDetail(user.id, orderId);
   }
 }
