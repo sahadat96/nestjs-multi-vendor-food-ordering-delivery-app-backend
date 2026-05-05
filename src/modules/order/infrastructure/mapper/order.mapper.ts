@@ -9,6 +9,7 @@ import {
   VendorActiveOrdersResponseDto,
   VendorOrderDetailResponseDto,
   CancelVendorOrderResponseDto,
+  VendorOrderActionResponseDto,
 } from '../../presentation/dto/order.response.dto';
 
 import { MediaService } from '@/common/media/media.service';
@@ -668,6 +669,23 @@ static toTrackResponse(order: any): OrderTrackResponseDto {
       orderNumber: order.orderNumber,
       status: order.status,
       cancelledAt: order.cancelledAt,
+    };
+  }
+
+  toVendorOrderActionResponse(
+    order: any,
+    message: string,
+  ): VendorOrderActionResponseDto {
+    return {
+      id: order.id,
+      orderNumber: order.orderNumber,
+      status: order.status,
+      confirmedAt: order.confirmedAt ?? null,
+      preparingAt: order.preparingAt ?? null,
+      readyAt: order.readyAt ?? null,
+      completedAt: order.completedAt ?? null,
+      cancelledAt: order.cancelledAt ?? null,
+      message,
     };
   }
 }
