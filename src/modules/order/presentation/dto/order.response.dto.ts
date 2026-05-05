@@ -171,32 +171,51 @@ export class VendorActiveOrderCustomerDto {
   avatar?: string;
 }
 
+export class VendorActiveOrderChoiceOptionDto {
+  id!: string;
+  choiceOptionId?: string | null;
+  name!: string;
+  price!: number;
+}
+
+export class VendorActiveOrderAddOnDto {
+  id!: string;
+  addOnId?: string | null;
+  name!: string;
+  price!: number;
+}
+
 export class VendorActiveOrderItemDto {
   id!: string;
   productName!: string;
   quantity!: number;
+  unitPrice!: number;
   sizeName?: string;
+  sizePrice!: number;
+  choiceOptions!: VendorActiveOrderChoiceOptionDto[];
+  addOns!: VendorActiveOrderAddOnDto[];
   lineTotal!: number;
+  displayText!: string;
 }
 
 export class VendorActiveOrderListItemDto {
   id!: string;
   orderNumber!: string;
   status!: OrderStatus;
-
   customer!: VendorActiveOrderCustomerDto;
-
   items!: VendorActiveOrderItemDto[];
-
   itemCount!: number;
+  uniqueItemCount!: number;
+  itemSummaryLabel!: string;
   totalAmount!: number;
-
   createdAt!: Date;
   estimatedReadyAt?: Date | null;
-
   statusLabel!: string;
   actionLabel!: string;
   timeLabel!: string;
+  isLate!: boolean;
+  minutesLate!: number;
+  minutesLeft!: number;
 }
 
 export class VendorActiveOrdersResponseDto {
