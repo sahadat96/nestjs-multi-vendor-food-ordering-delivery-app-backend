@@ -129,4 +129,15 @@ export class OrderController {
     return this.orderService.markVendorOrderReadyForPickup(user.id, orderId);
   }
 
+  @Patch('vendor/:orderId/complete')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  @ResponseMessage('Order completed successfully.')
+  async completeVendorOrder(
+    @CurrentUser() user: AuthUser,
+    @Param('orderId') orderId: string,
+  ): Promise<VendorOrderActionResponseDto> {
+    return this.orderService.completeVendorOrder(user.id, orderId);
+  }
+
 } 
