@@ -342,4 +342,31 @@ export class OrderService {
       'Order accepted successfully.',
     );
   }
+
+  async markVendorOrderReadyForPickup(
+    userId: string,
+    orderId: string,
+  ): Promise<VendorOrderActionResponseDto> {
+    const order = await this.getVendorOwnedOrderForAction(userId, orderId);
+
+    if (
+      order.status !== OrderStatus.CONFIRMED &&
+      order.status !== OrderStatus.PREPARING
+    ) {
+      throw new BadRequestException(
+        `Order cannot be marked ready for pickup when status is ${order.status}`,
+      );
+    }
+
+    const readyOrder =
+      await this.orderRepository.markVendorOrderReadyForPickup({
+        orderId: order.id,
+        readyAt: new Date(),
+      });
+
+    return this.orderMapper.toVendorOrderActionResponse(
+      readyOrder,
+      'Order marked as ready for pickup.',
+    );
+  }
 }
