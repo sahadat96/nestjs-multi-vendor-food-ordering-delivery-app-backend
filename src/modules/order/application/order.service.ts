@@ -222,7 +222,7 @@ export class OrderService {
     );
   }
 
-  async getVendorActiveOrders(
+ async getVendorActiveOrders(
     userId: string,
   ): Promise<VendorActiveOrdersResponseDto> {
     const vendor = await this.vendorService.execute(userId);
@@ -235,7 +235,7 @@ export class OrderService {
       vendor.id,
     );
 
-    return OrderMapper.toVendorActiveOrdersResponse(orders);
+    return OrderMapper.toVendorActiveOrdersResponse(orders, new Date());
   }
 
 }
