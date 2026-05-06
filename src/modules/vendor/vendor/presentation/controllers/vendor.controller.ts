@@ -131,4 +131,20 @@ export class VendorController {
   ): Promise<VendorMenuItemsResponseDto> {
     return this.vendorService.getVendorMenuItems(user.id, query);
   }
+
+  @Patch('menu/items/:productId/status')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  @ResponseMessage('Menu item status updated successfully.')
+  async updateVendorMenuItemStatus(
+    @CurrentUser() user: AuthUser,
+    @Param('productId') productId: string,
+    @Body() dto: UpdateVendorMenuItemStatusDto,
+  ): Promise<VendorMenuItemStatusResponseDto> {
+    return this.service.updateVendorMenuItemStatus(
+      user.id,
+      productId,
+      dto,
+    );
+  }
 }
