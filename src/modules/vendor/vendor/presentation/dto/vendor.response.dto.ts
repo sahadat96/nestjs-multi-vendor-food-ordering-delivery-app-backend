@@ -1,3 +1,5 @@
+import { VendorLiveStatus } from '@prisma/client';
+
 export class VendorMenuProductResponseDto {
   id!: string;
   name!: string;
@@ -131,5 +133,13 @@ export class VendorHomeResponseDto {
   stats!: VendorHomeStatsDto;
   currentLocation?: VendorHomeLocationDto;
   unreadNotificationCount!: number;
+}
+
+export class VendorStatusResponseDto {
+  id!: string;
+  status!: VendorLiveStatus;
+  isOnline!: boolean;
+  label!: string;
+  statusUpdatedAt!: Date | null;
 }
 
