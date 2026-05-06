@@ -1,4 +1,10 @@
-import { VendorLiveStatus } from '@prisma/client';
+import {
+  VendorLiveStatus,
+  KycStatus,
+  SubscriptionStatus,
+  VerificationStatus,
+} from '@prisma/client';
+
 
 export class VendorMenuProductResponseDto {
   id!: string;
@@ -78,12 +84,6 @@ export class TruckGalleryResponseDto {
   vendorId!: string;
   items!: TruckGalleryImageResponseDto[];
 }
-
-import {
-  KycStatus,
-  SubscriptionStatus,
-  VerificationStatus,
-} from '@prisma/client';
 
 export class VendorHomeProfileDto {
   id!: string;

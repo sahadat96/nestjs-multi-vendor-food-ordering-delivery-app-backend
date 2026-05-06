@@ -7,6 +7,7 @@ import {
   MaxLength,
   IsBoolean,
   IsEnum,
+  IsUUID,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { VendorLiveStatus } from '@prisma/client';
@@ -70,4 +71,32 @@ export class VendorReviewsQueryDto {
 export class UpdateVendorStatusDto {
   @IsEnum(VendorLiveStatus)
   status!: VendorLiveStatus;
+}
+
+export class VendorMenuItemsQueryDto {
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @IsOptional()
+  @IsUUID()
+  categoryId?: string;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  isActive?: boolean;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number = 20;
 }
