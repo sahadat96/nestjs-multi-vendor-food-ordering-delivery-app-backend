@@ -385,7 +385,6 @@ export class VendorMapper {
       name: product.name,
       isActive: product.isActive,
       availabilityLabel: product.isActive ? 'Available' : 'Unavailable',
-      updatedAt: product.updatedAt,
     };
   }
 }

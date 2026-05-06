@@ -209,6 +209,5 @@ export class VendorMenuItemStatusResponseDto {
   name!: string;
   isActive!: boolean;
   availabilityLabel!: string;
-  updatedAt!: Date;
 }
 
