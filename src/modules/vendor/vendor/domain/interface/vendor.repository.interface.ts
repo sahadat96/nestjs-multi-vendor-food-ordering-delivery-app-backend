@@ -1,6 +1,12 @@
+import { 
+  VendorLiveStatus,
+  VerificationStatus,
+  KycStatus,
+  SubscriptionStatus,
+} from '@prisma/client';
+
 import { Vendor } from "../entities/vendor.entity";
 import { VendorMenuQueryDto } from '../../presentation/dto/vendor.dto';
-import { VendorLiveStatus } from '@prisma/client';
 
 export interface VendorStatusView {
   id: string;
@@ -11,6 +17,16 @@ export interface VendorStatusView {
 export interface UpdateVendorStatusInput {
   ownerId: string;
   status: VendorLiveStatus;
+}
+
+export interface VendorGoLiveEligibilityView {
+  id: string;
+  kycStatus: KycStatus;
+  subscriptionStatus: SubscriptionStatus;
+  vendorVerification: {
+    id: string;
+    status: VerificationStatus;
+  } | null;
 }
 
 export interface IVendorRepository {
