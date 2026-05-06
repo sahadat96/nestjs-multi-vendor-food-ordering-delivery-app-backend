@@ -27,6 +27,7 @@ import {
   TruckGalleryResponseDto,
   VendorHomeResponseDto,
   VendorStatusResponseDto,
+  VendorMenuCategoriesResponseDto,
  } from '../dto/vendor.response.dto';
 
 import { VendorService } from '../../application/vendor.service';
@@ -108,6 +109,15 @@ export class VendorController {
     @Body() dto: UpdateVendorStatusDto,
   ): Promise<VendorStatusResponseDto> {
     return this.vendorService.updateVendorStatus(user.id, dto);
+  }
+
+  @Get('menu/categories')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  async getVendorMenuCategories(
+    @CurrentUser() user: AuthUser,
+  ): Promise<VendorMenuCategoriesResponseDto> {
+    return this.vendorService.getVendorMenuCategories(user.id);
   }
 
 }
