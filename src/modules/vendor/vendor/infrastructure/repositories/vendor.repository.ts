@@ -1,8 +1,13 @@
 import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Prisma, PrismaClient, OrderStatus, VendorLiveStatus } from '@prisma/client';
-
+import { Prisma,
+  OrderStatus,
+  VendorLiveStatus,
+  VerificationStatus,
+  KycStatus,
+  SubscriptionStatus, 
+} from '@prisma/client';
 
 import { IVendorRepository } from '../../domain/interface/vendor.repository.interface';
 import { Vendor } from '../../domain/entities/vendor.entity';
@@ -318,10 +323,43 @@ export class VendorRepository implements IVendorRepository {
     });
   }
 
+  async findGoLiveEligibilityByOwnerId(
+    ownerId: string,
+  ): Promise<{
+    id: string;
+    kycStatus: KycStatus;
+    subscriptionStatus: SubscriptionStatus;
+    vendorVerification: {
+      id: string;
+      status: VerificationStatus;
+    } | null;
+  } | null> {
+    return this.prisma.vendor.findUnique({
+      where: {
+        ownerId,
+      },
+      select: {
+        id: true,
+        kycStatus: true,
+        subscriptionStatus: true,
+        vendorVerification: {
+          select: {
+            id: true,
+            status: true,
+          },
+        },
+      },
+    });
+  }
+
   async updateVendorStatus(data: {
     ownerId: string;
     status: VendorLiveStatus;
-  }): Promise<any> {
+  }): Promise<{
+    id: string;
+    status: VendorLiveStatus;
+    statusUpdatedAt: Date | null;
+  }> {
     return this.prisma.vendor.update({
       where: {
         ownerId: data.ownerId,

@@ -5,7 +5,13 @@ import {
   BadRequestException
 } from '@nestjs/common';
 
-import { VendorLiveStatus } from '@prisma/client';
+import { 
+  VendorLiveStatus,
+  VerificationStatus,
+  KycStatus,
+  SubscriptionStatus
+} from '@prisma/client';
+
 import type { IVendorRepository } from '../domain/interface/vendor.repository.interface';
 import { VendorMapper } from '../infrastructure/mapper/vendor.mapper';
 
@@ -302,18 +308,71 @@ export class VendorService {
     ownerId: string,
     dto: UpdateVendorStatusDto,
   ): Promise<VendorStatusResponseDto> {
-    const vendor = await this.vendorRepository.updateVendorStatus({
+    const vendor = await this.vendorRepository.findGoLiveEligibilityByOwnerId(
+      ownerId,
+    );
+
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    if (dto.status === VendorLiveStatus.ONLINE) {
+      this.validateVendorCanGoLive(vendor);
+    }
+
+    const updatedVendor = await this.vendorRepository.updateVendorStatus({
       ownerId,
       status: dto.status,
     });
 
     return {
-      id: vendor.id,
-      status: vendor.status,
-      isOnline: vendor.status === VendorLiveStatus.ONLINE,
-      label: this.getVendorStatusLabel(vendor.status),
-      statusUpdatedAt: vendor.statusUpdatedAt,
+      id: updatedVendor.id,
+      status: updatedVendor.status,
+      isOnline: updatedVendor.status === VendorLiveStatus.ONLINE,
+      label: this.getVendorStatusLabel(updatedVendor.status),
+      statusUpdatedAt: updatedVendor.statusUpdatedAt,
     };
+  }
+
+  private validateVendorCanGoLive(vendor: {
+    kycStatus: KycStatus;
+    subscriptionStatus: SubscriptionStatus;
+    vendorVerification: {
+      status: VerificationStatus;
+    } | null;
+  }): void {
+    if (vendor.kycStatus !== KycStatus.APPROVED) {
+      throw new BadRequestException({
+        code: 'KYC_NOT_APPROVED',
+        message:
+          'Verification required. Please complete your identity verification before going online.',
+      });
+    }
+
+    if (!vendor.vendorVerification) {
+      throw new BadRequestException({
+        code: 'BUSINESS_VERIFICATION_REQUIRED',
+        message:
+          'Verification required. Please complete your business profile verification before going online.',
+      });
+    }
+
+    if (vendor.vendorVerification.status !== VerificationStatus.APPROVED) {
+      throw new BadRequestException({
+        code: 'BUSINESS_VERIFICATION_NOT_APPROVED',
+        status: vendor.vendorVerification.status,
+        message:
+          'Verification required. Your business verification must be approved before going online.',
+      });
+    }
+
+    if (vendor.subscriptionStatus !== SubscriptionStatus.ACTIVE) {
+      throw new BadRequestException({
+        code: 'SUBSCRIPTION_NOT_ACTIVE',
+        message:
+          'Active subscription required. Please activate your subscription before going online.',
+      });
+    }
   }
 
   private getVendorStatusLabel(status: VendorLiveStatus): string {
@@ -329,5 +388,4 @@ export class VendorService {
         return 'Offline';
     }
   }
-
 }
