@@ -18,6 +18,7 @@ import {
   VendorMenuQueryDto,
   UploadTruckGalleryDto,
   UpdateVendorStatusDto,
+  VendorMenuItemsQueryDto,
  } from '../dto/vendor.dto';
 
 import { 
@@ -120,4 +121,13 @@ export class VendorController {
     return this.vendorService.getVendorMenuCategories(user.id);
   }
 
+  @Get('menu/items')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  async getVendorMenuItems(
+    @CurrentUser() user: AuthUser,
+    @Query() query: VendorMenuItemsQueryDto,
+  ): Promise<VendorMenuItemsResponseDto> {
+    return this.service.getVendorMenuItems(user.id, query);
+  }
 }

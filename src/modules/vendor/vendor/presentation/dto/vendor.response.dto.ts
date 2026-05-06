@@ -174,3 +174,33 @@ export class VendorMenuCategoriesResponseDto {
   categories!: VendorMenuCategoryDto[];
 }
 
+export class VendorMenuItemResponseDto {
+  id!: string;
+  name!: string;
+  description?: string;
+
+  price!: number;
+  estimateCookTime!: number;
+
+  image?: string;
+
+  category?: {
+    id: string;
+    name: string;
+  };
+
+  isActive!: boolean;
+  availabilityLabel!: string;
+
+  createdAt!: Date;
+}
+
+export class VendorMenuItemsResponseDto {
+  total!: number;
+  page!: number;
+  limit!: number;
+  totalPages!: number;
+
+  items!: VendorMenuItemResponseDto[];
+}
+

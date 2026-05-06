@@ -83,7 +83,7 @@ export class VendorMenuItemsQueryDto {
   categoryId?: string;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   isActive?: boolean;
 
@@ -98,5 +98,5 @@ export class VendorMenuItemsQueryDto {
   @IsInt()
   @Min(1)
   @Max(100)
-  limit?: number = 20;
-}
+  limit?: number = 20; 
+  }
