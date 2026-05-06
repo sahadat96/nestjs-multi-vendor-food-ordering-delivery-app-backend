@@ -143,3 +143,34 @@ export class VendorStatusResponseDto {
   statusUpdatedAt!: Date | null;
 }
 
+export class VendorMenuCategoryProductImageDto {
+  id!: string;
+  url!: string;
+  position!: number;
+}
+
+export class VendorMenuCategoryProductDto {
+  id!: string;
+  name!: string;
+  description?: string;
+  price!: number;
+  estimateCookTime!: number;
+  isActive!: boolean;
+  availabilityLabel!: string;
+  image?: string;
+  images!: VendorMenuCategoryProductImageDto[];
+}
+
+export class VendorMenuCategoryDto {
+  id!: string;
+  name!: string;
+  itemCount!: number;
+  items!: VendorMenuCategoryProductDto[];
+}
+
+export class VendorMenuCategoriesResponseDto {
+  totalCategories!: number;
+  totalItems!: number;
+  categories!: VendorMenuCategoryDto[];
+}
+
