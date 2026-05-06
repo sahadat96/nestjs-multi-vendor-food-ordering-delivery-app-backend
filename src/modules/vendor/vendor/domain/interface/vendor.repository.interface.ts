@@ -79,13 +79,17 @@ export interface IVendorRepository {
     pendingOrders: number;
     cancelledOrders: number;
   }>;
+  
+  findVendorStatusByOwnerId(
+    ownerId: string,
+  ): Promise<VendorStatusView | null>;
 
   updateVendorStatus(
     data: UpdateVendorStatusInput,
   ): Promise<VendorStatusView>;
 
-  findVendorStatusByOwnerId(
+  findGoLiveEligibilityByOwnerId(
     ownerId: string,
-  ): Promise<VendorStatusView | null>;
-
+  ): Promise<VendorGoLiveEligibilityView | null>;
+  
 }
