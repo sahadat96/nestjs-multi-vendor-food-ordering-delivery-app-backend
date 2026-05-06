@@ -6,7 +6,10 @@ import {
 } from '@prisma/client';
 
 import { Vendor } from "../entities/vendor.entity";
-import { VendorMenuQueryDto } from '../../presentation/dto/vendor.dto';
+import {
+   VendorMenuQueryDto,
+   VendorMenuItemsQueryDto,
+  } from '../../presentation/dto/vendor.dto';
 
 export interface VendorStatusView {
   id: string;
@@ -26,6 +29,11 @@ export interface VendorGoLiveEligibilityView {
     id: string;
     status: VerificationStatus;
   } | null;
+}
+
+export interface VendorMenuItemsResult {
+  total: number;
+  items: any[];
 }
 
 export interface IVendorRepository {
@@ -92,5 +100,10 @@ export interface IVendorRepository {
   ): Promise<VendorGoLiveEligibilityView | null>;
 
   findVendorMenuCategories(ownerId: string): Promise<any | null>;
+
+  findVendorMenuItems(
+    ownerId: string,
+    query: VendorMenuItemsQueryDto,
+  ): Promise<VendorMenuItemsResult>;
   
 }
