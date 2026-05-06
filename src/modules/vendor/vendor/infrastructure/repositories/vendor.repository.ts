@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Prisma, PrismaClient, OrderStatus } from '@prisma/client';
+import { Prisma, PrismaClient, OrderStatus, VendorLiveStatus } from '@prisma/client';
+
 
 import { IVendorRepository } from '../../domain/interface/vendor.repository.interface';
 import { Vendor } from '../../domain/entities/vendor.entity';
@@ -9,6 +10,7 @@ import { Vendor } from '../../domain/entities/vendor.entity';
 import { VendorMapper } from '../mapper/vendor.mapper';
 
 import { VendorMenuQueryDto } from '../../presentation/dto/vendor.dto';
+
 
 @Injectable()
 export class VendorRepository implements IVendorRepository {
@@ -297,5 +299,42 @@ export class VendorRepository implements IVendorRepository {
       pendingOrders,
       cancelledOrders,
     };
+  }
+
+  async findVendorStatusByOwnerId(ownerId: string): Promise<{
+    id: string;
+    status: VendorLiveStatus;
+    statusUpdatedAt: Date | null;
+  } | null> {
+    return this.prisma.vendor.findUnique({
+      where: {
+        ownerId,
+      },
+      select: {
+        id: true,
+        status: true,
+        statusUpdatedAt: true,
+      },
+    });
+  }
+
+  async updateVendorStatus(data: {
+    ownerId: string;
+    status: VendorLiveStatus;
+  }): Promise<any> {
+    return this.prisma.vendor.update({
+      where: {
+        ownerId: data.ownerId,
+      },
+      data: {
+        status: data.status,
+        statusUpdatedAt: new Date(),
+      },
+      select: {
+        id: true,
+        status: true,
+        statusUpdatedAt: true,
+      },
+    });
   }
 }
