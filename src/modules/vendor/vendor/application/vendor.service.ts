@@ -20,6 +20,7 @@ import {
   UploadTruckGalleryDto,
   UpdateVendorStatusDto,
   VendorMenuItemsQueryDto,
+  UpdateVendorMenuItemStatusDto,
  } from '../presentation/dto/vendor.dto';
 
 import { 
@@ -31,6 +32,7 @@ import {
   VendorStatusResponseDto,
   VendorMenuCategoriesResponseDto,
   VendorMenuItemsResponseDto,
+  VendorMenuItemStatusResponseDto,
  } from '../presentation/dto/vendor.response.dto';
 
 import { LocalStorageService } from '@/common/storage/local.storage.service';
@@ -411,5 +413,42 @@ export class VendorService {
       limit: query.limit ?? 20,
       items: result.items,  
     });
+  }
+
+  async updateVendorMenuItemStatus(
+    ownerId: string,
+    productId: string,
+    dto: UpdateVendorMenuItemStatusDto,
+  ): Promise<VendorMenuItemStatusResponseDto> {
+    const vendor = await this.vendorRepository.findVendorIdByOwnerId(ownerId);
+
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    const product = await this.vendorRepository.findVendorMenuItemOwner(productId);
+
+    if (!product) {
+      throw new NotFoundException('Menu item not found');
+    }
+
+    if (product.vendorId !== vendor.id) {
+      throw new ForbiddenException('You cannot update this menu item');
+    }
+
+    if (product.isActive === dto.isActive) {
+      return this.vendorMapper.toMenuItemStatusResponse({
+        ...product,
+        updatedAt: new Date(),
+      });
+    }
+
+    const updatedProduct =
+      await this.vendorRepository.updateVendorMenuItemStatus({
+        productId: product.id,
+        isActive: dto.isActive,
+      });
+
+    return this.vendorMapper.toMenuItemStatusResponse(updatedProduct);
   }
 }
