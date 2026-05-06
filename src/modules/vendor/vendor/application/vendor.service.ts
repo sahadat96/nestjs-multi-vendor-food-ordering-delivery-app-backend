@@ -19,6 +19,7 @@ import {
   VendorMenuQueryDto,
   UploadTruckGalleryDto,
   UpdateVendorStatusDto,
+  VendorMenuItemsQueryDto,
  } from '../presentation/dto/vendor.dto';
 
 import { 
@@ -29,6 +30,7 @@ import {
   VendorHomeResponseDto,
   VendorStatusResponseDto,
   VendorMenuCategoriesResponseDto,
+  VendorMenuItemsResponseDto,
  } from '../presentation/dto/vendor.response.dto';
 
 import { LocalStorageService } from '@/common/storage/local.storage.service';
@@ -392,5 +394,22 @@ export class VendorService {
     }
 
     return this.vendorMapper.toMenuCategoriesResponse(vendor);
+  }
+
+  async getVendorMenuItems(
+    ownerId: string,
+    query: VendorMenuItemsQueryDto,
+  ): Promise<VendorMenuItemsResponseDto> {
+    const result = await this.vendorRepository.findVendorMenuItems(
+      ownerId,
+      query,
+    );
+
+    return this.vendorMenuMapper.toMenuItemsResponse({
+      total: result.total,
+      page: query.page ?? 1,
+      limit: query.limit ?? 20,
+      items: result.items,
+    });
   }
 }
