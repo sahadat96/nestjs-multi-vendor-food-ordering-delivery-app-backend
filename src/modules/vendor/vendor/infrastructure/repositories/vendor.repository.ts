@@ -537,4 +537,59 @@ export class VendorRepository implements IVendorRepository {
       items,
     };
   }
+
+  async findVendorIdByOwnerId(ownerId: string): Promise<{ id: string } | null> {
+    return this.prisma.vendor.findUnique({
+      where: {
+        ownerId,
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+
+  async findVendorMenuItemOwner(productId: string): Promise<{
+    id: string;
+    vendorId: string;
+    name: string;
+    isActive: boolean;
+  } | null> {
+    return this.prisma.product.findUnique({
+      where: {
+        id: productId,
+      },
+      select: {
+        id: true,
+        vendorId: true,
+        name: true,
+        isActive: true,
+      },
+    });
+  }
+
+  async updateVendorMenuItemStatus(data: {
+    productId: string;
+    isActive: boolean;
+  }): Promise<{
+    id: string;
+    name: string;
+    isActive: boolean;
+    updatedAt: Date;
+  }> {
+    return this.prisma.product.update({
+      where: {
+        id: data.productId,
+      },
+      data: {
+        isActive: data.isActive,
+      },
+      select: {
+        id: true,
+        name: true,
+        isActive: true,
+        updatedAt: true,
+      },
+    });
+  }
 }
