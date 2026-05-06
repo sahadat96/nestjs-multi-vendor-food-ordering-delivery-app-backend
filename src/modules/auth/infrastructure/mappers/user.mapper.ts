@@ -12,6 +12,7 @@ export class UserMapper {
       name: raw.name,
       roleId: raw.roleId,
       role: raw.role,
+      isEmailVerified: raw.isEmailVerified,
 
       googleId:raw.googleId,
       provider:raw.provider,

@@ -67,6 +67,7 @@ export class AuthService {
         id: savedUser.id,
         email: savedUser.email,
         role: savedUser.role?.name,
+        isVerified: savedUser.isEmailVerified,
       }
     };
   }
@@ -100,6 +101,8 @@ export class AuthService {
           id: user.id,
           email: user.email,
           role: user.role?.name,
+          isVerified: user.isEmailVerified,
+
         },
       },
     };
