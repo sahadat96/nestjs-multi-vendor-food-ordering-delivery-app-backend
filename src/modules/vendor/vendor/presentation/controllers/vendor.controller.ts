@@ -9,6 +9,7 @@ import {
   UseInterceptors,
   Body,
   UploadedFiles,
+  Patch,
 } from '@nestjs/common';
 
 import { FilesInterceptor } from '@nestjs/platform-express';
@@ -16,6 +17,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { 
   VendorMenuQueryDto,
   UploadTruckGalleryDto,
+  UpdateVendorStatusDto,
  } from '../dto/vendor.dto';
 
 import { 
@@ -24,6 +26,7 @@ import {
   UploadTruckGalleryResponseDto,
   TruckGalleryResponseDto,
   VendorHomeResponseDto,
+  VendorStatusResponseDto,
  } from '../dto/vendor.response.dto';
 
 import { VendorService } from '../../application/vendor.service';
@@ -40,13 +43,13 @@ import type { AuthUser } from '@/modules/auth/domain/interfaces/auth-user.interf
 @Controller('vendor')
 export class VendorController {
   constructor(
-    private readonly VendorService: VendorService
+    private readonly vendorService: VendorService
   ) {}
 
   @Get('me')
   async getMyVendor(@Req() req: any) {
     const userId = req.user.sub;  
-    return this.VendorService.execute(userId);
+    return this.vendorService.execute(userId);
   }
 
   @Public()
@@ -55,7 +58,7 @@ export class VendorController {
     @Param('vendorId') vendorId: string,
     @Query() query: VendorMenuQueryDto,
   ): Promise<VendorMenuResponseDto> {
-    return this.VendorService.getVendorMenu(vendorId, query);
+    return this.vendorService.getVendorMenu(vendorId, query);
   }
 
   @Public()
@@ -63,7 +66,7 @@ export class VendorController {
   async getVendorInfo(
     @Param('vendorId') vendorId: string,
   ): Promise<VendorInfoResponseDto> {
-    return this.VendorService.getVendorInfo(vendorId);
+    return this.vendorService.getVendorInfo(vendorId);
   }
 
   @Post('truck-gallery/upload')
@@ -76,7 +79,7 @@ export class VendorController {
     @Body() dto: UploadTruckGalleryDto,
     @UploadedFiles() files: Express.Multer.File[],
   ): Promise<UploadTruckGalleryResponseDto> {
-    return this.VendorService.uploadTruckGalleryImages(user.id, dto, files);
+    return this.vendorService.uploadTruckGalleryImages(user.id, dto, files);
   }
 
   // @Public()
@@ -93,7 +96,18 @@ export class VendorController {
   async getVendorHome(
     @CurrentUser() user: AuthUser,
   ): Promise<VendorHomeResponseDto> {
-    return this.VendorService.getVendorHome(user.id);
+    return this.vendorService.getVendorHome(user.id);
+  }
+
+  @Patch('status-update')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  @ResponseMessage('Vendor status updated successfully.')
+  async updateVendorStatus(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: UpdateVendorStatusDto,
+  ): Promise<VendorStatusResponseDto> {
+    return this.vendorService.updateVendorStatus(user.id, dto);
   }
 
 }
