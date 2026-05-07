@@ -214,5 +214,6 @@ export class VendorMenuItemStatusResponseDto {
 export class DeleteVendorMenuItemResponseDto {
   id!: string;
   deleted!: boolean;
+  deletedAt!: Date | null;
 }
 
