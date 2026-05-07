@@ -554,6 +554,7 @@ export class VendorRepository implements IVendorRepository {
     vendorId: string;
     name: string;
     isActive: boolean;
+    isDeleted: boolean;
   } | null> {
     return this.prisma.product.findUnique({
       where: {
@@ -564,6 +565,7 @@ export class VendorRepository implements IVendorRepository {
         vendorId: true,
         name: true,
         isActive: true,
+        isDeleted: true,
       },
     });
   }

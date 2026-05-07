@@ -18,6 +18,7 @@ import {
   VendorMenuCategoriesResponseDto,
   VendorMenuItemsResponseDto,
   VendorMenuItemStatusResponseDto,
+  DeleteVendorMenuItemResponseDto,
 } from '../../presentation/dto/vendor.response.dto';
 
 import { Vendor } from '../../domain/entities/vendor.entity';
@@ -385,6 +386,20 @@ export class VendorMapper {
       name: product.name,
       isActive: product.isActive,
       availabilityLabel: product.isActive ? 'Available' : 'Unavailable',
+    };
+  }
+
+  toDeleteVendorMenuItemResponse(
+    product: {
+      id: string;
+      isDeleted: boolean;
+      deletedAt: Date | null;
+    },
+  ): DeleteVendorMenuItemResponseDto {
+    return {
+      id: product.id,
+      deleted: product.isDeleted,
+      deletedAt: product.deletedAt,
     };
   }
 }

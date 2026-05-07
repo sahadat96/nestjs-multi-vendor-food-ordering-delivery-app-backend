@@ -41,6 +41,7 @@ export interface VendorMenuItemOwnerView {
   vendorId: string;
   name: string;
   isActive: boolean;
+  isDeleted: boolean;
 }
 
 export interface VendorMenuItemStatusView {

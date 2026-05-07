@@ -73,7 +73,7 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto): Promise<any> {
-
+    
     const { email, password } = loginDto;
     const user = await this.userRepository.findByEmail(email);
 
@@ -85,6 +85,24 @@ export class AuthService {
 
     if (!isPasswordValid){
       throw new UnauthorizedException('Invalid Creadential')
+    }
+
+    if (!user.isEmailVerified) {
+
+      await this.generateAndSendOtp(
+        user,
+        'EMAIL_VERIFICATION',
+      );
+
+      throw new ForbiddenException({
+        success: false,
+        code: 'EMAIL_NOT_VERIFIED',
+        verificationRequired: true,
+        message: 'Email not verified. OTP sent to your email.',
+        data: {
+          email: user.email,
+        },
+      });
     }
 
     const token = await this.getTokens(user.id, user.email, user.role.name);
@@ -106,7 +124,6 @@ export class AuthService {
         },
       },
     };
-    
   }
 
   async refreshToken(userId: string, refreshToken: string): Promise<any> {

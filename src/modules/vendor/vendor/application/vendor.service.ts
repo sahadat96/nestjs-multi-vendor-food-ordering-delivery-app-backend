@@ -485,6 +485,6 @@ export class VendorService {
     const deletedProduct =
       await this.vendorRepository.softDeleteVendorMenuItem(product.id);
 
-    return this.vendorMenuMapper.toDeleteVendorMenuItemResponse(deletedProduct);
+    return this.vendorMapper.toDeleteVendorMenuItemResponse(deletedProduct);
   }
 }
