@@ -21,6 +21,7 @@ import {
   VendorOrderDetailResponseDto,
   CancelVendorOrderResponseDto,
   VendorOrderActionResponseDto,
+  VendorPendingOrdersResponseDto,
 } from '../presentation/dto/order.response.dto';
 
 import { CustomerService } from '@/modules/customer/customer/application/customer.service';
@@ -414,5 +415,21 @@ export class OrderService {
     }
 
     return order;
+  }
+
+  async getVendorPendingOrders(
+    userId: string,
+  ): Promise<VendorPendingOrdersResponseDto> {
+    const vendor = await this.vendorService.execute(userId);
+
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    const orders = await this.orderRepository.findPendingOrdersByVendorId(
+      vendor.id,
+    );
+
+    return this.orderMapper.toVendorPendingOrdersResponse(orders);
   }
 }

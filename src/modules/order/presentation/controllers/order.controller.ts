@@ -20,6 +20,7 @@ import {
   VendorOrderDetailResponseDto,
   CancelVendorOrderResponseDto,
   VendorOrderActionResponseDto,
+  VendorPendingOrdersResponseDto,
 } from '../dto/order.response.dto';
 
 import { CurrentUser } from '@/modules/auth/decorators/get-user.decorator';
