@@ -141,7 +141,10 @@ model Product {
   description       String
   price             Float    
   estimateCookTime  Int       @default(10)
+  
   isActive          Boolean   @default(true)
+  isDeleted         Boolean   @default(false)
+  deletedAt         DateTime?
 
   vendorId          String
   vendor            Vendor    @relation(fields:[vendorId], references: [id])
@@ -161,7 +164,8 @@ model Product {
   favoritedBy       FavoriteProduct[]
   foodReview        FoodReview[]
 
-  createdAt   DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @default(now()) @updatedAt
 }
 
 model SocialLink {
