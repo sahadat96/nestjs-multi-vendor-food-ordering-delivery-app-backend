@@ -10,6 +10,7 @@ import {
   VendorOrderDetailResponseDto,
   CancelVendorOrderResponseDto,
   VendorOrderActionResponseDto,
+  VendorPendingOrdersResponseDto
 } from '../../presentation/dto/order.response.dto';
 
 import { MediaService } from '@/common/media/media.service';
@@ -687,5 +688,90 @@ static toTrackResponse(order: any): OrderTrackResponseDto {
       cancelledAt: order.cancelledAt ?? null,
       message,
     };
+  }
+
+  toVendorPendingOrdersResponse(
+    orders: any[],
+  ): VendorPendingOrdersResponseDto {
+    return {
+      total: orders.length,
+      items: orders.map((order) => {
+        const itemCount = order.orderItems.reduce(
+          (sum: number, item: any) => sum + item.quantity,
+          0,
+        );
+
+        const uniqueItemCount = order.orderItems.length;
+
+        return {
+          id: order.id,
+          orderNumber: order.orderNumber,
+          status: order.status,
+
+          customer: {
+            id: order.customer.id,
+            name:
+              order.customer.user?.name ??
+              order.customer.user?.email ??
+              'Customer',
+            imageUrl: this.mediaService.getUrl(order.customer.avatar),
+          },
+
+          items: order.orderItems.map((item: any) =>
+            this.toVendorPendingOrderItem(item),
+          ),
+
+          itemCount,
+          uniqueItemCount,
+          itemSummaryLabel: this.buildPendingItemSummaryLabel(uniqueItemCount),
+
+          subtotal: order.subtotal,
+          totalAmount: order.totalAmount,
+
+          createdAt: order.createdAt,
+          timeLabel: this.formatTime(order.createdAt),
+
+          statusLabel: 'New Order',
+          actionLabel: 'Accept Order',
+        };
+      }),
+    };
+  }
+
+  private toVendorPendingOrderItem(item: any) {
+    const choiceOptions = item.orderItemChoiceOption ?? [];
+    const addOns = item.orderItemAddOn ?? [];
+
+    const optionNames = [
+      item.sizeName,
+      ...choiceOptions.map((choice: any) => choice.name),
+      ...addOns.map((addon: any) => addon.name),
+    ].filter(Boolean);
+
+    return {
+      id: item.id,
+      productName: item.productName,
+      quantity: item.quantity,
+      sizeName: item.sizeName ?? undefined,
+      lineTotal: item.lineTotal,
+
+      displayText: optionNames.length
+        ? `${item.quantity} x ${item.productName} (${optionNames.join(', ')})`
+        : `${item.quantity} x ${item.productName}`,
+    };
+  }
+
+  private buildPendingItemSummaryLabel(uniqueItemCount: number): string {
+    const itemWord = uniqueItemCount === 1 ? 'item' : 'items';
+
+    return `${uniqueItemCount} ${itemWord}`;
+  }
+
+  private formatTime(date: Date): string {
+    return new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    }).format(new Date(date));
   }
 }
