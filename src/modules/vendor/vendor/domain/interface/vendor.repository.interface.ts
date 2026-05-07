@@ -49,6 +49,12 @@ export interface VendorMenuItemStatusView {
   isActive: boolean;
 }
 
+export interface DeleteVendorMenuItemView {
+  id: string;
+  isDeleted: boolean;
+  deletedAt: Date | null;
+}
+
 export interface IVendorRepository {
 
   findByVendorId(ownerId: string): Promise<Vendor | null>;
@@ -128,4 +134,7 @@ export interface IVendorRepository {
     isActive: boolean;
   }): Promise<VendorMenuItemStatusView>;
   
+  softDeleteVendorMenuItem(
+    productId: string,
+  ): Promise<DeleteVendorMenuItemView>;
 }
