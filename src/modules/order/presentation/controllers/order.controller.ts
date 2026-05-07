@@ -140,4 +140,12 @@ export class OrderController {
     return this.orderService.completeVendorOrder(user.id, orderId);
   }
 
+  @Get('vendor/pending')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  async getVendorPendingOrders(
+    @CurrentUser() user: AuthUser,
+  ): Promise<VendorPendingOrdersResponseDto> {
+    return this.orderService.getVendorPendingOrders(user.id);
+  }
 } 

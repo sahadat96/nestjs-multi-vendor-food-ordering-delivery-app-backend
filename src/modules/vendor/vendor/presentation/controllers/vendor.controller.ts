@@ -37,8 +37,6 @@ import {
   DeleteVendorMenuItemResponseDto,
  } from '../dto/vendor.response.dto';
 
-import { VendorPendingOrdersResponseDto } from '../dto/vendor.food.response.dto';
-
 import { VendorService } from '../../application/vendor.service';
 
 import { Public } from 'src/common/decorators/public.decorator';
@@ -165,13 +163,5 @@ export class VendorController {
   ): Promise<DeleteVendorMenuItemResponseDto> {
     return this.vendorService.deleteVendorMenuItem(user.id, productId);
   }
-
-  @Get('vendor/pending')
-  @UseGuards(RoleGuard)
-  @Roles(Role.VENDOR)
-  async getVendorPendingOrders(
-    @CurrentUser() user: AuthUser,
-  ): Promise<VendorPendingOrdersResponseDto> {
-    return this.vendorService.getVendorPendingOrders(user.id);
-  }
+ 
 }

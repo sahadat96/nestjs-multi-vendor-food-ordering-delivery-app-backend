@@ -487,4 +487,5 @@ export class VendorService {
 
     return this.vendorMapper.toDeleteVendorMenuItemResponse(deletedProduct);
   }
+  
 }
