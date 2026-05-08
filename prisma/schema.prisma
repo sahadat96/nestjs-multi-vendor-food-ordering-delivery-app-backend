@@ -691,11 +691,11 @@ model OrderReport {
   resolvedAt  DateTime?
   adminNote   String?           @db.Text
 
+  images      OrderReportImage[]
 
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
-  // one vendor report per order
   @@unique([orderId, vendorId])
 
   @@index([orderId])
@@ -703,6 +703,20 @@ model OrderReport {
   @@index([customerId])
   @@index([status])
   @@index([createdAt])
+}
+
+model OrderReportImage {
+  id        String      @id @default(uuid())
+
+  reportId  String
+  report    OrderReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  imageUrl  String
+  position  Int         @default(0)
+
+  createdAt DateTime    @default(now())
+
+  @@index([reportId])
 }
 
 enum OrderReportReason {
