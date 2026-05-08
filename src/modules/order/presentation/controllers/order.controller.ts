@@ -6,8 +6,12 @@ import {
   Get,
   Param,
   Patch,
+  Query,
 } from '@nestjs/common';
 
+import {
+  VendorOrderHistoryQueryDto
+} from '../dto/order.dto';
 import { 
   CreateOrderDto,
   CancelOrderDto,
@@ -21,6 +25,7 @@ import {
   CancelVendorOrderResponseDto,
   VendorOrderActionResponseDto,
   VendorPendingOrdersResponseDto,
+  VendorOrderHistoryResponseDto,
 } from '../dto/order.response.dto';
 
 import { CurrentUser } from '@/modules/auth/decorators/get-user.decorator';
@@ -55,6 +60,16 @@ export class OrderController {
   ): Promise<VendorPendingOrdersResponseDto> {
     console.log('hitted this route');
     return this.orderService.getVendorPendingOrders(user.id);
+  }
+
+  @Get('vendor/orders-history')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  async getVendorOrderHistory(
+    @CurrentUser() user: AuthUser,
+    @Query() query: VendorOrderHistoryQueryDto,
+  ): Promise<VendorOrderHistoryResponseDto> {
+    return this.orderService.getVendorOrderHistory(user.id, query);
   }
 
   @Get('user/:orderId/summary')
