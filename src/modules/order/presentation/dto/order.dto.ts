@@ -6,7 +6,10 @@ import {
   IsString,
   Max,
   Min,
+  MaxLength,
 } from 'class-validator';
+
+import { OrderReportReason } from '@prisma/client';
 
 export enum VendorOrderHistoryStatusFilter {
   ALL = 'ALL',
@@ -35,4 +38,14 @@ export class VendorOrderHistoryQueryDto {
   @Min(1)
   @Max(50)
   limit?: number = 10;
+}
+
+export class CreateOrderReportDto {
+  @IsEnum(OrderReportReason)
+  reason!: OrderReportReason;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  description?: string;
 }

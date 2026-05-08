@@ -7,10 +7,15 @@ import {
   Param,
   Patch,
   Query,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 
+import { FilesInterceptor } from '@nestjs/platform-express';
+
 import {
-  VendorOrderHistoryQueryDto
+  VendorOrderHistoryQueryDto,
+  CreateOrderReportDto,
 } from '../dto/order.dto';
 import { 
   CreateOrderDto,
@@ -26,6 +31,7 @@ import {
   VendorOrderActionResponseDto,
   VendorPendingOrdersResponseDto,
   VendorOrderHistoryResponseDto,
+  CreateOrderReportResponseDto,
 } from '../dto/order.response.dto';
 
 import { CurrentUser } from '@/modules/auth/decorators/get-user.decorator';
@@ -165,4 +171,23 @@ export class OrderController {
   ): Promise<VendorOrderActionResponseDto> {
     return this.orderService.completeVendorOrder(user.id, orderId);
   }  
+
+  @Post('vendor/:orderId/report')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  @UseInterceptors(FilesInterceptor('images', 5))
+  @ResponseMessage('Order reported successfully.')
+  async createVendorOrderReport(
+    @CurrentUser() user: AuthUser,
+    @Param('orderId') orderId: string,
+    @Body() dto: CreateOrderReportDto,
+    @UploadedFiles() files?: Express.Multer.File[],
+  ): Promise<CreateOrderReportResponseDto> {
+    return this.orderService.createVendorOrderReport(
+      user.id,
+      orderId,
+      dto,
+      files,
+    );
+  }
 } 

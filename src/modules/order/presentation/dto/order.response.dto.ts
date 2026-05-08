@@ -1,4 +1,9 @@
-import { PaymentMethod, OrderStatus,  } from '@prisma/client';
+import { 
+  PaymentMethod, 
+  OrderStatus,
+  OrderReportReason,
+  OrderReportStatus,  
+} from '@prisma/client';
 
 export class OrderItemChoiceOptionResponseDto {
   id!: string;
@@ -428,4 +433,29 @@ export class VendorOrderHistoryResponseDto {
   cancelledCount!: number;
 
   items!: VendorOrderHistoryListItemDto[];
+}
+
+export class OrderReportImageResponseDto {
+  id!: string;
+  imageUrl!: string;
+  position!: number;
+}
+
+export class CreateOrderReportResponseDto {
+  id!: string;
+
+  orderId!: string;
+  orderNumber!: string;
+
+  vendorId!: string;
+  customerId!: string;
+
+  reason!: OrderReportReason;
+  description?: string;
+
+  status!: OrderReportStatus;
+
+  images!: OrderReportImageResponseDto[];
+
+  createdAt!: Date;
 }
