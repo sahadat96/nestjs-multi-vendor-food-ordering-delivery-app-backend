@@ -1,8 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, PaymentMethod, OrderStatus } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
-import type { CreateOrderFromCartInput, IOrderRepository,  } from '../../domain/interface/order.repository.interface';
-import { 
+import type { 
+  CreateOrderFromCartInput,
+  IOrderRepository, 
+  CreateOrderReportInput,
+} from '../../domain/interface/order.repository.interface';
+
+  import { 
   VendorOrderHistoryQueryDto,
   VendorOrderHistoryStatusFilter,
 } from '../../presentation/dto/order.dto';

@@ -1,4 +1,4 @@
-import { PaymentMethod, Prisma } from '@prisma/client';
+import { PaymentMethod, Prisma, OrderReportReason  } from '@prisma/client';
 import { VendorOrderHistoryQueryDto } from '../../presentation/dto/order.dto';
 
 export interface CreateOrderFromCartInput {
@@ -42,6 +42,15 @@ export interface VendorOrderHistoryResult {
   completedCount: number;
   cancelledCount: number;
   items: any[];
+}
+
+export interface CreateOrderReportInput {
+  orderId: string;
+  vendorId: string;
+  customerId: string;
+  reason: OrderReportReason;
+  description?: string;
+  imageUrls?: string[];
 }
 
 export interface IOrderRepository {
