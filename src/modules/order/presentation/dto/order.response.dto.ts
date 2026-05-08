@@ -376,3 +376,56 @@ export class VendorPendingOrdersResponseDto {
   total!: number;
   items!: VendorPendingOrderListItemDto[];
 }
+
+export class VendorOrderHistoryCustomerDto {
+  id!: string;
+  name!: string;
+  imageUrl?: string;
+}
+
+export class VendorOrderHistoryItemDto {
+  id!: string;
+  productName!: string;
+  quantity!: number;
+  sizeName?: string;
+  lineTotal!: number;
+  displayText!: string;
+}
+
+export class VendorOrderHistoryListItemDto {
+  id!: string;
+  orderNumber!: string;
+  status!: OrderStatus;
+  statusLabel!: string;
+
+  customer!: VendorOrderHistoryCustomerDto;
+
+  items!: VendorOrderHistoryItemDto[];
+
+  itemCount!: number;
+  uniqueItemCount!: number;
+  itemSummaryLabel!: string;
+
+  subtotal!: number;
+  totalAmount!: number;
+
+  createdAt!: Date;
+  completedAt?: Date | null;
+  cancelledAt?: Date | null;
+
+  timeLabel!: string;
+
+  canViewDetails!: boolean;
+}
+
+export class VendorOrderHistoryResponseDto {
+  total!: number;
+  page!: number;
+  limit!: number;
+  totalPages!: number;
+
+  completedCount!: number;
+  cancelledCount!: number;
+
+  items!: VendorOrderHistoryListItemDto[];
+}
