@@ -10,7 +10,8 @@ import {
   VendorOrderDetailResponseDto,
   CancelVendorOrderResponseDto,
   VendorOrderActionResponseDto,
-  VendorPendingOrdersResponseDto
+  VendorPendingOrdersResponseDto,
+  VendorOrderHistoryResponseDto,
 } from '../../presentation/dto/order.response.dto';
 
 import { MediaService } from '@/common/media/media.service';
@@ -773,5 +774,124 @@ static toTrackResponse(order: any): OrderTrackResponseDto {
       minute: '2-digit',
       hour12: true,
     }).format(new Date(date));
+  }
+
+  toVendorOrderHistoryResponse(data: {
+    total: number;
+    page: number;
+    limit: number;
+    completedCount: number;
+    cancelledCount: number;
+    items: any[];
+  }): VendorOrderHistoryResponseDto {
+    return {
+      total: data.total,
+      page: data.page,
+      limit: data.limit,
+      totalPages:
+        data.total === 0 ? 0 : Math.ceil(data.total / data.limit),
+
+      completedCount: data.completedCount,
+      cancelledCount: data.cancelledCount,
+
+      items: data.items.map((order) => {
+        const itemCount = order.orderItems.reduce(
+          (sum: number, item: any) => sum + item.quantity,
+          0,
+        );
+
+        const uniqueItemCount = order.orderItems.length;
+
+        return {
+          id: order.id,
+          orderNumber: order.orderNumber,
+
+          status: order.status,
+          statusLabel: this.getVendorHistoryStatusLabel(order.status),
+
+          customer: {
+            id: order.customer.id,
+            name:
+              order.customer.user?.name ??
+              order.customer.user?.email ??
+              'Customer',
+            imageUrl: this.mediaService.getUrl(order.customer.avatar),
+          },
+
+          items: order.orderItems.map((item: any) =>
+            this.toVendorHistoryOrderItem(item),
+          ),
+
+          itemCount,
+          uniqueItemCount,
+          itemSummaryLabel: this.buildHistoryItemSummaryLabel(uniqueItemCount),
+
+          subtotal: order.subtotal,
+          totalAmount: order.totalAmount,
+
+          createdAt: order.createdAt,
+          completedAt: order.completedAt ?? null,
+          cancelledAt: order.cancelledAt ?? null,
+
+          timeLabel: this.getVendorHistoryTimeLabel(order),
+
+          canViewDetails: true,
+        };
+      }),
+    };
+  }
+
+  private toVendorHistoryOrderItem(item: any) {
+    const choiceOptions = item.orderItemChoiceOption ?? [];
+    const addOns = item.orderItemAddOn ?? [];
+
+    const optionNames = [
+      item.sizeName,
+      ...choiceOptions.map((choice: any) => choice.name),
+      ...addOns.map((addon: any) => addon.name),
+    ].filter(Boolean);
+
+    return {
+      id: item.id,
+      productName: item.productName,
+      quantity: item.quantity,
+      sizeName: item.sizeName ?? undefined,
+      lineTotal: item.lineTotal,
+
+      displayText: optionNames.length
+        ? `${item.quantity} x ${item.productName} (${optionNames.join(', ')})`
+        : `${item.quantity} x ${item.productName}`,
+    };
+  }
+
+  private getVendorHistoryStatusLabel(status: OrderStatus): string {
+    switch (status) {
+      case OrderStatus.COMPLETED:
+        return 'Completed';
+
+      case OrderStatus.CANCELLED:
+        return 'Cancelled';
+
+      default:
+        return status;
+    }
+  }
+
+  private buildHistoryItemSummaryLabel(uniqueItemCount: number): string {
+    const itemWord = uniqueItemCount === 1 ? 'item' : 'items';
+
+    return `${uniqueItemCount} ${itemWord}`;
+  }
+
+  private getVendorHistoryTimeLabel(order: any): string {
+    if (order.status === OrderStatus.COMPLETED && order.completedAt) {
+      return this.formatTime(order.completedAt);
+    }
+
+    if (order.status === OrderStatus.CANCELLED && order.cancelledAt) {
+      return this.formatTime(order.cancelledAt);
+    }
+
+    return this.formatTime(order.createdAt);
   }
 }
