@@ -100,4 +100,13 @@ export interface IOrderRepository {
     vendorId: string,
     query: VendorOrderHistoryQueryDto,
   ): Promise<VendorOrderHistoryResult>;
+
+  findVendorOrderForReport(orderId: string): Promise<any | null>;
+
+  findExistingOrderReport(data: {
+    orderId: string;
+    vendorId: string;
+  }): Promise<{ id: string } | null>;
+
+  createOrderReport(data: CreateOrderReportInput): Promise<any>;
 }
