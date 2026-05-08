@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, PaymentMethod, OrderStatus } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
-import type { CreateOrderFromCartInput, IOrderRepository, } from '../../domain/interface/order.repository.interface';
+import type { CreateOrderFromCartInput, IOrderRepository,  } from '../../domain/interface/order.repository.interface';
 import { 
   VendorOrderHistoryQueryDto,
   VendorOrderHistoryStatusFilter,
@@ -552,5 +552,80 @@ export class OrderRepository implements IOrderRepository {
       cancelledCount,
       items,
     };
+  }
+
+   async findVendorOrderForReport(orderId: string): Promise<any | null> {
+    return this.prisma.order.findUnique({
+      where: {
+        id: orderId,
+      },
+      select: {
+        id: true,
+        orderNumber: true,
+        vendorId: true,
+        customerId: true,
+        status: true,
+      },
+    });
+  }
+
+  async findExistingOrderReport(data: {
+    orderId: string;
+    vendorId: string;
+  }): Promise<{ id: string } | null> {
+    return this.prisma.orderReport.findUnique({
+      where: {
+        orderId_vendorId: {
+          orderId: data.orderId,
+          vendorId: data.vendorId,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+
+  async createOrderReport(data: CreateOrderReportInput): Promise<any> {
+    return this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const report = await tx.orderReport.create({
+        data: {
+          orderId: data.orderId,
+          vendorId: data.vendorId,
+          customerId: data.customerId,
+          reason: data.reason,
+          description: data.description,
+        },
+      });
+
+      if (data.imageUrls?.length) {
+        await tx.orderReportImage.createMany({
+          data: data.imageUrls.map((imageUrl, index) => ({
+            reportId: report.id,
+            imageUrl,
+            position: index,
+          })),
+        });
+      }
+
+      return tx.orderReport.findUnique({
+        where: {
+          id: report.id,
+        },
+        include: {
+          order: {
+            select: {
+              id: true,
+              orderNumber: true,
+            },
+          },
+          images: {
+            orderBy: {
+              position: 'asc',
+            },
+          },
+        },
+      });
+    });
   }
 }
