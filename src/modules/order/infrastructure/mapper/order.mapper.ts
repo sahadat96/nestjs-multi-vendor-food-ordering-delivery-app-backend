@@ -12,6 +12,7 @@ import {
   VendorOrderActionResponseDto,
   VendorPendingOrdersResponseDto,
   VendorOrderHistoryResponseDto,
+  CreateOrderReportResponseDto,
 } from '../../presentation/dto/order.response.dto';
 
 import { MediaService } from '@/common/media/media.service';
@@ -893,5 +894,30 @@ static toTrackResponse(order: any): OrderTrackResponseDto {
     }
 
     return this.formatTime(order.createdAt);
+  }
+
+  toCreateOrderReportResponse(report: any): CreateOrderReportResponseDto {
+    return {
+      id: report.id,
+
+      orderId: report.orderId,
+      orderNumber: report.order?.orderNumber ?? '',
+
+      vendorId: report.vendorId,
+      customerId: report.customerId,
+
+      reason: report.reason,
+      description: report.description ?? undefined,
+
+      status: report.status,
+
+      images: report.images.map((image: any) => ({
+        id: image.id,
+        imageUrl: this.mediaService.getUrl(image.imageUrl),
+        position: image.position,
+      })),
+
+      createdAt: report.createdAt,
+    };
   }
 }
