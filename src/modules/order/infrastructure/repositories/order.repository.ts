@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, PaymentMethod, OrderStatus } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service';
-import type { CreateOrderFromCartInput, IOrderRepository } from '../../domain/interface/order.repository.interface';
+import type { CreateOrderFromCartInput, IOrderRepository, } from '../../domain/interface/order.repository.interface';
+import { 
+  VendorOrderHistoryQueryDto,
+  VendorOrderHistoryStatusFilter,
+} from '../../presentation/dto/order.dto';
 
 @Injectable()
 export class OrderRepository implements IOrderRepository {
@@ -409,5 +413,144 @@ export class OrderRepository implements IOrderRepository {
         createdAt: 'asc',
       },
     });
+  }
+
+  async findHistoryOrdersByVendorId(
+    vendorId: string,
+    query: VendorOrderHistoryQueryDto,
+  ): Promise<{
+    total: number;
+    completedCount: number;
+    cancelledCount: number;
+    items: any[];
+  }> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const skip = (page - 1) * limit;
+
+    const search = query.search?.trim();
+
+    const historyStatuses =
+      query.status === VendorOrderHistoryStatusFilter.COMPLETED
+        ? [OrderStatus.COMPLETED]
+        : query.status === VendorOrderHistoryStatusFilter.CANCELLED
+          ? [OrderStatus.CANCELLED]
+          : [OrderStatus.COMPLETED, OrderStatus.CANCELLED];
+
+    const where: Prisma.OrderWhereInput = {
+      vendorId,
+      status: {
+        in: historyStatuses,
+      },
+    };
+
+    const andConditions: Prisma.OrderWhereInput[] = [];
+
+    if (search) {
+      andConditions.push({
+        OR: [
+          {
+            orderNumber: {
+              contains: search,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            customer: {
+              user: {
+                name: {
+                  contains: search,
+                  mode: Prisma.QueryMode.insensitive,
+                },
+              },
+            },
+          },
+          {
+            customer: {
+              user: {
+                email: {
+                  contains: search,
+                  mode: Prisma.QueryMode.insensitive,
+                },
+              },
+            },
+          },
+        ],
+      });
+    }
+
+    if (andConditions.length > 0) {
+      where.AND = andConditions;
+    }
+
+    const baseCountWhere: Prisma.OrderWhereInput = {
+      vendorId,
+      status: {
+        in: [OrderStatus.COMPLETED, OrderStatus.CANCELLED],
+      },
+    };
+
+    const [total, completedCount, cancelledCount, items] = await Promise.all([
+      this.prisma.order.count({
+        where,
+      }),
+
+      this.prisma.order.count({
+        where: {
+          ...baseCountWhere,
+          status: OrderStatus.COMPLETED,
+        },
+      }),
+
+      this.prisma.order.count({
+        where: {
+          ...baseCountWhere,
+          status: OrderStatus.CANCELLED,
+        },
+      }),
+
+      this.prisma.order.findMany({
+        where,
+        orderBy: [
+          {
+            updatedAt: 'desc',
+          },
+          {
+            createdAt: 'desc',
+          },
+        ],
+        skip,
+        take: limit,
+        include: {
+          customer: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+          },
+          orderItems: {
+            orderBy: {
+              createdAt: 'asc',
+            },
+            include: {
+              orderItemChoiceOption: true,
+              orderItemAddOn: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      total,
+      completedCount,
+      cancelledCount,
+      items,
+    };
   }
 }
