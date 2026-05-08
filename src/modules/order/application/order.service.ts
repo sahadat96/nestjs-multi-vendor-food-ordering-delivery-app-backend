@@ -12,8 +12,12 @@ import type { IOrderRepository } from '../domain/interface/order.repository.inte
 
 import { OrderMapper } from '../infrastructure/mapper/order.mapper';
 
-import { VendorOrderHistoryQueryDto } from '../presentation/dto/order.dto';
+import { 
+  VendorOrderHistoryQueryDto,
+  CreateOrderReportDto,
+} from '../presentation/dto/order.dto';
 import { CreateOrderDto } from '../presentation/dto/create-order.dto';
+
 import { 
   CreateOrderResponseDto,
   OrderSummaryResponseDto,
@@ -24,11 +28,13 @@ import {
   VendorOrderActionResponseDto,
   VendorPendingOrdersResponseDto,
   VendorOrderHistoryResponseDto,
+  CreateOrderReportResponseDto,
 } from '../presentation/dto/order.response.dto';
 
 import { CustomerService } from '@/modules/customer/customer/application/customer.service';
 import { CartService } from '@/modules/customer/cart/application/cart.service';
 import { VendorService } from '@/modules/vendor/vendor/application/vendor.service';
+import { LocalStorageService } from '@/common/storage/local.storage.service';
 
 @Injectable()
 export class OrderService {
@@ -39,6 +45,7 @@ export class OrderService {
     private readonly cartService: CartService,
     private readonly vendorService: VendorService,
     private readonly orderMapper: OrderMapper,
+    private readonly localStorageService: LocalStorageService,
   ) {}
 
   async createOrder(
@@ -458,5 +465,74 @@ export class OrderService {
       limit: query.limit ?? 10,
       items: result.items,
     });
+  }
+
+  async createVendorOrderReport(
+    userId: string,
+    orderId: string,
+    dto: CreateOrderReportDto,
+    files?: Express.Multer.File[],
+  ): Promise<CreateOrderReportResponseDto> {
+    const vendor = await this.vendorService.execute(userId);
+
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    const order = await this.orderRepository.findVendorOrderForReport(orderId);
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    if (order.vendorId !== vendor.id) {
+      throw new ForbiddenException('You cannot report this order');
+    }
+
+    if (!this.canVendorReportOrder(order.status)) {
+      throw new BadRequestException(
+        `Order cannot be reported when status is ${order.status}`,
+      );
+    }
+
+    const existingReport = await this.orderRepository.findExistingOrderReport({
+      orderId: order.id,
+      vendorId: vendor.id,
+    });
+
+    if (existingReport) {
+      throw new BadRequestException('This order has already been reported');
+    }
+
+    const imageUrls: string[] = [];
+
+    if (files?.length) {
+      const folder = `orders/reports/${order.id}`;
+
+      const uploadedUrls = await Promise.all(
+        files.map((file) => this.localStorageService.uploadFile(file, folder)),
+      );
+
+      imageUrls.push(...uploadedUrls);
+    }
+
+    const report = await this.orderRepository.createOrderReport({
+      orderId: order.id,
+      vendorId: vendor.id,
+      customerId: order.customerId,
+      reason: dto.reason,
+      description: dto.description,
+      imageUrls,
+    });
+
+    return this.orderMapper.toCreateOrderReportResponse(report);
+  }
+
+  private canVendorReportOrder(status: OrderStatus): boolean {
+    return (
+      status === OrderStatus.READY_FOR_PICKUP ||
+      status === OrderStatus.COMPLETED ||
+      status === OrderStatus.CANCELLED
+    );
   }
 }

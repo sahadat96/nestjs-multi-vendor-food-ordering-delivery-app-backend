@@ -9,6 +9,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { VendorModule } from '../vendor/vendor/vendor.module';
 import { OrderMapper } from './infrastructure/mapper/order.mapper';
 import { MediaModule } from '@/common/media/media.module';
+import { StorageModule } from '@/common/storage/storage.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { MediaModule } from '@/common/media/media.module';
     CartModule, 
     VendorModule,
     MediaModule,
+    StorageModule,
   ],
   controllers: [OrderController],
   providers: [
