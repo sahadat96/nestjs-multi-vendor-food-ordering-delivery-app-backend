@@ -1,4 +1,5 @@
 import { PaymentMethod, Prisma } from '@prisma/client';
+import { VendorOrderHistoryQueryDto } from '../../presentation/dto/order.dto';
 
 export interface CreateOrderFromCartInput {
   orderNumber: string;
@@ -34,6 +35,13 @@ export interface CreateOrderItemInput {
     name: string;
     price: number;
   }[];
+}
+
+export interface VendorOrderHistoryResult {
+  total: number;
+  completedCount: number;
+  cancelledCount: number;
+  items: any[];
 }
 
 export interface IOrderRepository {
@@ -78,4 +86,9 @@ export interface IOrderRepository {
   }): Promise<any>;
 
   findPendingOrdersByVendorId(vendorId: string): Promise<any[]>;
+
+  findHistoryOrdersByVendorId(
+    vendorId: string,
+    query: VendorOrderHistoryQueryDto,
+  ): Promise<VendorOrderHistoryResult>;
 }
