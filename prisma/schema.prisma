@@ -104,6 +104,7 @@ model Vendor {
   carts                Cart[]
   truckReviews         VendorTruckReview[]
   truckGalleryImages   TruckGalleryImage[]
+  orderReports         OrderReport[]
   
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -343,6 +344,7 @@ model Customer {
   favoriteVendors  FavoriteVendor[]
   truckReviews     VendorTruckReview[]
   foodReviews      FoodReview[]
+  orderReports     OrderReport[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -443,6 +445,7 @@ model Order {
   cancelledAt      DateTime?
 
   orderItems       OrderItem[]
+  reports          OrderReport[]
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -665,6 +668,58 @@ model FoodReviewTagMap {
 
   @@id([reviewId, tagId])
   @@index([tagId])
+}
+
+model OrderReport {
+  id          String            @id @default(uuid())
+
+  orderId     String
+  order       Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  vendorId    String
+  vendor      Vendor            @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  customerId  String
+  customer    Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  reason      OrderReportReason
+  description String?           @db.Text
+
+  status      OrderReportStatus @default(OPEN)
+
+  reviewedAt  DateTime?
+  resolvedAt  DateTime?
+  adminNote   String?           @db.Text
+
+
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // one vendor report per order
+  @@unique([orderId, vendorId])
+
+  @@index([orderId])
+  @@index([vendorId])
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum OrderReportReason {
+  CUSTOMER_NO_SHOW
+  CUSTOMER_UNREACHABLE
+  FAKE_ORDER
+  PAYMENT_ISSUE
+  ABUSIVE_BEHAVIOR
+  WRONG_ORDER_CLAIM
+  OTHER
+}
+
+enum OrderReportStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  REJECTED
 }
 
 enum VendorLiveStatus {
