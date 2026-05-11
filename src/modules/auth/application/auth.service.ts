@@ -75,7 +75,7 @@ export class AuthService {
   async login(loginDto: LoginDto): Promise<any> {
     
     const { email, password } = loginDto;
-    const user = await this.userRepository.findByEmail(email);
+    const user = await this.userRepository.findLoginUserByEmail(email);
 
     if(!user){
       throw new ConflictException({
@@ -116,6 +116,8 @@ export class AuthService {
     const token = await this.getTokens(user.id, user.email, user.role.name);
 
     await this.updateRefreshTokenHash(user.id, token.refreshToken);
+
+    const locationState = this.buildLocationState(user);
     
     return {
       success: true,
@@ -129,8 +131,50 @@ export class AuthService {
           role: user.role?.name,
           isVerified: user.isEmailVerified,
 
+        hasLocation: locationState.hasLocation,
+        locationRequired: locationState.locationRequired,
+        nextStep: locationState.nextStep,
+
         },
       },
+    };
+  }
+
+  private buildLocationState(user: any): {
+    hasLocation: boolean;
+    locationRequired: boolean;
+    nextStep: string;
+  } {
+    const role = user.role?.name;
+
+    if (role === 'USER') {
+      const hasLocation =
+        typeof user.customer?.latitude === 'number' &&
+        typeof user.customer?.longitude === 'number';
+
+      return {
+        hasLocation,
+        locationRequired: !hasLocation,
+        nextStep: hasLocation ? 'HOME' : 'SET_CUSTOMER_LOCATION',
+      };
+    }
+
+    if (role === 'VENDOR') {
+      const hasLocation =
+        typeof user.vendorStore?.serviceArea?.latitude === 'number' &&
+        typeof user.vendorStore?.serviceArea?.longitude === 'number';
+
+      return {
+        hasLocation,
+        locationRequired: !hasLocation,
+        nextStep: hasLocation ? 'VENDOR_HOME' : 'SET_VENDOR_SERVICE_AREA',
+      };
+    }
+
+    return {
+      hasLocation: false,
+      locationRequired: false,
+      nextStep: 'HOME',
     };
   }
 

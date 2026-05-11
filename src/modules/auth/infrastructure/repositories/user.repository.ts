@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
-import { IUserRepository } from '../../domain/interfaces/user.repository.interface';
+import { IUserRepository, LoginUserView} from '../../domain/interfaces/user.repository.interface';
 import { User } from '../../domain/entities/user.entity';
 import { UserMapper } from '../mappers/user.mapper';
 
@@ -19,6 +19,51 @@ export class UserRepository implements IUserRepository {
     if (!user) return null;
 
     return UserMapper.toDomain(user);
+  }
+
+  async findLoginUserByEmail(email: string): Promise<LoginUserView | null> {
+    return this.prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        name: true,
+        provider: true,
+        isEmailVerified: true,
+
+        role: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+
+        customer: {
+          select: {
+            id: true,
+            latitude: true,
+            longitude: true,
+            address: true,
+          },
+        },
+
+        vendorStore: {
+          select: {
+            id: true,
+            serviceArea: {
+              select: {
+                id: true,
+                latitude: true,
+                longitude: true,
+                address: true,
+                radius: true,
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
  async update(userId: string, updateData: Partial<User>): Promise<User> {

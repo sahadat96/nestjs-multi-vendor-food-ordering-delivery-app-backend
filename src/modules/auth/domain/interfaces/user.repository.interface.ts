@@ -1,5 +1,37 @@
 import { User } from '../entities/user.entity';
 
+export interface LoginUserView {
+  id: string;
+  email: string;
+  password: string | null;
+  name: string | null;
+  provider: string;
+  isEmailVerified: boolean;
+
+  role: {
+    id: string;
+    name: string;
+  };
+
+  customer?: {
+    id: string;
+    latitude: number | null;
+    longitude: number | null;
+    address: string | null;
+  } | null;
+
+  vendorStore?: {
+    id: string;
+    serviceArea?: {
+      id: string;
+      latitude: number;
+      longitude: number;
+      address: string | null;
+      radius: number;
+    } | null;
+  } | null;
+}
+
 export interface IUserRepository {
 
     findByEmail(email: string): Promise<User | null>;
@@ -14,4 +46,5 @@ export interface IUserRepository {
 
     update(userId: string, updateDate: Partial<User>): Promise<User>
 
+    findLoginUserByEmail(email: string): Promise<LoginUserView | null>;
 }

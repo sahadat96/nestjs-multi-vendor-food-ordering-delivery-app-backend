@@ -135,10 +135,19 @@ export class ProfileSetupRepository implements IProfileSetupRepository {
 
     await this.prisma.$transaction(async (tx) => {
 
-      const vendor = await tx.vendor.findUnique({
+      let vendor = await tx.vendor.findUnique({
         where: { ownerId: userId },
         select: { id: true },
       });
+
+      if (!vendor) {
+        vendor = await tx.vendor.create({
+          data: {
+            ownerId: userId,
+          },
+          select: { id: true },
+        });
+      }
 
       if (!vendor) {
         throw new Error('Vendor not found');
