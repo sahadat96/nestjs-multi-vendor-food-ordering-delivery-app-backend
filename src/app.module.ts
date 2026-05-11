@@ -20,6 +20,7 @@ import { CartModule } from './modules/customer/cart/cart.module';
 import { OrderModule } from './modules/order/order.module';
 import { ReviewModule } from './modules/review/review.module';
 import { MediaModule } from './common/media/media.module';
+import { HelpCenterModule } from './modules/help-center/help-center.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { MediaModule } from './common/media/media.module';
     OrderModule,
     ReviewModule,
     MediaModule,
+    HelpCenterModule,
   ],
   controllers: [AppController],
   providers: [

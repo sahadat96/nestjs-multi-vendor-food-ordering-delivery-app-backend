@@ -1,3 +1,4 @@
+import { PrismaService } from '@/prisma/prisma.service';
 import { Module } from '@nestjs/common';
 import { HelpCenterController } from './presentation/controllers/help-center.controller';
 import { HelpCenterService } from './application/help-center.service';
@@ -15,6 +16,7 @@ import { VendorModule } from '../vendor/vendor/vendor.module';
   providers: [
     HelpCenterService,
     HelpCenterMapper,
+    PrismaService,
     {
       provide: 'IHelpCenterRepository',
       useClass: HelpCenterRepository,

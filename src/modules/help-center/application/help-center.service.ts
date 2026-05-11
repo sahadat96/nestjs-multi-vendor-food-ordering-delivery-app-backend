@@ -20,7 +20,6 @@ export class HelpCenterService {
   constructor(
     @Inject('IHelpCenterRepository')
     private readonly helpCenterRepository: IHelpCenterRepository,
-
     private readonly customerService: CustomerService,
     private readonly vendorService: VendorService,
     private readonly helpCenterMapper: HelpCenterMapper,
