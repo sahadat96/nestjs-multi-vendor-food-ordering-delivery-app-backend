@@ -4,25 +4,38 @@ import {
   HelpTicketUserType,
 } from '@prisma/client';
 
-export class HelpTicketResponseDto {
-  id!: string;
-
-  userId!: string;
+export interface CreateHelpTicketInput {
+  userId: string;
   customerId?: string | null;
   vendorId?: string | null;
+  userType: HelpTicketUserType;
+  subject?: string;
+  message: string;
+}
 
-  userType!: HelpTicketUserType;
+export interface HelpTicketView {
+  id: string;
 
-  subject?: string | null;
-  message!: string;
+  userId: string;
+  customerId: string | null;
+  vendorId: string | null;
 
-  status!: HelpTicketStatus;
-  priority!: HelpTicketPriority;
+  userType: HelpTicketUserType;
 
-  adminReply?: string | null;
-  repliedAt?: Date | null;
-  resolvedAt?: Date | null;
-  closedAt?: Date | null;
+  subject: string | null;
+  message: string;
 
-  createdAt!: Date;
+  status: HelpTicketStatus;
+  priority: HelpTicketPriority;
+
+  adminReply: string | null;
+  repliedAt: Date | null;
+  resolvedAt: Date | null;
+  closedAt: Date | null;
+
+  createdAt: Date;
+}
+
+export interface IHelpCenterRepository {
+  createHelpTicket(data: CreateHelpTicketInput): Promise<HelpTicketView>;
 }

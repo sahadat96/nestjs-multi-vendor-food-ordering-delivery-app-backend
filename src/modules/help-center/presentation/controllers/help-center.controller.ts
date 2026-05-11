@@ -4,9 +4,12 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { CreateHelpTicketDto } from './dto/create-help-ticket.dto';
-import { HelpTicketResponseDto } from './dto/help-ticket.response.dto';
-import { HelpCenterService } from '../application/help-center.service';
+
+import { CreateHelpTicketDto } from '../dto/help-center.dto';
+import { HelpTicketResponseDto } from '../dto/help-center.response.dto';
+
+import { HelpCenterService } from '../../application/help-center.service';
+
 import { CurrentUser } from '@/modules/auth/decorators/get-user.decorator';
 import type { AuthUser } from '@/modules/auth/domain/interfaces/auth-user.interface';
 import { RoleGuard } from '@/common/guards/roles.guard';
@@ -28,7 +31,6 @@ export class HelpCenterController {
   ): Promise<HelpTicketResponseDto> {
     return this.helpCenterService.createTicket(
       user.id,
-      user.roleName ?? user.role,
       dto,
     );
   }
