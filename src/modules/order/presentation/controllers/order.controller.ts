@@ -173,7 +173,7 @@ export class OrderController {
     return this.orderService.completeVendorOrder(user.id, orderId);
   }  
 
-  @Post('vendor/:orderId/report')
+  @Post('vendor/:orderId/create-report')
   @UseGuards(RoleGuard)
   @Roles(Role.VENDOR)
   @UseInterceptors(FilesInterceptor('images', 5))
@@ -192,7 +192,7 @@ export class OrderController {
     );
   }
 
-  @Get('vendor/:orderId/report')
+  @Get('vendor/:orderId/get-report')
   @UseGuards(RoleGuard)
   @Roles(Role.VENDOR)
   async getVendorOrderReport(
