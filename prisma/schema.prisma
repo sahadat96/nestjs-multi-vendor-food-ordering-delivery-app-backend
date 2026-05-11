@@ -26,6 +26,7 @@ model User {
 
   vendorStore  Vendor?
   customer     Customer?
+  helpTickets  HelpCenterTicket[]
 
   refreshToken String?
   createdAt    DateTime @default(now())
@@ -107,6 +108,7 @@ model Vendor {
   truckReviews         VendorTruckReview[]
   truckGalleryImages   TruckGalleryImage[]
   orderReports         OrderReport[]
+  helpTickets          HelpCenterTicket[]
   
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -347,6 +349,7 @@ model Customer {
   truckReviews     VendorTruckReview[]
   foodReviews      FoodReview[]
   orderReports     OrderReport[]
+  helpTickets      HelpCenterTicket[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -721,6 +724,43 @@ model OrderReportImage {
   @@index([reportId])
 }
 
+model HelpCenterTicket {
+  id             String              @id @default(uuid())
+
+  userId         String
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  customerId     String?
+  customer       Customer?           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  vendorId       String?
+  vendor         Vendor?             @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+
+  userType       HelpTicketUserType
+
+  subject        String?
+  message        String              @db.Text
+
+  status         HelpTicketStatus    @default(OPEN)
+  priority       HelpTicketPriority  @default(NORMAL)
+
+  adminReply     String?             @db.Text
+  repliedAt      DateTime?
+  resolvedAt     DateTime?
+  closedAt       DateTime?
+
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([userId])
+  @@index([customerId])
+  @@index([vendorId])
+  @@index([userType])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+}
+
 enum OrderReportReason {
   CUSTOMER_NO_SHOW
   CUSTOMER_UNREACHABLE
@@ -785,5 +825,24 @@ enum SubscriptionStatus {
   INACTIVE
   EXPIRED
   CANCELLED
+}
+
+enum HelpTicketUserType {
+  CUSTOMER
+  VENDOR
+}
+
+enum HelpTicketStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  CLOSED
+}
+
+enum HelpTicketPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
 }
 
