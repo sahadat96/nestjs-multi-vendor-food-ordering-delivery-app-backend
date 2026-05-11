@@ -633,4 +633,32 @@ export class OrderRepository implements IOrderRepository {
       });
     });
   }
+
+  async findVendorOrderReportByOrderId(data: {
+    orderId: string;
+    vendorId: string;
+  }): Promise<any | null> {
+    return this.prisma.orderReport.findUnique({
+      where: {
+        orderId_vendorId: {
+          orderId: data.orderId,
+          vendorId: data.vendorId,
+        },
+      },
+      include: {
+        order: {
+          select: {
+            id: true,
+            orderNumber: true,
+            status: true,
+          },
+        },
+        images: {
+          orderBy: {
+            position: 'asc',
+          },
+        },
+      },
+    });
+  }
 }
