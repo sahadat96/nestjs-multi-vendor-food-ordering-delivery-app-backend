@@ -547,9 +547,6 @@ export class OrderService {
       throw new NotFoundException('Vendor not found');
     }
 
-      console.log('REQUEST ORDER ID:', orderId);
-      console.log('LOGGED IN VENDOR ID:', vendor.id);
-
     const report = await this.orderRepository.findVendorOrderReportByOrderId({
       orderId,
       vendorId: vendor.id,
