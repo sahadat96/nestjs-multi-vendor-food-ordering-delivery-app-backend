@@ -15,6 +15,7 @@ import {
 
 import type { IVendorRepository, VendorInsightsDateRange } from '../domain/interface/vendor.repository.interface';
 import { VendorMapper } from '../infrastructure/mapper/vendor.mapper';
+import { VendorInsightsMapper } from '../infrastructure/mapper/vendor-insights.mapper';
 
 import { 
   VendorMenuQueryDto,
@@ -47,9 +48,9 @@ export class VendorService {
   constructor(
     @Inject('IVendorRepository') 
     private readonly vendorRepository: IVendorRepository,
-
     private readonly storageService: LocalStorageService,
     private readonly vendorMapper: VendorMapper,
+    private readonly vendorInsightsMapper: VendorInsightsMapper,
   ) {}
 
   async findByVendorId(vendorId: string) {

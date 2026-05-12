@@ -9,7 +9,7 @@ import { Prisma,
   SubscriptionStatus, 
 } from '@prisma/client';
 
-import { IVendorRepository } from '../../domain/interface/vendor.repository.interface';
+import { IVendorRepository, VendorInsightsDateRange, VendorInsightsOverviewRaw } from '../../domain/interface/vendor.repository.interface';
 import { Vendor } from '../../domain/entities/vendor.entity';
 
 import { VendorMapper } from '../mapper/vendor.mapper';
@@ -18,7 +18,6 @@ import {
   VendorMenuQueryDto,
   VendorMenuItemsQueryDto,
 } from '../../presentation/dto/vendor.dto';
-
 
 @Injectable()
 export class VendorRepository implements IVendorRepository {
@@ -616,4 +615,125 @@ export class VendorRepository implements IVendorRepository {
       },
     });
   }
+
+  async findVendorInsightsOverviewData(data: {
+    ownerId: string;
+    range: VendorInsightsDateRange;
+  }): Promise<VendorInsightsOverviewRaw | null> {
+    const vendor = await this.prisma.vendor.findUnique({
+      where: {
+        ownerId: data.ownerId,
+      },
+      select: {
+        id: true,
+        truckReviewAverage: true,
+        truckReviewCount: true,
+        subscriptionStatus: true,
+        subscriptionExpiry: true,
+        subscriptionPlan: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            durationDays: true,
+          },
+        },
+      },
+    });
+
+    if (!vendor) {
+      return null;
+    }
+
+    const [
+      revenueOrders,
+      previousRevenueAgg,
+      profileViews,
+      previousProfileViewTotal,
+      favoriteCount,
+      ratingDistribution,
+    ] = await Promise.all([
+      this.prisma.order.findMany({
+        where: {
+          vendorId: vendor.id,
+          status: OrderStatus.COMPLETED,
+          createdAt: {
+            gte: data.range.startDate,
+            lt: data.range.endDate,
+          },
+        },
+        select: {
+          createdAt: true,
+          totalAmount: true,
+        },
+      }),
+
+      this.prisma.order.aggregate({
+        where: {
+          vendorId: vendor.id,
+          status: OrderStatus.COMPLETED,
+          createdAt: {
+            gte: data.range.previousStartDate,
+            lt: data.range.previousEndDate,
+          },
+        },
+        _sum: {
+          totalAmount: true,
+        },
+      }),
+
+      this.prisma.vendorProfileView.findMany({
+        where: {
+          vendorId: vendor.id,
+          viewedAt: {
+            gte: data.range.startDate,
+            lt: data.range.endDate,
+          },
+        },
+        select: {
+          viewedAt: true,
+        },
+      }),
+
+      this.prisma.vendorProfileView.count({
+        where: {
+          vendorId: vendor.id,
+          viewedAt: {
+            gte: data.range.previousStartDate,
+            lt: data.range.previousEndDate,
+          },
+        },
+      }),
+
+      this.prisma.favoriteVendor.count({
+        where: {
+          vendorId: vendor.id,
+        },
+      }),
+
+      this.prisma.vendorTruckReview.groupBy({
+        by: ['rating'],
+        where: {
+          vendorId: vendor.id,
+        },
+        _count: {
+          rating: true,
+        },
+      }),
+    ]);
+
+    return {
+      vendor,
+      revenueOrders,
+      previousRevenueTotal: previousRevenueAgg._sum.totalAmount ?? 0,
+      profileViews,
+      previousProfileViewTotal,
+      favoriteCount,
+      ratingDistribution: ratingDistribution.map((item) => ({
+        rating: item.rating,
+        count: item._count.rating,
+      })),
+    };
+  }
+
 }
