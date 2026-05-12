@@ -155,5 +155,14 @@ export class VendorController {
   ): Promise<DeleteVendorMenuItemResponseDto> {
     return this.vendorService.deleteVendorMenuItem(user.id, productId);
   }
- 
+
+  @Get('truck-gallery/me')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  async getMyTruckGallery(
+    @CurrentUser() user: AuthUser,
+  ): Promise<TruckGalleryResponseDto> {
+    return this.vendorService.getMyTruckGallery(user.id);
+  }
+  
 }
