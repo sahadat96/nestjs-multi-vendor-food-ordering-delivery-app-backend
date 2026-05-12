@@ -119,6 +119,21 @@ export interface VendorRevenueChartRaw {
   completedOrderCount: number;
 }
 
+export interface VendorPeakHoursDateRange {
+  startDate: Date;
+  endDate: Date;
+}
+
+export interface VendorPeakHoursOrderRow {
+  createdAt: Date;
+  totalAmount: number;
+}
+
+export interface VendorPeakHoursRaw {
+  vendorId: string;
+  orders: VendorPeakHoursOrderRow[];
+}
+
 export interface IVendorRepository {
 
   findByVendorId(ownerId: string): Promise<Vendor | null>;
