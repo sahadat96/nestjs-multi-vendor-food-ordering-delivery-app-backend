@@ -198,4 +198,9 @@ export interface IVendorRepository {
     ownerId: string;
     range: VendorInsightsDateRange;
   }): Promise<VendorInsightsOverviewRaw | null>;
+  
+  findVendorRevenueChartData(data: {
+    ownerId: string;
+    range: VendorRevenueDateRange;
+  }): Promise<VendorRevenueChartRaw | null>;
 }
