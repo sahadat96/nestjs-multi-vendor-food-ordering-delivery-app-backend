@@ -13,7 +13,11 @@ import {
   SubscriptionStatus
 } from '@prisma/client';
 
-import type { IVendorRepository, VendorInsightsDateRange } from '../domain/interface/vendor.repository.interface';
+import type { 
+  IVendorRepository, 
+  VendorInsightsDateRange,
+  VendorRevenueDateRange,
+} from '../domain/interface/vendor.repository.interface';
 import { VendorMapper } from '../infrastructure/mapper/vendor.mapper';
 import { VendorInsightsMapper } from '../infrastructure/mapper/vendor-insights.mapper';
 
@@ -24,7 +28,10 @@ import {
   VendorMenuItemsQueryDto,
   UpdateVendorMenuItemStatusDto,
  } from '../presentation/dto/vendor.dto';
-import { VendorInsightsOverviewQueryDto } from '../presentation/dto/vendor-insights.query.dto';
+import { 
+  VendorInsightsOverviewQueryDto,
+  VendorInsightsRevenueQueryDto,
+ } from '../presentation/dto/vendor-insights.query.dto';
 
 import { 
   VendorMenuResponseDto,
@@ -38,7 +45,10 @@ import {
   VendorMenuItemStatusResponseDto,
   DeleteVendorMenuItemResponseDto,
  } from '../presentation/dto/vendor.response.dto';
- import { VendorInsightsOverviewResponseDto } from '../presentation/dto/vendor-insights.response.dto';
+ import { 
+  VendorInsightsOverviewResponseDto,
+  VendorRevenueChartResponseDto,
+ } from '../presentation/dto/vendor-insights.response.dto';
 
 import { LocalStorageService } from '@/common/storage/local.storage.service';
 
@@ -540,6 +550,65 @@ export class VendorService {
   }
 
   private buildMonthRange(month: string): VendorInsightsDateRange {
+    const [yearRaw, monthRaw] = month.split('-');
+
+    const year = Number(yearRaw);
+    const monthIndex = Number(monthRaw) - 1;
+
+    const startDate = new Date(Date.UTC(year, monthIndex, 1));
+    const endDate = new Date(Date.UTC(year, monthIndex + 1, 1));
+
+    const previousStartDate = new Date(
+      Date.UTC(year, monthIndex - 1, 1),
+    );
+
+    const previousEndDate = startDate;
+
+    return {
+      startDate,
+      endDate,
+      previousStartDate,
+      previousEndDate,
+    };
+  }
+
+// vendor 
+  async getVendorRevenueChart(
+    ownerId: string,
+    query: VendorInsightsRevenueQueryDto,
+  ): Promise<VendorRevenueChartResponseDto> {
+    const month = query.month ?? this.getCurrentMonthKey1();
+
+    const range = this.buildRevenueMonthRange(month);
+
+    const raw = await this.vendorRepository.findVendorRevenueChartData({
+      ownerId,
+      range,
+    });
+
+    if (!raw) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    return this.vendorInsightsMapper.toRevenueChartResponse({
+      raw,
+      range,
+      month,
+    });
+  }
+
+  private getCurrentMonthKey1(): string {
+    const now = new Date();
+
+    const year = now.getUTCFullYear();
+    const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+
+    return `${year}-${month}`;
+  }
+
+  private buildRevenueMonthRange(
+    month: string,
+  ): VendorRevenueDateRange {
     const [yearRaw, monthRaw] = month.split('-');
 
     const year = Number(yearRaw);

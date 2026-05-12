@@ -4,10 +4,13 @@ import { Injectable } from '@nestjs/common';
 import { SubscriptionStatus } from '@prisma/client';
 import {
   VendorInsightsOverviewResponseDto,
+  VendorRevenueChartResponseDto,
 } from '../../presentation/dto/vendor-insights.response.dto';
 import type {
   VendorInsightsDateRange,
   VendorInsightsOverviewRaw,
+  VendorRevenueChartRaw,
+  VendorRevenueDateRange,
 } from '../../domain/interface/vendor.repository.interface';
 
 @Injectable()
@@ -185,5 +188,130 @@ export class VendorInsightsMapper {
 
   private roundMoney(value: number): number {
     return Number(value.toFixed(2));
+  }
+
+  toRevenueChartResponse(data: {
+    raw: VendorRevenueChartRaw;
+    range: VendorRevenueDateRange;
+    month: string;
+  }): VendorRevenueChartResponseDto {
+    const daysInMonth = this.getDaysInMonth(data.range.startDate);
+
+    const chart = this.buildRevenueChartPoints(
+      data.raw.currentOrders,
+      data.range.startDate,
+      daysInMonth,
+    );
+
+    const totalRevenue = chart.reduce(
+      (sum, point) => sum + point.revenue,
+      0,
+    );
+
+    const bestDay = this.findBestRevenueDay(chart);
+
+    return {
+      period: {
+        month: data.month,
+        label: this.getMonthLabel(data.range.startDate),
+        startDate: data.range.startDate,
+        endDate: data.range.endDate,
+      },
+
+      summary: {
+        totalRevenue: this.roundMoney(totalRevenue),
+        previousRevenue: this.roundMoney(data.raw.previousRevenueTotal),
+        changePercent: this.calculateChangePercent(
+          totalRevenue,
+          data.raw.previousRevenueTotal,
+        ),
+
+        completedOrderCount: data.raw.completedOrderCount,
+
+        averageDailyRevenue: this.roundMoney(
+          totalRevenue / daysInMonth,
+        ),
+
+        bestDay,
+      },
+
+      chart,
+    };
+  }
+
+  private buildRevenueChartPoints(
+    orders: { createdAt: Date; totalAmount: number }[],
+    monthStartDate: Date,
+    daysInMonth: number,
+  ) {
+    const map = new Map<
+      number,
+      {
+        revenue: number;
+        orderCount: number;
+      }
+    >();
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      map.set(day, {
+        revenue: 0,
+        orderCount: 0,
+      });
+    }
+
+    for (const order of orders) {
+      const day = new Date(order.createdAt).getUTCDate();
+
+      const current = map.get(day) ?? {
+        revenue: 0,
+        orderCount: 0,
+      };
+
+      current.revenue += order.totalAmount;
+      current.orderCount += 1;
+
+      map.set(day, current);
+    }
+
+    return Array.from(map.entries()).map(([day, value]) => {
+      const date = new Date(
+        Date.UTC(
+          monthStartDate.getUTCFullYear(),
+          monthStartDate.getUTCMonth(),
+          day,
+        ),
+      );
+
+      return {
+        day,
+        date: date.toISOString().slice(0, 10),
+        revenue: this.roundMoney(value.revenue),
+        orderCount: value.orderCount,
+      };
+    });
+  }
+
+  private findBestRevenueDay(
+    chart: {
+      day: number;
+      date: string;
+      revenue: number;
+      orderCount: number;
+    }[],
+  ): {
+    day: number;
+    date: string;
+    revenue: number;
+    orderCount: number;
+  } | null {
+    const daysWithRevenue = chart.filter((point) => point.revenue > 0);
+
+    if (!daysWithRevenue.length) {
+      return null;
+    }
+
+    return daysWithRevenue.reduce((best, current) =>
+      current.revenue > best.revenue ? current : best,
+    );
   }
 }

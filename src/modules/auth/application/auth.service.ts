@@ -102,15 +102,15 @@ export class AuthService {
         'EMAIL_VERIFICATION',
       );
 
-      throw new ForbiddenException({
-        success: false,
-        code: 'EMAIL_NOT_VERIFIED',
-        verificationRequired: true,
-        message: 'Email not verified. OTP sent to your email.',
-        data: {
-          email: user.email,
-        },
-      });
+      // throw new ForbiddenException({
+      //   success: false,
+      //   code: 'EMAIL_NOT_VERIFIED',
+      //   verificationRequired: true,
+      //   message: 'Email not verified. OTP sent to your email.',
+      //   data: {
+      //     email: user.email,
+      //   },
+      // });
     }
 
     const token = await this.getTokens(user.id, user.email, user.role.name);

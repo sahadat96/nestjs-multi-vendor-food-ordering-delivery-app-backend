@@ -9,7 +9,13 @@ import { Prisma,
   SubscriptionStatus, 
 } from '@prisma/client';
 
-import { IVendorRepository, VendorInsightsDateRange, VendorInsightsOverviewRaw } from '../../domain/interface/vendor.repository.interface';
+import { 
+   IVendorRepository,
+   VendorInsightsDateRange, 
+   VendorInsightsOverviewRaw,
+   VendorRevenueDateRange,
+   VendorRevenueChartRaw,
+  } from '../../domain/interface/vendor.repository.interface';
 import { Vendor } from '../../domain/entities/vendor.entity';
 
 import { VendorMapper } from '../mapper/vendor.mapper';
@@ -733,6 +739,74 @@ export class VendorRepository implements IVendorRepository {
         rating: item.rating,
         count: item._count.rating,
       })),
+    };
+  }
+
+  async findVendorRevenueChartData(data: {
+    ownerId: string;
+    range: VendorRevenueDateRange;
+  }): Promise<VendorRevenueChartRaw | null> {
+    const vendor = await this.prisma.vendor.findUnique({
+      where: {
+        ownerId: data.ownerId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!vendor) {
+      return null;
+    }
+
+    const [currentOrders, previousRevenueAgg, completedOrderCount] =
+      await Promise.all([
+        this.prisma.order.findMany({
+          where: {
+            vendorId: vendor.id,
+            status: OrderStatus.COMPLETED,
+            createdAt: {
+              gte: data.range.startDate,
+              lt: data.range.endDate,
+            },
+          },
+          select: {
+            createdAt: true,
+            totalAmount: true,
+          },
+        }),
+
+        this.prisma.order.aggregate({
+          where: {
+            vendorId: vendor.id,
+            status: OrderStatus.COMPLETED,
+            createdAt: {
+              gte: data.range.previousStartDate,
+              lt: data.range.previousEndDate,
+            },
+          },
+          _sum: {
+            totalAmount: true,
+          },
+        }),
+
+        this.prisma.order.count({
+          where: {
+            vendorId: vendor.id,
+            status: OrderStatus.COMPLETED,
+            createdAt: {
+              gte: data.range.startDate,
+              lt: data.range.endDate,
+            },
+          },
+        }),
+      ]);
+
+    return {
+      vendorId: vendor.id,
+      currentOrders,
+      previousRevenueTotal: previousRevenueAgg._sum.totalAmount ?? 0,
+      completedOrderCount,
     };
   }
 
