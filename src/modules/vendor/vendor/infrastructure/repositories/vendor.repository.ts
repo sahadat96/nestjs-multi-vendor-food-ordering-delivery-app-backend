@@ -15,6 +15,8 @@ import {
    VendorInsightsOverviewRaw,
    VendorRevenueDateRange,
    VendorRevenueChartRaw,
+   VendorPeakHoursDateRange,
+   VendorPeakHoursRaw,
   } from '../../domain/interface/vendor.repository.interface';
 import { Vendor } from '../../domain/entities/vendor.entity';
 
@@ -810,4 +812,41 @@ export class VendorRepository implements IVendorRepository {
     };
   }
 
+  async findVendorPeakHoursData(data: {
+    ownerId: string;
+    range: VendorPeakHoursDateRange;
+  }): Promise<VendorPeakHoursRaw | null> {
+    const vendor = await this.prisma.vendor.findUnique({
+      where: {
+        ownerId: data.ownerId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!vendor) {
+      return null;
+    }
+
+    const orders = await this.prisma.order.findMany({
+      where: {
+        vendorId: vendor.id,
+        status: OrderStatus.COMPLETED,
+        createdAt: {
+          gte: data.range.startDate,
+          lt: data.range.endDate,
+        },
+      },
+      select: {
+        createdAt: true,
+        totalAmount: true,
+      },
+    });
+
+    return {
+      vendorId: vendor.id,
+      orders,
+    };
+ }
 }
