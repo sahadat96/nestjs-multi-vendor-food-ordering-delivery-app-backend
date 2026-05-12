@@ -17,7 +17,9 @@ import type {
   IVendorRepository, 
   VendorInsightsDateRange,
   VendorRevenueDateRange,
+  VendorPeakHoursDateRange,
 } from '../domain/interface/vendor.repository.interface';
+
 import { VendorMapper } from '../infrastructure/mapper/vendor.mapper';
 import { VendorInsightsMapper } from '../infrastructure/mapper/vendor-insights.mapper';
 
@@ -31,6 +33,7 @@ import {
 import { 
   VendorInsightsOverviewQueryDto,
   VendorInsightsRevenueQueryDto,
+  VendorPeakHoursQueryDto,
  } from '../presentation/dto/vendor-insights.query.dto';
 
 import { 
@@ -48,6 +51,7 @@ import {
  import { 
   VendorInsightsOverviewResponseDto,
   VendorRevenueChartResponseDto,
+  VendorPeakHoursResponseDto,
  } from '../presentation/dto/vendor-insights.response.dto';
 
 import { LocalStorageService } from '@/common/storage/local.storage.service';
@@ -572,7 +576,6 @@ export class VendorService {
     };
   }
 
-// vendor 
   async getVendorRevenueChart(
     ownerId: string,
     query: VendorInsightsRevenueQueryDto,
@@ -628,6 +631,47 @@ export class VendorService {
       endDate,
       previousStartDate,
       previousEndDate,
+    };
+  }
+
+  async getVendorPeakHours(
+    ownerId: string,
+    query: VendorPeakHoursQueryDto,
+  ): Promise<VendorPeakHoursResponseDto> {
+    const month = query.month ?? this.getCurrentMonthKey();
+
+    const range = this.buildPeakHoursMonthRange(month);
+
+    const raw = await this.vendorRepository.findVendorPeakHoursData({
+      ownerId,
+      range,
+    });
+
+    if (!raw) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    return this.vendorInsightsMapper.toPeakHoursResponse({
+      raw,
+      range,
+      month,
+    });
+  }
+
+  private buildPeakHoursMonthRange(
+    month: string,
+  ): VendorPeakHoursDateRange {
+    const [yearRaw, monthRaw] = month.split('-');
+
+    const year = Number(yearRaw);
+    const monthIndex = Number(monthRaw) - 1;
+
+    const startDate = new Date(Date.UTC(year, monthIndex, 1));
+    const endDate = new Date(Date.UTC(year, monthIndex + 1, 1));
+
+    return {
+      startDate,
+      endDate,
     };
   }
   
