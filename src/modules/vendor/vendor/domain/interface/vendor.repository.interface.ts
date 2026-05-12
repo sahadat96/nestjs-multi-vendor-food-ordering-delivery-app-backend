@@ -218,4 +218,9 @@ export interface IVendorRepository {
     ownerId: string;
     range: VendorRevenueDateRange;
   }): Promise<VendorRevenueChartRaw | null>;
+
+  findVendorPeakHoursData(data: {
+    ownerId: string;
+    range: VendorPeakHoursDateRange;
+  }): Promise<VendorPeakHoursRaw | null>;
 }
