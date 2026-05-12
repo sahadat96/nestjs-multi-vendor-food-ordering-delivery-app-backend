@@ -98,3 +98,53 @@ export class VendorRevenueChartResponseDto {
   summary!: RevenueChartSummaryDto;
   chart!: RevenueChartPointDto[];
 }
+
+export type TrafficLevel = 'LOW' | 'MEDIUM' | 'HIGH';
+
+export class PeakHoursPeriodDto {
+  month!: string;
+  label!: string;
+  startDate!: Date;
+  endDate!: Date;
+}
+
+export class PeakHourChartPointDto {
+  hour!: number;              // 0 - 23
+  label!: string;             // "1 PM"
+  orderCount!: number;
+  revenue!: number;
+  trafficLevel!: TrafficLevel;
+}
+
+export class PeakHourSummaryDto {
+  totalOrders!: number;
+  totalRevenue!: number;
+
+  peakHour!: {
+    hour: number;
+    label: string;
+    orderCount: number;
+    revenue: number;
+    trafficLevel: TrafficLevel;
+  } | null;
+
+  bestTimeWindow!: {
+    startHour: number;
+    endHour: number;
+    label: string;
+    orderCount: number;
+    revenue: number;
+  } | null;
+}
+
+export class VendorPeakHoursResponseDto {
+  period!: PeakHoursPeriodDto;
+  summary!: PeakHourSummaryDto;
+  chart!: PeakHourChartPointDto[];
+
+  legend!: {
+    low: string;
+    medium: string;
+    high: string;
+  };
+}
