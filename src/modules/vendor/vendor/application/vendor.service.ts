@@ -29,6 +29,7 @@ import {
  } from '../presentation/dto/vendor.dto';
 import { 
   VendorInsightsOverviewQueryDto,
+  VendorAiGuidanceQueryDto,
  } from '../presentation/dto/vendor-insights.query.dto';
 
 import { 
@@ -45,6 +46,7 @@ import {
  } from '../presentation/dto/vendor.response.dto';
  import { 
   VendorInsightsOverviewResponseDto,
+  VendorAiGuidanceResponseDto,
  } from '../presentation/dto/vendor-insights.response.dto';
 
 import { LocalStorageService } from '@/common/storage/local.storage.service';
@@ -616,5 +618,39 @@ export class VendorService {
     );
 
     return { startDate, endDate };
+  }
+
+  async getVendorAiGuidance(
+    ownerId: string,
+    query: VendorAiGuidanceQueryDto,
+  ): Promise<VendorAiGuidanceResponseDto> {
+    const vendor = await this.vendorRepository.findAiProfileByOwnerId(
+      ownerId,
+    );
+
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    const access = this.vendorInsightAccessService.resolveAccess(vendor);
+
+    const dateRange = this.resolveInsightDateRange({
+      range: query.range ?? 'month',
+    });
+
+    const orders = await this.vendorRepository.findOrdersForAiGuidance({
+      vendorId: vendor.id,
+      startDate: dateRange.startDate,
+      endDate: dateRange.endDate,
+    });
+
+    return this.vendorInsightsMapper.toAiResponse({
+      access,
+      range: query.range ?? 'month',
+      startDate: dateRange.startDate,
+      endDate: dateRange.endDate,
+      vendor,
+      orders,
+    });
   }
 }
