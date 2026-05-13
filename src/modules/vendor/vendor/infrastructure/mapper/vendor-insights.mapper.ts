@@ -10,6 +10,8 @@ import {
   VendorInsightsDateRange,
   VendorInsightProfileView,
   VendorInsightOrderView,
+  VendorAiProfileView,
+  VendorAiOrderView,
 } from '../../domain/interface/vendor.repository.interface';
 
 import {
@@ -21,6 +23,12 @@ import {
   VendorTopCustomerDto,
   VendorTopSpotDto,
   VendorLockedInsightSectionDto,
+  VendorAiGuidanceResponseDto,
+  VendorAiSalesByLocationDto,
+  VendorAiTopSellingItemDto,
+  VendorAiRecommendedActionDto,
+  VendorAiLiveHotZoneDto,
+  VendorAiOpportunityDto,
 } from '../../presentation/dto/vendor-insights.response.dto';
 
 @Injectable()
@@ -421,5 +429,252 @@ toOverviewResponse(data: {
     }
 
     return sections;
+  }
+
+   toAiResponse(data: {
+    access: VendorInsightAccessDto;
+    range: 'today' | 'week' | 'month' | 'year';
+    startDate: Date;
+    endDate: Date;
+    vendor: VendorAiProfileView;
+    orders: VendorAiOrderView[];
+  }): VendorAiGuidanceResponseDto {
+    if (!data.access.canViewAiGuidance) {
+      return {
+        access: data.access,
+        range: data.range,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        locked: true,
+        emptyState: true,
+        salesByLocation: [],
+        topSellingItems: [],
+        recommendedActions: [],
+        liveHotZones: [],
+        todaysOpportunities: [],
+        dataAvailability: {
+          hasOrderData: false,
+          hasLocationData: !!data.vendor.serviceArea,
+          hasSearchDemandData: false,
+          hasEventData: false,
+        },
+        lockedMessage:
+          'Upgrade to Elite to unlock AI Guidance and optimization tools.',
+      };
+    }
+
+    const topSellingItems = this.buildTopSellingItems(data.orders);
+
+    return {
+      access: data.access,
+      range: data.range,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      locked: false,
+      emptyState: data.orders.length === 0,
+
+      salesByLocation: this.buildSalesByLocation(data.vendor, data.orders),
+
+      topSellingItems,
+
+      recommendedActions: this.buildRecommendedActions(
+        data.orders,
+        topSellingItems,
+        data.vendor,
+      ),
+
+      liveHotZones: this.buildLiveHotZones(data.vendor),
+
+      todaysOpportunities: this.buildTodaysOpportunities(
+        data.orders,
+        topSellingItems,
+        data.vendor,
+      ),
+
+      dataAvailability: {
+        hasOrderData: data.orders.length > 0,
+        hasLocationData: !!data.vendor.serviceArea,
+        hasSearchDemandData: false,
+        hasEventData: false,
+      },
+    };
+  }
+
+  private buildSalesByLocation(
+    vendor: VendorAiProfileView,
+    orders: VendorAiOrderView[],
+  ): VendorAiSalesByLocationDto[] {
+    if (!vendor.serviceArea) {
+      return [];
+    }
+
+    const totalSales = orders.reduce(
+      (sum, order) => sum + order.totalAmount,
+      0,
+    );
+
+    return [
+      {
+        locationId: vendor.serviceArea.id,
+        locationName: vendor.serviceArea.address ?? 'Current Service Area',
+        address: vendor.serviceArea.address,
+        totalSales,
+        totalOrders: orders.length,
+        latitude: vendor.serviceArea.latitude,
+        longitude: vendor.serviceArea.longitude,
+      },
+    ];
+  }
+
+  private buildTopSellingItems(
+    orders: VendorAiOrderView[],
+  ): VendorAiTopSellingItemDto[] {
+    const map = new Map<
+      string,
+      {
+        productId: string;
+        productName: string;
+        quantitySold: number;
+        orderCount: number;
+        revenue: number;
+      }
+    >();
+
+    for (const order of orders) {
+      for (const item of order.orderItems) {
+        const existing = map.get(item.productId) ?? {
+          productId: item.productId,
+          productName: item.productName,
+          quantitySold: 0,
+          orderCount: 0,
+          revenue: 0,
+        };
+
+        existing.quantitySold += item.quantity;
+        existing.orderCount += 1;
+        existing.revenue += item.lineTotal;
+
+        map.set(item.productId, existing);
+      }
+    }
+
+    return Array.from(map.values())
+      .sort((a, b) => b.quantitySold - a.quantitySold)
+      .slice(0, 3)
+      .map((item, index) => ({
+        ...item,
+        rank: index + 1,
+      }));
+  }
+
+  private buildRecommendedActions(
+    orders: VendorAiOrderView[],
+    topItems: VendorAiTopSellingItemDto[],
+    vendor: VendorAiProfileView,
+  ): VendorAiRecommendedActionDto[] {
+    if (!orders.length || !topItems.length) {
+      return [
+        {
+          title: 'Collect more order data',
+          description:
+            'Start accepting more orders so ATLISS can generate reliable AI recommendations.',
+          actionLabel: 'Keep Selling',
+          confidence: 'LOW',
+          source: 'ORDER_HISTORY',
+        },
+      ];
+    }
+
+    const peakHour = this.findPeakHour(orders);
+    const topItem = topItems[0];
+
+    return [
+      {
+        title: `Promote ${topItem.productName}`,
+        description: `${topItem.productName} is your strongest seller in this period. Promote it around ${peakHour} to capture more demand.`,
+        actionLabel: 'Promote Item',
+        confidence: 'HIGH',
+        source: 'ORDER_ITEM_SALES',
+      },
+      {
+        title: 'Optimize your selling window',
+        description: `Your order activity is strongest around ${peakHour}. Keep your truck active and menu available during this time.`,
+        actionLabel: 'Adjust Hours',
+        confidence: 'MEDIUM',
+        source: 'ORDER_TIME_PATTERN',
+      },
+      {
+        title: 'Use your current service area',
+        description: vendor.serviceArea
+          ? `Your current service area is ${vendor.serviceArea.address ?? 'your saved location'}. More location snapshots are needed for deeper area comparison.`
+          : 'Set your service area so ATLISS can recommend better selling locations.',
+        actionLabel: vendor.serviceArea ? 'View Location' : 'Set Location',
+        confidence: vendor.serviceArea ? 'MEDIUM' : 'LOW',
+        source: 'SERVICE_AREA',
+      },
+    ];
+  }
+
+  private buildLiveHotZones(
+    vendor: VendorAiProfileView,
+  ): VendorAiLiveHotZoneDto[] {
+    if (!vendor.serviceArea) {
+      return [];
+    }
+
+    return [
+      {
+        title: 'Current Service Area',
+        locationName: vendor.serviceArea.address ?? 'Saved Truck Location',
+        description:
+          'Real-time hot zone detection requires customer search and traffic demand data. Current response is based on your saved service area.',
+        estimatedExtraRevenue: undefined,
+        confidence: 'LOW',
+        isAvailable: false,
+      },
+    ];
+  }
+
+  private buildTodaysOpportunities(
+    orders: VendorAiOrderView[],
+    topItems: VendorAiTopSellingItemDto[],
+    vendor: VendorAiProfileView,
+  ): VendorAiOpportunityDto[] {
+    if (!orders.length || !topItems.length || !vendor.serviceArea) {
+      return [];
+    }
+
+    return [
+      {
+        title: `Lunch push for ${topItems[0].productName}`,
+        locationName: vendor.serviceArea.address ?? 'Current Service Area',
+        timeWindow: `${this.findPeakHour(orders)} - ${this.addOneHour(
+          this.findPeakHour(orders),
+        )}`,
+        demandLevel: 'MEDIUM',
+        actionLabel: 'Go There',
+      },
+    ];
+  }
+
+  private findPeakHour(orders: VendorAiOrderView[]): string {
+    const hourMap = new Map<number, number>();
+
+    for (const order of orders) {
+      const hour = new Date(order.createdAt).getHours();
+      hourMap.set(hour, (hourMap.get(hour) ?? 0) + 1);
+    }
+
+    const [peakHour] =
+      Array.from(hourMap.entries()).sort((a, b) => b[1] - a[1])[0] ?? [12, 0];
+
+    return `${String(peakHour).padStart(2, '0')}:00`;
+  }
+
+  private addOneHour(time: string): string {
+    const hour = Number(time.split(':')[0]);
+    const nextHour = (hour + 1) % 24;
+
+    return `${String(nextHour).padStart(2, '0')}:00`;
   }
 }
