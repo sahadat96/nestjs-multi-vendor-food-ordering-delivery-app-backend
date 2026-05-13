@@ -21,7 +21,8 @@ import {
   UpdateVendorStatusDto,
   VendorMenuItemsQueryDto,
   UpdateVendorMenuItemStatusDto,
-  VendorReviewsQueryDtoMe
+  VendorReviewsQueryDtoMe,
+  VendorFollowersQueryDto,
  } from '../dto/vendor.dto';
 import { 
   VendorInsightsOverviewQueryDto,
@@ -40,6 +41,7 @@ import {
   VendorMenuItemStatusResponseDto,
   DeleteVendorMenuItemResponseDto,
   VendorReviewsResponseDto,
+  VendorFollowersResponseDto,
  } from '../dto/vendor.response.dto';
 import { 
   VendorInsightsOverviewResponseDto,
@@ -208,5 +210,15 @@ export class VendorController {
       user.id,
       query,
     );
+  }
+
+  @Get('insights/followers')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  async getVendorFollowers(
+    @CurrentUser() user: AuthUser,
+    @Query() query: VendorFollowersQueryDto,
+  ): Promise<VendorFollowersResponseDto> {
+    return this.vendorService.getVendorFollowers(user.id, query);
   }
 }
