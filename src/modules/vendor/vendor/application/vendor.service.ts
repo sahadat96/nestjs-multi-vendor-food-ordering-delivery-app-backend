@@ -27,6 +27,7 @@ import {
   VendorMenuItemsQueryDto,
   UpdateVendorMenuItemStatusDto,
   VendorReviewsQueryDtoMe,
+  VendorFollowersQueryDto,
  } from '../presentation/dto/vendor.dto';
 import { 
   VendorInsightsOverviewQueryDto,
@@ -45,6 +46,7 @@ import {
   VendorMenuItemStatusResponseDto,
   DeleteVendorMenuItemResponseDto,
   VendorReviewsResponseDto,
+  VendorFollowersResponseDto,
  } from '../presentation/dto/vendor.response.dto';
  import { 
   VendorInsightsOverviewResponseDto,
@@ -680,6 +682,107 @@ export class VendorService {
       limit: query.limit ?? 10,
       sort: query.sort ?? 'MOST_RECENT',
       reviews: result.reviews,
+    });
+  }
+
+  async getVendorFollowers(
+    ownerId: string,
+    query: VendorFollowersQueryDto,
+  ): Promise<VendorFollowersResponseDto> {
+    const vendor =
+      await this.vendorRepository.findFollowersProfileByOwnerId(
+        ownerId,
+      );
+
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    const access = this.vendorInsightAccessService.resolveAccess(vendor);
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+
+    if (!access.canViewFavorites) {
+      return this.vendorMapper.toLockedResponse({
+        access,
+        page,
+        limit,
+        message:
+          'Upgrade to Pro to unlock followers and customer engagement insights.',
+      });
+    }
+
+    const now = new Date();
+
+    const currentMonthStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      1,
+    );
+
+    const currentMonthEnd = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
+
+    const previousMonthStart = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      1,
+    );
+
+    const previousMonthEnd = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
+
+    const [
+      totalFollowers,
+      thisMonthFollowers,
+      previousMonthFollowers,
+      result,
+    ] = await Promise.all([
+      this.vendorRepository.countVendorFollowers(vendor.id),
+
+      this.vendorRepository.countVendorFollowersInRange({
+        vendorId: vendor.id,
+        startDate: currentMonthStart,
+        endDate: currentMonthEnd,
+      }),
+
+      this.vendorRepository.countVendorFollowersInRange({
+        vendorId: vendor.id,
+        startDate: previousMonthStart,
+        endDate: previousMonthEnd,
+      }),
+
+      this.vendorRepository.findVendorFollowers({
+        vendorId: vendor.id,
+        page,
+        limit,
+      }),
+    ]);
+
+    return this.vendorMapper.toFollowerResponse({
+      access,
+      totalFollowers,
+      thisMonthFollowers,
+      previousMonthFollowers,
+      total: result.total,
+      page,
+      limit,
+      followers: result.followers,
     });
   }
 }
