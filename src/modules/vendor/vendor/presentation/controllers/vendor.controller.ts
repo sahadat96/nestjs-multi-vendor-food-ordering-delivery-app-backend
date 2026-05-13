@@ -24,6 +24,7 @@ import {
  } from '../dto/vendor.dto';
 import { 
   VendorInsightsOverviewQueryDto,
+  VendorAiGuidanceQueryDto,
 } from '../dto/vendor-insights.query.dto';
 
 import { 
@@ -40,6 +41,7 @@ import {
  } from '../dto/vendor.response.dto';
 import { 
   VendorInsightsOverviewResponseDto,
+  VendorAiGuidanceResponseDto,
  } from '../dto/vendor-insights.response.dto';
 
 import { VendorService } from '../../application/vendor.service';
@@ -181,5 +183,15 @@ export class VendorController {
       user.id,
       query,
     );
+  }
+
+  @Get('insights/ai-guidance')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  async getVendorAiGuidance(
+    @CurrentUser() user: AuthUser,
+    @Query() query: VendorAiGuidanceQueryDto,
+  ): Promise<VendorAiGuidanceResponseDto> {
+    return this.vendorService.getVendorAiGuidance(user.id, query);
   }
 }
