@@ -19,6 +19,8 @@ import {
    VendorAiProfileView,
    VendorAiDateRangeInput,
    VendorAiOrderView,
+   VendorReviewSummaryResult,
+   VendorReviewResult,
   } from '../../domain/interface/vendor.repository.interface';
 import { Vendor } from '../../domain/entities/vendor.entity';
 
@@ -27,6 +29,7 @@ import { VendorMapper } from '../mapper/vendor.mapper';
 import { 
   VendorMenuQueryDto,
   VendorMenuItemsQueryDto,
+  VendorReviewsQueryDtoMe,
 } from '../../presentation/dto/vendor.dto';
 
 @Injectable()
@@ -800,5 +803,122 @@ export class VendorRepository implements IVendorRepository {
         createdAt: 'asc',
       },
     });
+  }
+
+  async getVendorReviewSummary(
+    vendorId: string,
+  ): Promise<VendorReviewSummaryResult> {
+    const vendor = await this.prisma.vendor.findUnique({
+      where: { id: vendorId },
+      select: {
+        truckReviewAverage: true,
+        truckReviewCount: true,
+      },
+    });
+
+    const groupedRatings = await this.prisma.vendorTruckReview.groupBy({
+      by: ['rating'],
+      where: { vendorId },
+      _count: {
+        rating: true,
+      },
+    });
+
+    return {
+      averageRating: vendor?.truckReviewAverage ?? 0,
+      totalReviews: vendor?.truckReviewCount ?? 0,
+      ratingCounts: groupedRatings.map((item) => ({
+        rating: item.rating,
+        count: item._count.rating,
+      })),
+    };
+  }
+
+  async findVendorReviews(
+    vendorId: string,
+    query: VendorReviewsQueryDtoMe,
+  ): Promise<VendorReviewResult> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const skip = (page - 1) * limit;
+
+    const orderBy = this.buildReviewOrderBy(query.sort);
+
+    const where: Prisma.VendorTruckReviewWhereInput = {
+      vendorId,
+    };
+
+    const [total, reviews] = await Promise.all([
+      this.prisma.vendorTruckReview.count({
+        where,
+      }),
+
+      this.prisma.vendorTruckReview.findMany({
+        where,
+        orderBy,
+        skip,
+        take: limit,
+        include: {
+          customer: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+          },
+          images: {
+            orderBy: {
+              position: 'asc',
+            },
+            select: {
+              id: true,
+              imageUrl: true,
+              position: true,
+            },
+          },
+          tags: {
+            include: {
+              tag: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      total,
+      reviews,
+    };
+  }
+
+  private buildReviewOrderBy(
+    sort?: 'MOST_RECENT' | 'HIGHEST_RATED' | 'LOWEST_RATED',
+  ): Prisma.VendorTruckReviewOrderByWithRelationInput[] {
+    if (sort === 'HIGHEST_RATED') {
+      return [
+        { rating: 'desc' },
+        { createdAt: 'desc' },
+      ];
+    }
+
+    if (sort === 'LOWEST_RATED') {
+      return [
+        { rating: 'asc' },
+        { createdAt: 'desc' },
+      ];
+    }
+
+    return [
+      { createdAt: 'desc' },
+    ];
   }
 }
