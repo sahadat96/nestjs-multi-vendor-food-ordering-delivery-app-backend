@@ -431,7 +431,7 @@ toOverviewResponse(data: {
     return sections;
   }
 
-   toAiResponse(data: {
+  toAiResponse(data: {
     access: VendorInsightAccessDto;
     range: 'today' | 'week' | 'month' | 'year';
     startDate: Date;

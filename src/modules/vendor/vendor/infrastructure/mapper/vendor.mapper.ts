@@ -6,12 +6,6 @@ import {
 } from '@prisma/client';
 
 import { 
-   VendorMenuResponseDto,
-   VendorInfoResponseDto,
-   
-} from '../../presentation/dto/vendor.response.dto';
-
-import { 
   UploadTruckGalleryResponseDto,
   TruckGalleryResponseDto,
   VendorHomeResponseDto,
@@ -21,10 +15,18 @@ import {
   DeleteVendorMenuItemResponseDto,
   VendorReviewRatingDistributionDto,
   VendorReviewsResponseDto,
+  VendorMenuResponseDto,
+  VendorInfoResponseDto,
+  VendorFollowersResponseDto,
 } from '../../presentation/dto/vendor.response.dto';
+
+import {
+  VendorInsightAccessDto,
+} from '../../presentation/dto/vendor-insights.response.dto';
 
 import type {
   VendorTruckGalleryView,
+  VendorFollowerRowView,
 } from '../../domain/interface/vendor.repository.interface';
 
 import { Vendor } from '../../domain/entities/vendor.entity';
@@ -429,7 +431,7 @@ export class VendorMapper {
     return this.mediaService.getUrl(path) ?? path;
   }
 
-   toRviewResponse(data: {
+  toRviewResponse(data: {
     summary: {
       averageRating: number;
       totalReviews: number;
@@ -533,5 +535,117 @@ export class VendorMapper {
       day: '2-digit',
       year: 'numeric',
     }).format(new Date(date));
+  }
+
+  toLockedResponse(data: {
+    access: VendorInsightAccessDto;
+    page: number;
+    limit: number;
+    message: string;
+  }): VendorFollowersResponseDto {
+    return {
+      access: data.access,
+      locked: true,
+      lockedMessage: data.message,
+
+      summary: {
+        totalFollowers: 0,
+        thisMonthFollowers: 0,
+        previousMonthFollowers: 0,
+        growthPercent: 0,
+        growthLabel: 'Locked',
+      },
+
+      pagination: {
+        total: 0,
+        page: data.page,
+        limit: data.limit,
+        totalPages: 0,
+      },
+
+      followers: [],
+    };
+  }
+
+  toFollowerResponse(data: {
+    access: VendorInsightAccessDto;
+    totalFollowers: number;
+    thisMonthFollowers: number;
+    previousMonthFollowers: number;
+    total: number;
+    page: number;
+    limit: number;
+    followers: VendorFollowerRowView[];
+  }): VendorFollowersResponseDto {
+    return {
+      access: data.access,
+      locked: false,
+
+      summary: {
+        totalFollowers: data.totalFollowers,
+        thisMonthFollowers: data.thisMonthFollowers,
+        previousMonthFollowers: data.previousMonthFollowers,
+        growthPercent: this.calculateGrowthPercent(
+          data.thisMonthFollowers,
+          data.previousMonthFollowers,
+        ),
+        growthLabel: 'this month',
+      },
+
+      pagination: {
+        total: data.total,
+        page: data.page,
+        limit: data.limit,
+        totalPages:
+          data.total === 0 ? 0 : Math.ceil(data.total / data.limit),
+      },
+
+      followers: data.followers.map((follower) => {
+        const orderCount = follower.customer.orders.length;
+
+        return {
+          id: follower.id,
+
+          customer: {
+            id: follower.customer.id,
+            name:
+              follower.customer.user.name ??
+              follower.customer.user.email ??
+              'Customer',
+            avatar: follower.customer.avatar
+              ? this.resolveMediaUrl(follower.customer.avatar)
+              : undefined,
+          },
+
+          followedAt: follower.createdAt,
+          followerSinceLabel: this.formatFollowerSince(follower.createdAt),
+
+          orderCount,
+          orderLabel: `${orderCount} ${orderCount === 1 ? 'Order' : 'Orders'}`,
+        };
+      }),
+    };
+  }
+
+  private calculateGrowthPercent(
+    current: number,
+    previous: number,
+  ): number {
+    if (previous === 0 && current > 0) {
+      return 100;
+    }
+
+    if (previous === 0) {
+      return 0;
+    }
+
+    return Math.round(((current - previous) / previous) * 100);
+  }
+
+  private formatFollowerSince(date: Date): string {
+    return `Follower since ${new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      year: 'numeric',
+    }).format(new Date(date))}`;
   }
 }
