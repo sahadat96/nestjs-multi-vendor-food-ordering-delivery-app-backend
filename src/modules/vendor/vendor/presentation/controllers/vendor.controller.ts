@@ -24,8 +24,6 @@ import {
  } from '../dto/vendor.dto';
 import { 
   VendorInsightsOverviewQueryDto,
-  VendorInsightsRevenueQueryDto,
-  VendorPeakHoursQueryDto,
 } from '../dto/vendor-insights.query.dto';
 
 import { 
@@ -42,8 +40,6 @@ import {
  } from '../dto/vendor.response.dto';
 import { 
   VendorInsightsOverviewResponseDto,
-  VendorRevenueChartResponseDto,
-  VendorPeakHoursResponseDto,
  } from '../dto/vendor-insights.response.dto';
 
 import { VendorService } from '../../application/vendor.service';
@@ -173,41 +169,4 @@ export class VendorController {
   ): Promise<TruckGalleryResponseDto> {
     return this.vendorService.getMyTruckGallery(user.id);
   }
-
-  @Get('insights/overview')
-  @UseGuards(RoleGuard)
-  @Roles(Role.VENDOR)
-  async getVendorInsightsOverview(
-    @CurrentUser() user: AuthUser,
-    @Query() query: VendorInsightsOverviewQueryDto,
-  ): Promise<VendorInsightsOverviewResponseDto> {
-    return this.vendorService.getVendorInsightsOverview(
-      user.id,
-      query,
-    );
-  }
-
-  @Get('insights/revenue')
-  @UseGuards(RoleGuard)
-  @Roles(Role.VENDOR)
-  async getVendorRevenueChart(
-    @CurrentUser() user: AuthUser,
-    @Query() query: VendorInsightsRevenueQueryDto,
-  ): Promise<VendorRevenueChartResponseDto> {
-    return this.vendorService.getVendorRevenueChart(
-      user.id,
-      query,
-    );
-  }
-
-  @Get('insights/peak-hours')
-  @UseGuards(RoleGuard)
-  @Roles(Role.VENDOR)
-  async getVendorPeakHours(
-    @CurrentUser() user: AuthUser,
-    @Query() query: VendorPeakHoursQueryDto,
-  ): Promise<VendorPeakHoursResponseDto> {
-    return this.vendorService.getVendorPeakHours(user.id, query);
-  }
-
 }

@@ -79,59 +79,14 @@ export interface VendorInsightsDateRange {
   previousEndDate: Date;
 }
 
-export interface VendorInsightsOverviewRaw {
-  vendor: any;
-  revenueOrders: {
-    createdAt: Date;
-    totalAmount: number;
-  }[];
-  previousRevenueTotal: number;
-  profileViews: {
-    viewedAt: Date;
-  }[];
-  previousProfileViewTotal: number;
-  favoriteCount: number;
-  ratingDistribution: {
-    rating: number;
-    count: number;
-  }[];
-}
-
-export interface VendorRevenueDateRange {
-  startDate: Date;
-  endDate: Date;
-  previousStartDate: Date;
-  previousEndDate: Date;
-}
-
 export interface VendorRevenueOrderRow {
   createdAt: Date;
   totalAmount: number;
 }
 
-export interface VendorRevenueChartRaw {
-  vendorId: string;
-
-  currentOrders: VendorRevenueOrderRow[];
-
-  previousRevenueTotal: number;
-
-  completedOrderCount: number;
-}
-
-export interface VendorPeakHoursDateRange {
-  startDate: Date;
-  endDate: Date;
-}
-
 export interface VendorPeakHoursOrderRow {
   createdAt: Date;
   totalAmount: number;
-}
-
-export interface VendorPeakHoursRaw {
-  vendorId: string;
-  orders: VendorPeakHoursOrderRow[];
 }
 
 export interface IVendorRepository {
@@ -208,19 +163,4 @@ export interface IVendorRepository {
   findTruckGalleryByOwnerId(
     ownerId: string,
   ): Promise<VendorTruckGalleryView | null>;
-
-  findVendorInsightsOverviewData(data: {
-    ownerId: string;
-    range: VendorInsightsDateRange;
-  }): Promise<VendorInsightsOverviewRaw | null>;
-  
-  findVendorRevenueChartData(data: {
-    ownerId: string;
-    range: VendorRevenueDateRange;
-  }): Promise<VendorRevenueChartRaw | null>;
-
-  findVendorPeakHoursData(data: {
-    ownerId: string;
-    range: VendorPeakHoursDateRange;
-  }): Promise<VendorPeakHoursRaw | null>;
 }

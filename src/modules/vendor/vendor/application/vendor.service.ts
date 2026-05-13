@@ -10,14 +10,11 @@ import {
   VendorLiveStatus,
   VerificationStatus,
   KycStatus,
-  SubscriptionStatus
 } from '@prisma/client';
 
 import type { 
   IVendorRepository, 
   VendorInsightsDateRange,
-  VendorRevenueDateRange,
-  VendorPeakHoursDateRange,
 } from '../domain/interface/vendor.repository.interface';
 
 import { VendorMapper } from '../infrastructure/mapper/vendor.mapper';
@@ -32,8 +29,6 @@ import {
  } from '../presentation/dto/vendor.dto';
 import { 
   VendorInsightsOverviewQueryDto,
-  VendorInsightsRevenueQueryDto,
-  VendorPeakHoursQueryDto,
  } from '../presentation/dto/vendor-insights.query.dto';
 
 import { 
@@ -50,8 +45,6 @@ import {
  } from '../presentation/dto/vendor.response.dto';
  import { 
   VendorInsightsOverviewResponseDto,
-  VendorRevenueChartResponseDto,
-  VendorPeakHoursResponseDto,
  } from '../presentation/dto/vendor-insights.response.dto';
 
 import { LocalStorageService } from '@/common/storage/local.storage.service';
@@ -518,161 +511,4 @@ export class VendorService {
 
     return this.vendorMapper.toResponse(vendor);
   }
-
-  async getVendorInsightsOverview(
-    ownerId: string,
-    query: VendorInsightsOverviewQueryDto,
-  ): Promise<VendorInsightsOverviewResponseDto> {
-    const month = query.month ?? this.getCurrentMonthKey();
-
-    const range = this.buildMonthRange(month);
-
-    const raw =
-      await this.vendorRepository.findVendorInsightsOverviewData({
-        ownerId,
-        range,
-      });
-
-    if (!raw) {
-      throw new NotFoundException('Vendor not found');
-    }
-
-    return this.vendorInsightsMapper.toOverviewResponse({
-      raw,
-      range,
-      month,
-    });
-  }
-
-  private getCurrentMonthKey(): string {
-    const now = new Date();
-
-    const year = now.getUTCFullYear();
-    const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-
-    return `${year}-${month}`;
-  }
-
-  private buildMonthRange(month: string): VendorInsightsDateRange {
-    const [yearRaw, monthRaw] = month.split('-');
-
-    const year = Number(yearRaw);
-    const monthIndex = Number(monthRaw) - 1;
-
-    const startDate = new Date(Date.UTC(year, monthIndex, 1));
-    const endDate = new Date(Date.UTC(year, monthIndex + 1, 1));
-
-    const previousStartDate = new Date(
-      Date.UTC(year, monthIndex - 1, 1),
-    );
-
-    const previousEndDate = startDate;
-
-    return {
-      startDate,
-      endDate,
-      previousStartDate,
-      previousEndDate,
-    };
-  }
-
-  async getVendorRevenueChart(
-    ownerId: string,
-    query: VendorInsightsRevenueQueryDto,
-  ): Promise<VendorRevenueChartResponseDto> {
-    const month = query.month ?? this.getCurrentMonthKey1();
-
-    const range = this.buildRevenueMonthRange(month);
-
-    const raw = await this.vendorRepository.findVendorRevenueChartData({
-      ownerId,
-      range,
-    });
-
-    if (!raw) {
-      throw new NotFoundException('Vendor not found');
-    }
-
-    return this.vendorInsightsMapper.toRevenueChartResponse({
-      raw,
-      range,
-      month,
-    });
-  }
-
-  private getCurrentMonthKey1(): string {
-    const now = new Date();
-
-    const year = now.getUTCFullYear();
-    const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-
-    return `${year}-${month}`;
-  }
-
-  private buildRevenueMonthRange(
-    month: string,
-  ): VendorRevenueDateRange {
-    const [yearRaw, monthRaw] = month.split('-');
-
-    const year = Number(yearRaw);
-    const monthIndex = Number(monthRaw) - 1;
-
-    const startDate = new Date(Date.UTC(year, monthIndex, 1));
-    const endDate = new Date(Date.UTC(year, monthIndex + 1, 1));
-
-    const previousStartDate = new Date(
-      Date.UTC(year, monthIndex - 1, 1),
-    );
-
-    const previousEndDate = startDate;
-
-    return {
-      startDate,
-      endDate,
-      previousStartDate,
-      previousEndDate,
-    };
-  }
-
-  async getVendorPeakHours(
-    ownerId: string,
-    query: VendorPeakHoursQueryDto,
-  ): Promise<VendorPeakHoursResponseDto> {
-    const month = query.month ?? this.getCurrentMonthKey();
-
-    const range = this.buildPeakHoursMonthRange(month);
-
-    const raw = await this.vendorRepository.findVendorPeakHoursData({
-      ownerId,
-      range,
-    });
-
-    if (!raw) {
-      throw new NotFoundException('Vendor not found');
-    }
-
-    return this.vendorInsightsMapper.toPeakHoursResponse({
-      raw,
-      range,
-      month,
-    });
-  }
-
-  private buildPeakHoursMonthRange(
-    month: string,
-  ): VendorPeakHoursDateRange {
-    const [yearRaw, monthRaw] = month.split('-');
-
-    const year = Number(yearRaw);
-    const monthIndex = Number(monthRaw) - 1;
-
-    const startDate = new Date(Date.UTC(year, monthIndex, 1));
-    const endDate = new Date(Date.UTC(year, monthIndex + 1, 1));
-
-    return {
-      startDate,
-      endDate,
-    };
-  }
-  
 }
