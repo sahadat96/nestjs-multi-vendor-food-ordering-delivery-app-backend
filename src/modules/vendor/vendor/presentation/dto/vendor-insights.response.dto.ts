@@ -122,3 +122,77 @@ export class VendorInsightsOverviewResponseDto {
 
   lockedSections!: VendorLockedInsightSectionDto[];
 }
+
+export class VendorAiSalesByLocationDto {
+  locationId!: string;
+  locationName!: string;
+  address?: string | null;
+  totalSales!: number;
+  totalOrders!: number;
+  latitude?: number;
+  longitude?: number;
+}
+
+export class VendorAiTopSellingItemDto {
+  productId!: string;
+  productName!: string;
+  quantitySold!: number;
+  orderCount!: number;
+  revenue!: number;
+  rank!: number;
+}
+
+export class VendorAiRecommendedActionDto {
+  title!: string;
+  description!: string;
+  actionLabel!: string;
+  confidence!: 'LOW' | 'MEDIUM' | 'HIGH';
+  source!: string;
+}
+
+export class VendorAiLiveHotZoneDto {
+  title!: string;
+  locationName!: string;
+  description!: string;
+  estimatedExtraRevenue?: number;
+  confidence!: 'LOW' | 'MEDIUM' | 'HIGH';
+  isAvailable!: boolean;
+}
+
+export class VendorAiOpportunityDto {
+  title!: string;
+  locationName!: string;
+  timeWindow!: string;
+  demandLevel!: 'LOW' | 'MEDIUM' | 'HIGH';
+  actionLabel!: string;
+}
+
+export class VendorAiGuidanceResponseDto {
+  access!: VendorInsightAccessDto;
+
+  range!: 'today' | 'week' | 'month' | 'year';
+  startDate!: Date;
+  endDate!: Date;
+
+  locked!: boolean;
+  emptyState!: boolean;
+
+  salesByLocation!: VendorAiSalesByLocationDto[];
+
+  topSellingItems!: VendorAiTopSellingItemDto[];
+
+  recommendedActions!: VendorAiRecommendedActionDto[];
+
+  liveHotZones!: VendorAiLiveHotZoneDto[];
+
+  todaysOpportunities!: VendorAiOpportunityDto[];
+
+  dataAvailability!: {
+    hasOrderData: boolean;
+    hasLocationData: boolean;
+    hasSearchDemandData: boolean;
+    hasEventData: boolean;
+  };
+
+  lockedMessage?: string;
+}
