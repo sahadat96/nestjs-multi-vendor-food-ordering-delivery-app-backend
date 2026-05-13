@@ -4,7 +4,6 @@ import { Injectable } from '@nestjs/common';
 import { SubscriptionStatus } from '@prisma/client';
 import {
   VendorInsightsOverviewResponseDto,
-  TrafficLevel,
 } from '../../presentation/dto/vendor-insights.response.dto';
 import type {
   VendorInsightsDateRange,

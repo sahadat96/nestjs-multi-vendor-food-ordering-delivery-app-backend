@@ -1,11 +1,8 @@
 
-import { IsOptional, IsString, Matches } from 'class-validator';
+import { IsOptional, IsString, Matches, IsIn} from 'class-validator';
 
 export class VendorInsightsOverviewQueryDto {
   @IsOptional()
-  @IsString()
-  @Matches(/^\d{4}-\d{2}$/, {
-    message: 'month must be in YYYY-MM format',
-  })
-  month?: string;
+  @IsIn(['today', 'week', 'month', 'year'])
+  range?: 'today' | 'week' | 'month' | 'year' = 'month';
 }

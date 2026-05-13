@@ -1,132 +1,124 @@
-import { SubscriptionStatus } from '@prisma/client';
+export type VendorInsightPlan =
+  | 'FREE'
+  | 'TRIAL'
+  | 'STARTER'
+  | 'PRO'
+  | 'ELITE';
 
-export class InsightPeriodDto {
-  month!: string;
-  label!: string;
-  startDate!: Date;
-  endDate!: Date;
+export class VendorInsightAccessDto {
+  plan!: VendorInsightPlan;
+
+  canViewRevenue!: boolean;
+  canViewPeakHours!: boolean;
+  canViewOrderDistribution!: boolean;
+  canViewCustomerEngagement!: boolean;
+  canViewTopDishes!: boolean;
+  canViewTopCustomers!: boolean;
+  canViewTopSpots!: boolean;
+  canViewProfileViews!: boolean;
+  canViewRatings!: boolean;
+  canViewFavorites!: boolean;
+  canViewAiGuidance!: boolean;
+  canViewEvents!: boolean;
+
+  upgradeRequired!: boolean;
+  upgradePlan?: 'PRO' | 'ELITE';
+  lockedMessage?: string;
 }
 
-export class InsightTrendPointDto {
-  day!: number;
+export class VendorLockedInsightSectionDto {
+  key!: string;
+  title!: string;
+  requiredPlan!: 'PRO' | 'ELITE';
+  message!: string;
+}
+
+export class VendorInsightMetricDto {
+  label!: string;
+  value!: number | string;
+  changePercent?: number;
+  changeLabel?: string;
+}
+
+export class VendorRevenuePointDto {
+  label!: string;
   value!: number;
 }
 
-export class RevenueOverviewDto {
-  total!: number;
-  previousTotal!: number;
-  changePercent!: number;
-  trend!: InsightTrendPointDto[];
+export class VendorPeakHourPointDto {
+  time!: string;
+  orderCount!: number;
+  trafficLevel!: 'LOW' | 'MEDIUM' | 'HIGH';
 }
 
-export class ProfileViewsOverviewDto {
-  total!: number;
-  previousTotal!: number;
-  changePercent!: number;
-  trend!: InsightTrendPointDto[];
+export class VendorOrderDistributionDto {
+  totalOrders!: number;
+  completedOrders!: number;
+  cancelledOrders!: number;
+  pendingOrders!: number;
+  itemsSold!: number;
+  completedPercent!: number;
+  cancelledPercent!: number;
 }
 
-export class RatingDistributionDto {
-  1!: number;
-  2!: number;
-  3!: number;
-  4!: number;
-  5!: number;
+export class VendorCustomerEngagementDto {
+  totalCustomers!: number;
+  newCustomers!: number;
+  repeatCustomers!: number;
+  repeatRate!: number;
 }
 
-export class RatingOverviewDto {
-  average!: number;
+export class VendorTopDishDto {
+  productId!: string;
+  name!: string;
+  orderCount!: number;
+  quantitySold!: number;
+  revenue!: number;
+}
+
+export class VendorTopCustomerDto {
+  customerId!: string;
+  name!: string;
+  orderCount!: number;
+  totalSpent!: number;
+}
+
+export class VendorTopSpotDto {
+  id!: string;
+  name!: string;
+  orderCount!: number;
+  revenue!: number;
+}
+
+export class VendorRatingSummaryDto {
+  rating!: number;
   reviewCount!: number;
-  distribution!: RatingDistributionDto;
-}
-
-export class FavoriteOverviewDto {
-  count!: number;
-}
-
-export class SubscriptionOverviewDto {
-  status!: SubscriptionStatus;
-  planName?: string | null;
-  expiresAt?: Date | null;
-  isActive!: boolean;
-  showUpgradeCard!: boolean;
-  upgradeTitle!: string;
-  upgradeDescription!: string;
 }
 
 export class VendorInsightsOverviewResponseDto {
-  period!: InsightPeriodDto;
-  revenue!: RevenueOverviewDto;
-  profileViews!: ProfileViewsOverviewDto;
-  rating!: RatingOverviewDto;
-  favorites!: FavoriteOverviewDto;
-  subscription!: SubscriptionOverviewDto;
-}
+  access!: VendorInsightAccessDto;
 
-export class RevenueChartPeriodDto {
-  month!: string;
-  label!: string;
+  range!: 'today' | 'week' | 'month' | 'year';
   startDate!: Date;
   endDate!: Date;
-}
 
-export class RevenueChartPointDto {
-  day!: number;
-  date!: string;
-  revenue!: number;
-  orderCount!: number;
-}
+  emptyState!: boolean;
 
-export class RevenueChartSummaryDto {
-  totalRevenue!: number;
-  previousRevenue!: number;
-  changePercent!: number;
+  revenueSummary?: VendorInsightMetricDto;
+  revenueChart?: VendorRevenuePointDto[];
 
-  completedOrderCount!: number;
-  averageDailyRevenue!: number;
+  peakHours?: VendorPeakHourPointDto[];
 
-  bestDay!: {
-    day: number;
-    date: string;
-    revenue: number;
-    orderCount: number;
-  } | null;
-}
+  profileViews?: VendorInsightMetricDto;
+  averageRating?: VendorRatingSummaryDto;
+  favorites?: VendorInsightMetricDto;
 
-export type TrafficLevel = 'LOW' | 'MEDIUM' | 'HIGH';
+  orderDistribution?: VendorOrderDistributionDto;
+  customerEngagement?: VendorCustomerEngagementDto;
 
-export class PeakHoursPeriodDto {
-  month!: string;
-  label!: string;
-  startDate!: Date;
-  endDate!: Date;
-}
+  topDishes?: VendorTopDishDto[];
+  topCustomers?: VendorTopCustomerDto[];
+  topSpots?: VendorTopSpotDto[];
 
-export class PeakHourChartPointDto {
-  hour!: number;              // 0 - 23
-  label!: string;             // "1 PM"
-  orderCount!: number;
-  revenue!: number;
-  trafficLevel!: TrafficLevel;
-}
-
-export class PeakHourSummaryDto {
-  totalOrders!: number;
-  totalRevenue!: number;
-
-  peakHour!: {
-    hour: number;
-    label: string;
-    orderCount: number;
-    revenue: number;
-    trafficLevel: TrafficLevel;
-  } | null;
-
-  bestTimeWindow!: {
-    startHour: number;
-    endHour: number;
-    label: string;
-    orderCount: number;
-    revenue: number;
-  } | null;
+  lockedSections!: VendorLockedInsightSectionDto[];
 }
