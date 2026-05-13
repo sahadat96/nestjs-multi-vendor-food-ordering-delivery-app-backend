@@ -191,6 +191,36 @@ export interface VendorReviewSummaryResult {
   }[];
 }
 
+export interface VendorFollowersProfileView {
+  id: string;
+  subscriptionStatus: SubscriptionStatus;
+  subscriptionPlan: {
+    id: string;
+    name: string;
+  } | null;
+}
+
+export interface VendorFollowerRowView {
+  id: string;
+  createdAt: Date;
+  customer: {
+    id: string;
+    avatar: string | null;
+    user: {
+      name: string | null;
+      email: string;
+    };
+    orders: {
+      id: string;
+    }[];
+  };
+}
+
+export interface VendorFollowersResult {
+  total: number;
+  followers: VendorFollowerRowView[];
+}
+
 // Main interface
 export interface IVendorRepository {
 
@@ -297,4 +327,22 @@ export interface IVendorRepository {
     vendorId: string,
     query: VendorReviewsQueryDtoMe,
   ): Promise<VendorReviewResult>;
+
+  findFollowersProfileByOwnerId(
+    ownerId: string,
+  ): Promise<VendorFollowersProfileView | null>;
+
+  countVendorFollowers(vendorId: string): Promise<number>;
+
+  countVendorFollowersInRange(data: {
+    vendorId: string;
+    startDate: Date;
+    endDate: Date;
+  }): Promise<number>;
+
+  findVendorFollowers(data: {
+    vendorId: string;
+    page: number;
+    limit: number;
+  }): Promise<VendorFollowersResult>;
 }

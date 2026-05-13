@@ -104,7 +104,7 @@ export class VendorMenuItemsQueryDto {
   limit?: number = 20; 
 }
 
-  export class UpdateVendorMenuItemStatusDto {
+export class UpdateVendorMenuItemStatusDto {
   @IsBoolean()
   isActive!: boolean;
 }
