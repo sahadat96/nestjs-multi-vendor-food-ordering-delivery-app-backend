@@ -10,6 +10,7 @@ import { Vendor } from "../entities/vendor.entity";
 import {
    VendorMenuQueryDto,
    VendorMenuItemsQueryDto,
+   VendorReviewsQueryDtoMe,
   } from '../../presentation/dto/vendor.dto';
 
 import { VendorInsightsOverviewQueryDto } from '../../presentation/dto/vendor-insights.query.dto';
@@ -176,6 +177,20 @@ export interface VendorAiDateRangeInput {
   endDate: Date;
 }
 
+export interface VendorReviewResult {
+  total: number;
+  reviews: any[];
+}
+
+export interface VendorReviewSummaryResult {
+  averageRating: number;
+  totalReviews: number;
+  ratingCounts: {
+    rating: number;
+    count: number;
+  }[];
+}
+
 // Main interface
 export interface IVendorRepository {
 
@@ -273,4 +288,13 @@ export interface IVendorRepository {
   findOrdersForAiGuidance(
     data: VendorAiDateRangeInput,
   ): Promise<VendorAiOrderView[]>;
+
+  getVendorReviewSummary(
+    vendorId: string,
+  ): Promise<VendorReviewSummaryResult>;
+
+  findVendorReviews(
+    vendorId: string,
+    query: VendorReviewsQueryDtoMe,
+  ): Promise<VendorReviewResult>;
 }
