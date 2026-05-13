@@ -21,6 +21,7 @@ import {
   UpdateVendorStatusDto,
   VendorMenuItemsQueryDto,
   UpdateVendorMenuItemStatusDto,
+  VendorReviewsQueryDtoMe
  } from '../dto/vendor.dto';
 import { 
   VendorInsightsOverviewQueryDto,
@@ -38,6 +39,7 @@ import {
   VendorMenuItemsResponseDto,
   VendorMenuItemStatusResponseDto,
   DeleteVendorMenuItemResponseDto,
+  VendorReviewsResponseDto,
  } from '../dto/vendor.response.dto';
 import { 
   VendorInsightsOverviewResponseDto,
@@ -193,5 +195,18 @@ export class VendorController {
     @Query() query: VendorAiGuidanceQueryDto,
   ): Promise<VendorAiGuidanceResponseDto> {
     return this.vendorService.getVendorAiGuidance(user.id, query);
+  }
+
+  @Get('insights/reviews')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  async getVendorRatingsAndReviews(
+    @CurrentUser() user: AuthUser,
+    @Query() query: VendorReviewsQueryDtoMe,
+  ): Promise<VendorReviewsResponseDto> {
+    return this.vendorService.getVendorRatingsAndReviews(
+      user.id,
+      query,
+    );
   }
 }
