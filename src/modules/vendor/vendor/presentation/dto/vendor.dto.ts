@@ -7,6 +7,7 @@ import {
   MaxLength,
   IsBoolean,
   IsEnum,
+  IsIn,
   IsUUID,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
@@ -104,4 +105,23 @@ export class VendorMenuItemsQueryDto {
   export class UpdateVendorMenuItemStatusDto {
   @IsBoolean()
   isActive!: boolean;
+}
+
+export class VendorReviewsQueryDtoMe {
+  @IsOptional()
+  @IsIn(['MOST_RECENT', 'HIGHEST_RATED', 'LOWEST_RATED'])
+  sort?: 'MOST_RECENT' | 'HIGHEST_RATED' | 'LOWEST_RATED' = 'MOST_RECENT';
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(50)
+  limit?: number = 10;
 }
