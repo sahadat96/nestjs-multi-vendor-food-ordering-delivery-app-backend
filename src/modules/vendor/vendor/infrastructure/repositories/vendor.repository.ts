@@ -16,6 +16,9 @@ import {
    VendorInsightProfileView,
    VendorFavoriteCountView,
    VendorInsightOrderView,
+   VendorAiProfileView,
+   VendorAiDateRangeInput,
+   VendorAiOrderView,
   } from '../../domain/interface/vendor.repository.interface';
 import { Vendor } from '../../domain/entities/vendor.entity';
 
@@ -728,5 +731,74 @@ export class VendorRepository implements IVendorRepository {
     });
 
     return { total };
+  }
+
+   async findAiProfileByOwnerId(
+    ownerId: string,
+  ): Promise<VendorAiProfileView | null> {
+    return this.prisma.vendor.findUnique({
+      where: {
+        ownerId,
+      },
+      select: {
+        id: true,
+        businessName: true,
+        subscriptionStatus: true,
+        subscriptionPlan: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        serviceArea: {
+          select: {
+            id: true,
+            address: true,
+            latitude: true,
+            longitude: true,
+            radius: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findOrdersForAiGuidance(
+    data: VendorAiDateRangeInput,
+  ): Promise<VendorAiOrderView[]> {
+    return this.prisma.order.findMany({
+      where: {
+        vendorId: data.vendorId,
+        createdAt: {
+          gte: data.startDate,
+          lte: data.endDate,
+        },
+        status: {
+          in: [
+            OrderStatus.COMPLETED,
+            OrderStatus.READY_FOR_PICKUP,
+            OrderStatus.CONFIRMED,
+            OrderStatus.PREPARING,
+          ],
+        },
+      },
+      select: {
+        id: true,
+        status: true,
+        totalAmount: true,
+        createdAt: true,
+        orderItems: {
+          select: {
+            productId: true,
+            productName: true,
+            quantity: true,
+            lineTotal: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
   }
 }
