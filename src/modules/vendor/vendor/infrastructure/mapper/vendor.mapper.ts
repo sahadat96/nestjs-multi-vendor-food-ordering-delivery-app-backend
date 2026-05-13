@@ -19,7 +19,8 @@ import {
   VendorMenuItemsResponseDto,
   VendorMenuItemStatusResponseDto,
   DeleteVendorMenuItemResponseDto,
-  
+  VendorReviewRatingDistributionDto,
+  VendorReviewsResponseDto,
 } from '../../presentation/dto/vendor.response.dto';
 
 import type {
@@ -426,5 +427,111 @@ export class VendorMapper {
 
   private resolveImageUrl(path: string): string {
     return this.mediaService.getUrl(path) ?? path;
+  }
+
+   toRviewResponse(data: {
+    summary: {
+      averageRating: number;
+      totalReviews: number;
+      ratingCounts: {
+        rating: number;
+        count: number;
+      }[];
+    };
+    total: number;
+    page: number;
+    limit: number;
+    sort: 'MOST_RECENT' | 'HIGHEST_RATED' | 'LOWEST_RATED';
+    reviews: any[];
+  }): VendorReviewsResponseDto {
+    return {
+      summary: {
+        averageRating: Number(data.summary.averageRating.toFixed(1)),
+        totalReviews: data.summary.totalReviews,
+        distribution: this.buildRatingDistribution(
+          data.summary.ratingCounts,
+          data.summary.totalReviews,
+        ),
+      },
+
+      sort: data.sort,
+
+      pagination: {
+        total: data.total,
+        page: data.page,
+        limit: data.limit,
+        totalPages:
+          data.total === 0 ? 0 : Math.ceil(data.total / data.limit),
+      },
+
+      reviews: data.reviews.map((review) => ({
+        id: review.id,
+        rating: review.rating,
+        reviewText: review.reviewText ?? undefined,
+
+        customer: {
+          id: review.customer.id,
+          name:
+            review.customer.user?.name ??
+            review.customer.user?.email ??
+            'Customer',
+          avatar: review.customer.avatar
+            ? this.resolveMediaUrl(review.customer.avatar)
+            : undefined,
+        },
+
+        tags: review.tags.map((entry: any) => ({
+          id: entry.tag.id,
+          name: entry.tag.name,
+        })),
+
+        images: review.images.map((image: any) => ({
+          id: image.id,
+          imageUrl: this.resolveMediaUrl(image.imageUrl),
+          position: image.position,
+        })),
+
+        createdAt: review.createdAt,
+        dateLabel: this.formatDate(review.createdAt),
+      })),
+    };
+  }
+
+  private buildRatingDistribution(
+    ratingCounts: {
+      rating: number;
+      count: number;
+    }[],
+    totalReviews: number,
+  ): VendorReviewRatingDistributionDto[] {
+    const countMap = new Map<number, number>();
+
+    for (const item of ratingCounts) {
+      countMap.set(item.rating, item.count);
+    }
+
+    return [5, 4, 3, 2, 1].map((rating) => {
+      const count = countMap.get(rating) ?? 0;
+
+      return {
+        rating,
+        count,
+        percent: totalReviews
+          ? Math.round((count / totalReviews) * 100)
+          : 0,
+      };
+    });
+  }
+
+  private resolveMediaUrl(path: string): string {
+    return this.mediaService.getUrl(path) ?? path;
+  }
+
+  private formatDate(date: Date): string {
+    return new Intl.DateTimeFormat('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric',
+    }).format(new Date(date));
   }
 }
