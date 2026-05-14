@@ -142,4 +142,12 @@ export class ProfileSetupFlowService {
     return this.vendorProfileSetupMapper.toCuisineResponse(cuisine);
   }
 
+  async getCuisines(): Promise<CuisineResponseDto[]> {
+    const cuisines = await this.vendorRepository.findAll();
+
+    return cuisines.map((cuisine) =>
+      this.vendorProfileSetupMapper.toGetCuisinesResponse(cuisine),
+    );
+  }
+
 }
