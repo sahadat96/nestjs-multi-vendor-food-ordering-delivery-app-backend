@@ -15,6 +15,8 @@ import {
   IsNotEmpty,
   MinLength,
   MaxLength,
+  ArrayNotEmpty,
+  IsUUID,
  } from 'class-validator';
 
 import { Type, Transform, plainToInstance  } from 'class-transformer';
@@ -24,19 +26,6 @@ import { ApiProperty } from '@nestjs/swagger';
 export class SocialLinkDto {
   @IsString()
   url!: string;
-}
-
-export class SetupCuisineDto {
-  @IsOptional()
-  @IsString()
-  id?: string;
-
-  @IsString()
-  name!: string;
-
-  @IsOptional()
-  @IsString()
-  imageUrl?: string;
 }
 
 export class SetupProfileDto {
@@ -51,23 +40,18 @@ export class SetupProfileDto {
 
   @IsString()
   bio!: string;
-
+  
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => SetupCuisineDto)
+  @ArrayNotEmpty()
+  @IsUUID('4', { each: true })
   @Transform(({ value }) => {
-    const arr = typeof value === 'string' ? JSON.parse(value) : value;
-    return arr.map((item: any) => {
-      if (typeof item === 'string') {
-        return plainToInstance(SetupCuisineDto, {
-          name: item,
-        });
-      }
+    if (typeof value === 'string') {
+      return JSON.parse(value);
+    }
 
-      return plainToInstance(SetupCuisineDto, item);
-    });
+    return value;
   })
-  cuisines!: SetupCuisineDto[];
+  cuisineIds!: string[];
 
   @IsArray()
   @IsOptional()
@@ -83,6 +67,19 @@ export class SetupProfileDto {
     );
   })
   socialLinks?: SocialLinkDto[];
+}
+
+export class SetupCuisineDto {
+  @IsOptional()
+  @IsString()
+  id?: string;
+
+  @IsString()
+  name!: string;
+
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
 }
 
 export class OperationHourDto {

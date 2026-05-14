@@ -10,12 +10,10 @@ import type { IVendorRepository } from '../../vendor/domain/interface/vendor.rep
 import { 
   ServiceAreaDto,
   UpdateServiceAreaDto,
-  SetupProfileDto,
   UpsertOperationHoursDto,
   CreateCuisineDto,
  } from '../presentation/dto/profile-setup-flow.dto';
 import { 
-  VendorProfileSetupResponseDto, 
   CuisineResponseDto,
 } from '../presentation/dto/profile-setup-flow.response.dto';
 
@@ -37,30 +35,6 @@ export class ProfileSetupFlowService {
 
     private readonly vendorProfileSetupMapper: VendorProfileSetupMapper,
   ) {}
-
- async saveProfile(
-    userId: string,
-    dto: SetupProfileDto,
-    file?: Express.Multer.File,
-  ): Promise<VendorProfileSetupResponseDto> {
-    let imageUrl: string | undefined;
-
-    if (file) {
-      imageUrl = await this.storageService.uploadFile(
-        file,
-        'vendor/profile',
-      );
-    }
-
-    const vendor =
-      await this.vendorRepository.updateProfileAndSyncRelations(
-        userId,
-        dto,
-        imageUrl,
-      );
-
-    return this.vendorProfileSetupMapper.toResponse(vendor);
-  }
 
   async upsertOperationHours(
     userId: string,
