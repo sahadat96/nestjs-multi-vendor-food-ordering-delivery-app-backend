@@ -2,16 +2,16 @@ import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import type { IProfileSetupRepository } from '../domain/interface/profile.setup.interface';
 import type { IVendorRepository } from '../../vendor/domain/interface/vendor.repository.interface';
 
-import { SetupProfileDto } from '../presentation/dto/profile-setup-flow.dto';
-
 import { 
   ServiceAreaDto,
   UpdateServiceAreaDto,
+  SetupProfileDto,
+  UpsertOperationHoursDto,
  } from '../presentation/dto/profile-setup-flow.dto';
 import { VendorProfileSetupResponseDto } from '../presentation/dto/profile-setup-flow.response.dto';
 
 import type { IStorageService } from 'src/common/storage/storage.interface';
-import { UpsertOperationHoursDto } from '../presentation/dto/profile-setup-flow.dto';
+import { VendorProfileSetupMapper } from '../infrastructure/mapper/vendor-profile-setup-mapper';
 
 @Injectable()
 export class ProfileSetupFlowService {
@@ -25,6 +25,8 @@ export class ProfileSetupFlowService {
     
     @Inject('IVendorRepository')
     private readonly vendorRepo: IVendorRepository,
+
+    private readonly vendorProfileSetupMapper: VendorProfileSetupMapper,
   ) {}
 
  async saveProfile(
