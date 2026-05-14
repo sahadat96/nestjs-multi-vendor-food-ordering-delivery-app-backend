@@ -66,4 +66,5 @@ export interface IProfileSetupRepository {
     imageUrl?: string;
   }): Promise<CuisineView>;
   
+  findAllCuisine(): Promise<CuisineView[]>;
 }

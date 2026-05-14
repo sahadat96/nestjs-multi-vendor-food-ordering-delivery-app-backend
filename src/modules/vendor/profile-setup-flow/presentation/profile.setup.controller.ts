@@ -106,10 +106,10 @@ export class ProfileSetupFlowController {
     return this.service.createCuisine(dto, file);
   }
 
-  @Get()
+  @Get('get-cuisine')
   @UseGuards(RoleGuard)
   @Roles(Role.VENDOR, Role.USER)
   async getCuisines(): Promise<CuisineResponseDto[]> {
-    return this.cuisineService.getCuisines();
+    return this.service.getCuisines();
   }
 }

@@ -44,7 +44,11 @@ export class VendorProfileSetupMapper {
     };
   }
 
-   toCuisineResponse(cuisine: CuisineView): CuisineResponseDto {
+ toListResponse(cuisines: CuisineView[]): CuisineResponseDto[] {
+    return cuisines.map((cuisine) => this.toCuisineResponse(cuisine));
+ }
+
+ toCuisineResponse(cuisine: CuisineView): CuisineResponseDto {
     return {
       id: cuisine.id,
       name: cuisine.name,
@@ -59,5 +63,4 @@ export class VendorProfileSetupMapper {
   private resolveMediaUrl(path: string): string {
     return this.mediaService.getUrl(path) ?? path;
   }
-
 }

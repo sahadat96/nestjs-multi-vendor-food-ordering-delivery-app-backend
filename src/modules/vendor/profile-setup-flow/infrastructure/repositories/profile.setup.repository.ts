@@ -328,4 +328,19 @@ export class ProfileSetupRepository implements IProfileSetupRepository {
       },
     });
   }
+
+  async findAllCuisine(): Promise<CuisineView[]> {
+    return this.prisma.cuisine.findMany({
+      orderBy: {
+        name: 'asc',
+      },
+      select: {
+        id: true,
+        name: true,
+        imageUrl: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
 }
