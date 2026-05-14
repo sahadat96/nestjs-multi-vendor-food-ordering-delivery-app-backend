@@ -37,7 +37,20 @@ export class VendorProfileSetupMapper {
     };
   }
 
+   toCuisineResponse(cuisine: CuisineView): CuisineResponseDto {
+    return {
+      id: cuisine.id,
+      name: cuisine.name,
+      imageUrl: cuisine.imageUrl
+        ? this.resolveMediaUrl(cuisine.imageUrl)
+        : undefined,
+      createdAt: cuisine.createdAt,
+      updatedAt: cuisine.updatedAt,
+    };
+  }
+
   private resolveMediaUrl(path: string): string {
     return this.mediaService.getUrl(path) ?? path;
   }
+
 }

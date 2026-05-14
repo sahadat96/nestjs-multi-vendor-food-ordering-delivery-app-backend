@@ -134,12 +134,12 @@ export class ProfileSetupFlowService {
       );
     }
 
-    const cuisine = await this.vendorRepository.create({
+    const cuisine = await this.vendorRepository.createCuisine({
       name,
       imageUrl,
     });
 
-    return this.cuisineMapper.toResponse(cuisine);
+    return this.vendorProfileSetupMapper.toCuisineResponse(cuisine);
   }
 
 }

@@ -59,6 +59,8 @@ export interface IProfileSetupRepository {
     dto: UpdateServiceAreaDto,
   ): Promise<void> 
 
+  findByName(name: string): Promise<CuisineView | null>;
+
   createCuisine(data: {
     name: string;
     imageUrl?: string;
