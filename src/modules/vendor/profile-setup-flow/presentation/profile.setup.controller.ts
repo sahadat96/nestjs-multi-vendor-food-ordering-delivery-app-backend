@@ -7,7 +7,8 @@ import {
   UploadedFile, 
   UseInterceptors, 
   UseGuards, 
-  Patch 
+  Patch,
+  Get,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 
@@ -93,7 +94,7 @@ export class ProfileSetupFlowController {
     return this.service.updateServiceArea(userId, dto);
   }
 
-  @Post()
+  @Post('cuisine')
   @UseGuards(RoleGuard)
   @Roles(Role.VENDOR)
   @UseInterceptors(FileInterceptor('image'))
@@ -105,4 +106,10 @@ export class ProfileSetupFlowController {
     return this.service.createCuisine(dto, file);
   }
 
+  @Get()
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR, Role.USER)
+  async getCuisines(): Promise<CuisineResponseDto[]> {
+    return this.cuisineService.getCuisines();
+  }
 }
