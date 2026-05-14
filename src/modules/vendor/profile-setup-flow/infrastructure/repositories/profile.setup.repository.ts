@@ -16,13 +16,157 @@ import {
   OperationHourDto,
   ServiceAreaDto,
   UpdateServiceAreaDto,
-  CreateCuisineDto,
+  SetupProfileDto,
  } from '../../presentation/dto/profile-setup-flow.dto';
  import { CuisineResponseDto } from '../../presentation/dto/profile-setup-flow.response.dto';
 
 @Injectable()
 export class ProfileSetupRepository implements IProfileSetupRepository {
   constructor(private readonly prisma: PrismaService) {}
+
+  async updateProfileAndSyncRelations(
+    userId: string,
+    data: SetupProfileDto,
+    imageUrl?: string,
+  ): Promise<VendorProfileSetupView> {
+    const { socialLinks, cuisineIds, ...profileData } = data;
+
+    return this.prisma.$transaction(async (tx) => {
+      let vendor = await tx.vendor.findUnique({
+        where: {
+          ownerId: userId,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!vendor) {
+        vendor = await tx.vendor.create({
+          data: {
+            ownerId: userId,
+          },
+          select: {
+            id: true,
+          },
+        });
+      }
+
+      const vendorId = vendor.id;
+
+      await tx.vendor.update({
+        where: {
+          id: vendorId,
+        },
+        data: {
+          businessName: profileData.businessName,
+          publicEmail: profileData.publicEmail,
+          contactNumber: profileData.contactNumber,
+          bio: profileData.bio,
+          ...(imageUrl && {
+            coverImage: imageUrl,
+          }),
+          onboardingStep: 2,
+        },
+      });
+
+      if (socialLinks !== undefined) {
+        await tx.socialLink.deleteMany({
+          where: {
+            vendorId,
+          },
+        });
+
+        if (socialLinks.length > 0) {
+          await tx.socialLink.createMany({
+            data: socialLinks.map((link) => ({
+              vendorId,
+              url: link.url,
+            })),
+          });
+        }
+      }
+
+      if (cuisineIds !== undefined) {
+        const uniqueCuisineIds = [...new Set(cuisineIds)];
+
+        const existingCuisines = await tx.cuisine.findMany({
+          where: {
+            id: {
+              in: uniqueCuisineIds,
+            },
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        if (existingCuisines.length !== uniqueCuisineIds.length) {
+          const existingIds = new Set(
+            existingCuisines.map((cuisine) => cuisine.id),
+          );
+
+          const invalidIds = uniqueCuisineIds.filter(
+            (id) => !existingIds.has(id),
+          );
+
+          throw new BadRequestException(
+            `Invalid cuisine id: ${invalidIds.join(', ')}`,
+          );
+        }
+
+        await tx.vendorCuisine.deleteMany({
+          where: {
+            vendorId,
+          },
+        });
+
+        if (uniqueCuisineIds.length > 0) {
+          await tx.vendorCuisine.createMany({
+            data: uniqueCuisineIds.map((cuisineId) => ({
+              vendorId,
+              cuisineId,
+            })),
+            skipDuplicates: true,
+          });
+        }
+      }
+
+      return tx.vendor.findUniqueOrThrow({
+        where: {
+          id: vendorId,
+        },
+        select: {
+          id: true,
+          businessName: true,
+          publicEmail: true,
+          contactNumber: true,
+          bio: true,
+          coverImage: true,
+          onboardingStep: true,
+
+          cuisines: {
+            include: {
+              cuisine: {
+                select: {
+                  id: true,
+                  name: true,
+                  imageUrl: true,
+                },
+              },
+            },
+          },
+
+          socialLinks: {
+            select: {
+              id: true,
+              url: true,
+            },
+          },
+        },
+      });
+    });
+  }
   
   async createOperationHourVersion(
     userId: string,
