@@ -19,7 +19,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 export class ProfileSetupFlowController {
   constructor(private readonly service: ProfileSetupFlowService) {}
 
-  @Post('upload-cover-photo')
+  @Post('truck-profile-setup')
   @UseGuards(RoleGuard)
   @Roles(Role.VENDOR)
   @UseInterceptors(FileInterceptor('coverImage'))
