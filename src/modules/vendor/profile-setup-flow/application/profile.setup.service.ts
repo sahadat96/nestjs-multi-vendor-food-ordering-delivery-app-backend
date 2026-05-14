@@ -1,4 +1,9 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
+import { 
+  Injectable, 
+  Inject, 
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import type { IProfileSetupRepository } from '../domain/interface/profile.setup.interface';
 import type { IVendorRepository } from '../../vendor/domain/interface/vendor.repository.interface';
 
@@ -7,8 +12,12 @@ import {
   UpdateServiceAreaDto,
   SetupProfileDto,
   UpsertOperationHoursDto,
+  CreateCuisineDto,
  } from '../presentation/dto/profile-setup-flow.dto';
-import { VendorProfileSetupResponseDto } from '../presentation/dto/profile-setup-flow.response.dto';
+import { 
+  VendorProfileSetupResponseDto, 
+  CuisineResponseDto,
+} from '../presentation/dto/profile-setup-flow.response.dto';
 
 import type { IStorageService } from 'src/common/storage/storage.interface';
 import { VendorProfileSetupMapper } from '../infrastructure/mapper/vendor-profile-setup-mapper';
@@ -98,6 +107,39 @@ export class ProfileSetupFlowService {
   }
 
     return this.vendorRepository.updateServiceArea(vendor.id, dto);
+  }
+
+  async createCuisine(
+    dto: CreateCuisineDto,
+    file?: Express.Multer.File,
+  ): Promise<CuisineResponseDto> {
+    const name = dto.name.trim();
+
+    if (!name) {
+      throw new BadRequestException('Cuisine name is required');
+    }
+
+    const existing = await this.vendorRepository.findByName(name);
+
+    if (existing) {
+      throw new ConflictException('Cuisine already exists');
+    }
+
+    let imageUrl: string | undefined;
+
+    if (file) {
+      imageUrl = await this.storageService.uploadFile(
+        file,
+        'cuisines',
+      );
+    }
+
+    const cuisine = await this.vendorRepository.create({
+      name,
+      imageUrl,
+    });
+
+    return this.cuisineMapper.toResponse(cuisine);
   }
 
 }

@@ -21,13 +21,18 @@ import { Role } from 'src/common/enums/role.enum';
 import { 
   UpsertOperationHoursDto,
   ServiceAreaDto,
+  CreateCuisineDto,
  } from './dto/profile-setup-flow.dto';
- 
+
+ import { 
+  VendorProfileSetupResponseDto,
+  CuisineResponseDto,
+ } from './dto/profile-setup-flow.response.dto';
+
 import { UpdateServiceAreaDto } from './dto/profile-setup-flow.dto';
 import { CurrentUser } from '@/modules/auth/decorators/get-user.decorator';
 import type { AuthUser } from '@/modules/auth/domain/interfaces/auth-user.interface';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { VendorProfileSetupResponseDto } from './dto/profile-setup-flow.response.dto';
 
 @ApiTags('vendor/profile-setup')
 @Controller('vendor/profile-setup')
@@ -86,6 +91,18 @@ export class ProfileSetupFlowController {
     const userId = user.id;
 
     return this.service.updateServiceArea(userId, dto);
+  }
+
+  @Post()
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  @UseInterceptors(FileInterceptor('image'))
+  @ResponseMessage('Cuisine created successfully.')
+  async createCuisine(
+    @Body() dto: CreateCuisineDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ): Promise<CuisineResponseDto> {
+    return this.cuisineService.createCuisine(dto, file);
   }
 
 }
