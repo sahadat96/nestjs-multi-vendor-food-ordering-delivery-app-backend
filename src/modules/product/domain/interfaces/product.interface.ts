@@ -75,9 +75,9 @@ export interface IProductRepository {
 
   existsCuisineById(cuisineId: string): Promise<boolean>;
 
-  existsCategoryForVendor(data: {
-    categoryId: string;
-    vendorId: string;
-  }): Promise<boolean>;
+  // existsCategoryForVendor(data: {
+  //   categoryId: string;
+  //   vendorId: string;
+  // }): Promise<boolean>;
   
 }

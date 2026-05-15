@@ -27,7 +27,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 export class CategoryController {
   constructor(private readonly categiryService: CategoryService) {}
 
-  @Get('search')
+  @Get('get-search')
   @UseGuards(RoleGuard)
   @Roles(Role.VENDOR)
   async searchCategories(

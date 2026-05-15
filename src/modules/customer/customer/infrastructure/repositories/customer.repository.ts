@@ -119,35 +119,35 @@ export class CustomerRepository implements ICustomerRepository {
       });
     }
 
-    if (category) {
-      andConditions.push({
-        OR: [
-          {
-            categories: {
-              some: {
-                name: {
-                  contains: category,
-                  mode: Prisma.QueryMode.insensitive,
-                },
-              },
-            },
-          },
-          {
-            products: {
-              some: {
-                isActive: true,
-                category: {
-                  name: {
-                    contains: category,
-                    mode: Prisma.QueryMode.insensitive,
-                  },
-                },
-              },
-            },
-          },
-        ],
-      });
-    }
+    // if (category) {
+    //   andConditions.push({
+    //     OR: [
+    //       {
+    //         categories: {
+    //           some: {
+    //             name: {
+    //               contains: category,
+    //               mode: Prisma.QueryMode.insensitive,
+    //             },
+    //           },
+    //         },
+    //       },
+    //       {
+    //         products: {
+    //           some: {
+    //             isActive: true,
+    //             category: {
+    //               name: {
+    //                 contains: category,
+    //                 mode: Prisma.QueryMode.insensitive,
+    //               },
+    //             },
+    //           },
+    //         },
+    //       },
+    //     ],
+    //   });
+    // }
 
     if (andConditions.length > 0) {
       where.AND = andConditions;
@@ -318,35 +318,35 @@ export class CustomerRepository implements ICustomerRepository {
       });
     }
 
-    if (category) {
-      andConditions.push({
-        OR: [
-          {
-            categories: {
-              some: {
-                name: {
-                  contains: category,
-                  mode: Prisma.QueryMode.insensitive,
-                },
-              },
-            },
-          },
-          {
-            products: {
-              some: {
-                isActive: true,
-                category: {
-                  name: {
-                    contains: category,
-                    mode: Prisma.QueryMode.insensitive,
-                  },
-                },
-              },
-            },
-          },
-        ],
-      });
-    }
+    // if (category) {
+    //   andConditions.push({
+    //     OR: [
+    //       {
+    //         categories: {
+    //           some: {
+    //             name: {
+    //               contains: category,
+    //               mode: Prisma.QueryMode.insensitive,
+    //             },
+    //           },
+    //         },
+    //       },
+    //       {
+    //         products: {
+    //           some: {
+    //             isActive: true,
+    //             category: {
+    //               name: {
+    //                 contains: category,
+    //                 mode: Prisma.QueryMode.insensitive,
+    //               },
+    //             },
+    //           },
+    //         },
+    //       },
+    //     ],
+    //   });
+    // }
 
     if (andConditions.length > 0) {
       where.AND = andConditions;
@@ -896,48 +896,48 @@ export class CustomerRepository implements ICustomerRepository {
             },
           },
           {
-            categories: {
-              some: {
-                name: {
-                  contains: search,
-                  mode: Prisma.QueryMode.insensitive,
-                },
-              },
-            },
+            // categories: {
+            //   some: {
+            //     name: {
+            //       contains: search,
+            //       mode: Prisma.QueryMode.insensitive,
+            //     },
+            //   },
+            // },
           },
         ],
       });
     }
 
-    if (category && category.toLowerCase() !== 'all') {
-      andConditions.push({
-        OR: [
-          {
-            categories: {
-              some: {
-                name: {
-                  contains: category,
-                  mode: Prisma.QueryMode.insensitive,
-                },
-              },
-            },
-          },
-          {
-            products: {
-              some: {
-                isActive: true,
-                category: {
-                  name: {
-                    contains: category,
-                    mode: Prisma.QueryMode.insensitive,
-                  },
-                },
-              },
-            },
-          },
-        ],
-      });
-    }
+    // if (category && category.toLowerCase() !== 'all') {
+    //   andConditions.push({
+    //     OR: [
+    //       {
+    //         categories: {
+    //           some: {
+    //             name: {
+    //               contains: category,
+    //               mode: Prisma.QueryMode.insensitive,
+    //             },
+    //           },
+    //         },
+    //       },
+    //       {
+    //         products: {
+    //           some: {
+    //             isActive: true,
+    //             category: {
+    //               name: {
+    //                 contains: category,
+    //                 mode: Prisma.QueryMode.insensitive,
+    //               },
+    //             },
+    //           },
+    //         },
+    //       },
+    //     ],
+    //   });
+    // }
 
     if (cuisine && cuisine.toLowerCase() !== 'all') {
       andConditions.push({

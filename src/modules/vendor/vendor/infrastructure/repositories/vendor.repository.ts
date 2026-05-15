@@ -124,11 +124,11 @@ export class VendorRepository implements IVendorRepository {
             cuisine: true,
           },
         },
-        categories: {
-          orderBy: {
-            name: 'asc',
-          },
-        },
+        // categories: {
+        //   orderBy: {
+        //     name: 'asc',
+        //   },
+        // },
         products: {
           where: productWhere,
           include: {
@@ -402,43 +402,43 @@ export class VendorRepository implements IVendorRepository {
       select: {
         id: true,
         businessName: true,
-        categories: {
-          orderBy: {
-            createdAt: 'asc',
-          },
-          select: {
-            id: true,
-            name: true,
-            products: {
-              where: {
-                vendor: {
-                  ownerId,
-                },
-              },
-              orderBy: {
-                createdAt: 'desc',
-              },
-              select: {
-                id: true,
-                name: true,
-                description: true,
-                price: true,
-                estimateCookTime: true,
-                isActive: true,
-                images: {
-                  orderBy: {
-                    position: 'asc',
-                  },
-                  select: {
-                    id: true,
-                    url: true,
-                    position: true,
-                  },
-                },
-              },
-            },
-          },
-        },
+        // categories: {
+        //   orderBy: {
+        //     createdAt: 'asc',
+        //   },
+        //   select: {
+        //     id: true,
+        //     name: true,
+        //     products: {
+        //       where: {
+        //         vendor: {
+        //           ownerId,
+        //         },
+        //       },
+        //       orderBy: {
+        //         createdAt: 'desc',
+        //       },
+        //       select: {
+        //         id: true,
+        //         name: true,
+        //         description: true,
+        //         price: true,
+        //         estimateCookTime: true,
+        //         isActive: true,
+        //         images: {
+        //           orderBy: {
+        //             position: 'asc',
+        //           },
+        //           select: {
+        //             id: true,
+        //             url: true,
+        //             position: true,
+        //           },
+        //         },
+        //       },
+        //     },
+        //   },
+        // },
       },
     });
   }

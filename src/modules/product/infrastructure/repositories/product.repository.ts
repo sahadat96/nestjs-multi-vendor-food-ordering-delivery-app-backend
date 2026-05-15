@@ -363,20 +363,20 @@ export class ProductRepository implements IProductRepository {
     return !!cuisine;
   }
 
-  async existsCategoryForVendor(data: {
-    categoryId: string;
-    vendorId: string;
-  }): Promise<boolean> {
-    const category = await this.prisma.category.findFirst({
-      where: {
-        id: data.categoryId,
-        vendorId: data.vendorId,
-      },
-      select: {
-        id: true,
-      },
-    });
+  // async existsCategoryForVendor(data: {
+  //   categoryId: string;
+  //   vendorId: string;
+  // }): Promise<boolean> {
+  //   const category = await this.prisma.category.findFirst({
+  //     where: {
+  //       id: data.categoryId,
+  //       vendorId: data.vendorId,
+  //     },
+  //     select: {
+  //       id: true,
+  //     },
+  //   });
 
-    return !!category;
-  }
+  //   return !!category;
+  // }
 }
