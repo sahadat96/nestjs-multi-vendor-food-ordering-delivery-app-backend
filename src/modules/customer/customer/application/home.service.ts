@@ -124,6 +124,7 @@ export class HomeService {
       popularCuisines: cuisines.map((item) => ({
         id: item.id,
         name: item.name,
+        imageUrl: this.mediaService.getUrl(item.imageUrl) 
       })),
 
       whatsNearMe: homepageVendors.slice(0, 6).map((vendor) => ({

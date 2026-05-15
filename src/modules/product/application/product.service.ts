@@ -109,17 +109,19 @@ export class ProductService {
     return this.productMapper.toResponse(product);
   }
 
-  // async getVendorProducts(userId: string): Promise<ProductResponseDto[]> {
-  //   const vendor = await this.vendorRepo.findByOwnerId(userId);
+  async getVendorProducts(userId: string): Promise<ProductResponseDto[]> {
+    const vendor = await this.vendorRepo.findByOwnerId(userId);
 
-  //   if (!vendor) {
-  //     throw new BadRequestException('Vendor not found');
-  //   }
+    if (!vendor) {
+      throw new BadRequestException('Vendor not found');
+    }
 
-  //   const products = await this.productRepo.findProductByVendorId(vendor.id);
+    const products = await this.productRepo.findProductByVendorId(vendor.id);
 
-  //   return products.map(ProductMapper.toResponse);
-  // }
+     return products.map((product) =>
+        this.productMapper.toResponse(product),
+     );
+  }
 
   // async searchProducts(
   //   userId: string,

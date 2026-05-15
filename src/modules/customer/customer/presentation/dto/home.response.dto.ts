@@ -17,6 +17,7 @@ export class HomeCategoryDto {
 export class HomeCuisineDto {
   id!: string;
   name!: string;
+  imageUrl?: string;
 }
 
 export class HomeVendorCardDto {

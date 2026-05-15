@@ -58,14 +58,14 @@ export class ProductController {
     return this.service.createProduct(user.id, dto, files);
   }
 
-  // @Get('get/my-products')
-  // @UseGuards(RoleGuard)
-  // @Roles(Role.VENDOR)
-  // async getMyProducts(
-  //   @CurrentUser() user: AuthUser,
-  // ): Promise<ProductResponseDto[]> {
-  //   return this.service.getVendorProducts(user.id);
-  // }
+  @Get('get/my-products')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  async getMyProducts(
+    @CurrentUser() user: AuthUser,
+  ): Promise<ProductResponseDto[]> {
+    return this.service.getVendorProducts(user.id);
+  }
 
   // @Get('vendor-product/search')
   // @UseGuards(RoleGuard)

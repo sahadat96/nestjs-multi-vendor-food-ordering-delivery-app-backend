@@ -19,7 +19,7 @@ export interface IHomeRepository {
 
   findDistinctCategoryNames(limit: number): Promise<string[]>;
 
-  findPopularCuisines(limit: number): Promise<{ id: string; name: string }[]>;
+  findPopularCuisines(limit: number): Promise<{ id: string; name: string; imageUrl: string | null }[]>;
 
   findProductsForHome(
     vendorIds: string[],

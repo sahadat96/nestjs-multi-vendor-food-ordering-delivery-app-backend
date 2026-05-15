@@ -92,26 +92,53 @@ export class HomeRepository implements IHomeRepository {
     return categories.map((item) => item.name);
   }
 
-  async findPopularCuisines(limit: number): Promise<{ id: string; name: string }[]> {
-    const vendorCuisines = await this.prisma.vendorCuisine.findMany({
-      include: {
-        cuisine: true,
+  async findPopularCuisines(
+    limit: number,
+  ): Promise<{ id: string; name: string; imageUrl: string | null }[]> {
+    const grouped = await this.prisma.vendorCuisine.groupBy({
+      by: ['cuisineId'],
+      _count: {
+        cuisineId: true,
       },
-      take: limit * 4,
+      orderBy: {
+        _count: {
+          cuisineId: 'desc',
+        },
+      },
+      take: limit,
     });
 
-    const map = new Map<string, { id: string; name: string }>();
+    const cuisineIds = grouped.map((item) => item.cuisineId);
 
-    for (const item of vendorCuisines) {
-      if (!map.has(item.cuisine.id)) {
-        map.set(item.cuisine.id, {
-          id: item.cuisine.id,
-          name: item.cuisine.name,
-        });
-      }
+    if (!cuisineIds.length) {
+      return [];
     }
 
-    return Array.from(map.values()).slice(0, limit);
+    const cuisines = await this.prisma.cuisine.findMany({
+      where: {
+        id: {
+          in: cuisineIds,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        imageUrl: true,
+      },
+    });
+
+    const cuisineMap = new Map(
+      cuisines.map((cuisine) => [cuisine.id, cuisine]),
+    );
+
+    return grouped
+      .map((item) => cuisineMap.get(item.cuisineId))
+      .filter(
+        (
+          cuisine,
+        ): cuisine is { id: string; name: string; imageUrl: string | null } =>
+          cuisine !== undefined,
+      );
   }
 
   async findProductsForHome(
