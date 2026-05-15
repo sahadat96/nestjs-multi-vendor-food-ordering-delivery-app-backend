@@ -55,7 +55,7 @@ export class ProductController {
     @CurrentUser() user: AuthUser,
     @Body() dto: CreateProductDto,
     @UploadedFiles() files: Express.Multer.File[],
-  ) {
+  ): Promise<ProductResponseDto> {
     return this.service.createProduct(user.id, dto, files);
   }
 

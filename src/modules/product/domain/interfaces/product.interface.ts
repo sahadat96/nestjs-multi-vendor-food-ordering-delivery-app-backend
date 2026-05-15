@@ -72,5 +72,12 @@ export interface IProductRepository {
   ): Promise<ProductDetailPrisma | null>;
 
   findActiveProductForCart(productId: string): Promise<ProductCart | null>;
+
+  existsCuisineById(cuisineId: string): Promise<boolean>;
+
+  existsCategoryForVendor(data: {
+    categoryId: string;
+    vendorId: string;
+  }): Promise<boolean>;
   
 }

@@ -5,12 +5,6 @@ export class ProductResponseDto {
   price!: number;
   isActive!: boolean;
 
-  cuisine?: {
-    id: string;
-    name: string;
-    imageUrl?: string;
-  };
-
   category?: {
     id: string;
     name: string;
@@ -27,10 +21,11 @@ export class ProductDetailResponseDto extends ProductResponseDto {
     position: number;
   }[];
 
-  cuisines!: {
+ cuisine?: {
     id: string;
     name: string;
-  }[];
+    imageUrl?: string;
+  };
 
   sizeOptions!: {
     id: string;

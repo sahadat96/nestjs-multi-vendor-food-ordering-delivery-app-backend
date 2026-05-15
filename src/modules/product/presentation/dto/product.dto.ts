@@ -10,7 +10,6 @@ import {
 import { Type, Transform, plainToInstance } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
-
 class SizeOptionDto {
   @IsString()
   name!: string;
@@ -65,8 +64,7 @@ export class CreateProductDto {
   @IsNumber()
   estimateCookTime!: number;
 
-  @IsOptional()
-  @IsString()
+  @IsUUID('4')
   categoryId?: string;
 
   @IsOptional()
