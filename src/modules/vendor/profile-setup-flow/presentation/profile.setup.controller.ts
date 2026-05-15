@@ -95,9 +95,9 @@ export class ProfileSetupFlowController {
     return this.service.updateServiceArea(userId, dto);
   }
 
-  @Post('cuisine')
+  @Post('create-cuisine')
   @UseGuards(RoleGuard)
-  @Roles(Role.VENDOR)
+  @Roles(Role.ADMIN)
   @UseInterceptors(FileInterceptor('image'))
   @ResponseMessage('Cuisine created successfully.')
   async createCuisine(
