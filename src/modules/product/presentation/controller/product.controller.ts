@@ -45,18 +45,18 @@ export class ProductController {
     return this.service.getVendorCuisines(user.id);
   }
 
-  // @Post('create/product')
-  // @UseGuards(RoleGuard)
-  // @Roles(Role.VENDOR)
-  // @UseInterceptors(FilesInterceptor('productImage', 5))
-  // @ResponseMessage('Product Create Successfull.')
-  // async create(
-  //   @CurrentUser() user: AuthUser,
-  //   @Body() dto: CreateProductDto,
-  //   @UploadedFiles() files: Express.Multer.File[],
-  // ): Promise<ProductResponseDto> {
-  //   return this.service.createProduct(user.id, dto, files);
-  // }
+  @Post('create/product')
+  @UseGuards(RoleGuard)
+  @Roles(Role.VENDOR)
+  @UseInterceptors(FilesInterceptor('productImage', 5))
+  @ResponseMessage('Product Create Successfull.')
+  async create(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: CreateProductDto,
+    @UploadedFiles() files: Express.Multer.File[],
+  ): Promise<ProductResponseDto> {
+    return this.service.createProduct(user.id, dto, files);
+  }
 
   @Get('get/my-products')
   @UseGuards(RoleGuard)

@@ -53,61 +53,54 @@ export class ProductService {
     return this.cuisineRepo.findByVendorId(vendor.id);
   }
 
-//  async createProduct(
-//     userId: string,
-//     dto: CreateProductDto,
-//     files: Express.Multer.File[],
-//   ): Promise<ProductResponseDto> {
-//     const vendor = await this.vendorRepo.findByOwnerId(userId);
+async createProduct(
+  userId: string,
+  dto: CreateProductDto,
+  files: Express.Multer.File[],
+): Promise<ProductResponseDto> {
+  const vendor = await this.vendorRepo.findByOwnerId(userId);
 
-//     if (!vendor) {
-//       throw new BadRequestException('Vendor not found');
-//     }
+  if (!vendor) {
+    throw new BadRequestException('Vendor not found');
+  }
 
-//     if (!files || files.length === 0) {
-//       throw new BadRequestException('At least one image required');
-//     }
+  if (!files || files.length === 0) {
+    throw new BadRequestException('At least one image required');
+  }
 
-//     if (dto.categoryId) {
-//       const categoryExists =
-//         await this.productRepo.existsCategoryForVendor({
-//           categoryId: dto.categoryId,
-//           vendorId: vendor.id,
-//         });
+  if (dto.categoryId) {
+    const categoryExists =
+      await this.productRepo.existsActiveCategoryById(dto.categoryId);
 
-//       if (!categoryExists) {
-//         throw new BadRequestException(
-//           'Invalid category for this vendor',
-//         );
-//       }
-//     }
+    if (!categoryExists) {
+      throw new BadRequestException('Invalid category');
+    }
+  }
 
-//     if (dto.cuisineId) {
-//       const cuisineExists = await this.productRepo.existsCuisineById(
-//         dto.cuisineId,
-//       );
+  if (dto.cuisineId) {
+    const cuisineExists = await this.productRepo.existsCuisineById(
+      dto.cuisineId,
+    );
 
-//       if (!cuisineExists) {
-//         throw new BadRequestException('Invalid cuisine');
-//       }
-//     }
+    if (!cuisineExists) {
+      throw new BadRequestException('Invalid cuisine');
+    }
+  }
 
-//     const folder = 'vendor/product/productImages';
+  const folder = 'vendor/product/productImages';
 
-//     const imageUrls = await Promise.all(
-//       files.map((file) =>
-//         this.storage.uploadFile(file, folder),
-//       ),
-//     );
+  const imageUrls = await Promise.all(
+    files.map((file) => this.storage.uploadFile(file, folder)),
+  );
 
-//     const product = await this.productRepo.createFullProduct({
-//       vendorId: vendor.id,
-//       dto,
-//       images: imageUrls,
-//     });
+  const product = await this.productRepo.createFullProduct({
+    vendorId: vendor.id,
+    dto,
+    images: imageUrls,
+  });
 
-//     return this.productMapper.toResponse(product);
-//   }
+  return this.productMapper.toResponse(product);
+}
 
   async getVendorProducts(userId: string): Promise<ProductResponseDto[]> {
     const vendor = await this.vendorRepo.findByOwnerId(userId);

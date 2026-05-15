@@ -58,7 +58,7 @@ export interface IProductRepository {
   updateProductStatus(
     productId: string,
     isActive: boolean,
-  ): Promise<Product>;
+  ): Promise<Product>;  
 
   findProductByIdAndVendorId(
     userId: string,
@@ -75,9 +75,6 @@ export interface IProductRepository {
 
   existsCuisineById(cuisineId: string): Promise<boolean>;
 
-  // existsCategoryForVendor(data: {
-  //   categoryId: string;
-  //   vendorId: string;
-  // }): Promise<boolean>;
+  existsActiveCategoryById(categoryId: string): Promise<boolean>;
   
 }
