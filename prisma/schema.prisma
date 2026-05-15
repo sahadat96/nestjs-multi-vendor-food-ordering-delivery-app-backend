@@ -193,12 +193,17 @@ model Cuisine {
   id       String           @id @default(uuid())
   name     String           @unique
   imageUrl String?
+  isActive  Boolean         @default(true)
+  position  Int             @default(0)
 
   vendors   VendorCuisine[]
   products  Product[]
 
   createdAt DateTime        @default(now())
   updatedAt DateTime        @default(now()) @updatedAt
+
+  @@index([isActive])
+  @@index([position])
 }
 
 model VendorCuisine {
@@ -208,6 +213,7 @@ model VendorCuisine {
   cuisine   Cuisine @relation(fields: [cuisineId], references: [id], onDelete: Cascade)
 
   @@id([vendorId, cuisineId])
+  @@index([cuisineId])
 }
 
 model OperationHour {
