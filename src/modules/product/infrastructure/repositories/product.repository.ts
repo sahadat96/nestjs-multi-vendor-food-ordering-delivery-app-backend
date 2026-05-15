@@ -76,9 +76,12 @@ export class ProductRepository implements IProductRepository {
           categoryId: dto.categoryId ?? null,
           cuisineId: dto.cuisineId ?? null,
         },
+        select: {
+          id: true,
+        },
       });
 
-      if (images.length) {
+      if (images.length > 0) {
         await tx.productImage.createMany({
           data: images.map((url, index) => ({
             productId: product.id,
@@ -121,7 +124,7 @@ export class ProductRepository implements IProductRepository {
           })),
         });
       }
-
+      
       if (dto.cuisineId) {
         await tx.vendorCuisine.upsert({
           where: {
@@ -149,6 +152,7 @@ export class ProductRepository implements IProductRepository {
               name: true,
             },
           },
+
           cuisine: {
             select: {
               id: true,
@@ -156,6 +160,7 @@ export class ProductRepository implements IProductRepository {
               imageUrl: true,
             },
           },
+
           images: {
             orderBy: [
               {
@@ -172,6 +177,7 @@ export class ProductRepository implements IProductRepository {
               position: true,
             },
           },
+
           sizeOptions: {
             orderBy: {
               createdAt: 'asc',
@@ -183,6 +189,7 @@ export class ProductRepository implements IProductRepository {
               isRequired: true,
             },
           },
+
           choiceOptions: {
             orderBy: {
               createdAt: 'asc',
@@ -194,6 +201,7 @@ export class ProductRepository implements IProductRepository {
               isRequired: true,
             },
           },
+
           addOns: {
             orderBy: {
               createdAt: 'asc',
