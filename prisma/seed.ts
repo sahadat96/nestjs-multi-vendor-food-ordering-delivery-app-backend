@@ -10,6 +10,7 @@ import { seedPermissions } from './seeds/permission.seed';
 import { seedRolePermissions } from './seeds/role-permission.seed';
 import { seedReviewTags } from './seeds/review-tag.seed';
 import { seedFoodReviewTags } from './seeds/food-review-tag.seed';
+import { seedFoodCategories } from './seeds/category.seed';
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -28,6 +29,7 @@ async function main() {
 
   await seedReviewTags(prisma);
   await seedFoodReviewTags(prisma);
+  await seedFoodCategories(prisma);
 
   console.log('All seeds completed successfully!');
 }
