@@ -1,7 +1,8 @@
-import { Category } from '../entities/category.entity';
+export interface CategorySearchView {
+  id: string;
+  name: string;
+}
 
 export interface ICategoryRepository {
-  create(data: Category): Promise<Category>;
-  findByVendorId(vendorId: string): Promise<Category[]>;
-  findByName(vendorId: string, name: string): Promise<Category | null>;
+  searchCategories(keyword?: string): Promise<CategorySearchView[]>;
 }
