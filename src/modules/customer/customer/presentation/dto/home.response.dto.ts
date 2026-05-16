@@ -32,6 +32,7 @@ export class HomeVendorCardDto {
   statusLabel!: string;
   rating!: number;
   reviewCount!: number;
+  isFavorite!: boolean;
 }
 
 export class HomeProductCardDto {
@@ -39,17 +40,14 @@ export class HomeProductCardDto {
   name!: string;
   image?: string;
   price!: number;
-
   vendorId!: string;
   vendorName!: string;
-
   distanceKm!: number;
-
   categoryId?: string;
   categoryName?: string;
-
   rating!: number;
   reviewCount!: number;
+  isFavorite!: boolean;
 }
 
 export class HomeResponseDto {

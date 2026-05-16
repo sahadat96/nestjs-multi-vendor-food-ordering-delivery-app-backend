@@ -22,7 +22,7 @@ export interface HomeCuisineView {
 }
 
 export interface IHomeRepository {
-   findCustomerHomeProfileByUserId(
+  findCustomerHomeProfileByUserId(
     userId: string,
   ): Promise<CustomerHomeProfile | null>;
 
@@ -44,4 +44,8 @@ export interface IHomeRepository {
     limit: number,
     excludeProductIds?: string[],
   ): Promise<any[]>;
+
+  findFavoriteVendorIdsByCustomerId(customerId: string): Promise<string[]>;
+
+  findFavoriteProductIdsByCustomerId(customerId: string): Promise<string[]>;
 }

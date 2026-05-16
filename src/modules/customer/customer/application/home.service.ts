@@ -20,107 +20,119 @@ export class HomeService {
   ) {}
 
  async getHome(userId: string): Promise<HomeResponseDto> {
-  const customer =
-    await this.homeRepository.findCustomerHomeProfileByUserId(userId);
+    const customer =
+      await this.homeRepository.findCustomerHomeProfileByUserId(userId);
 
-  if (!customer) {
-    throw new BadRequestException('Customer not found');
-  }
+    if (!customer) {
+      throw new BadRequestException('Customer not found');
+    }
 
-  if (customer.latitude === null || customer.longitude === null) {
-    throw new BadRequestException(
-      'Customer location is required to load home page',
+    if (customer.latitude === null || customer.longitude === null) {
+      throw new BadRequestException(
+        'Customer location is required to load home page',
+      );
+    }
+
+    const vendors = await this.homeRepository.findVendorCandidates();
+
+    const vendorsWithDistance = vendors
+      .map((vendor) => {
+        const distanceKm = this.calculateDistanceKm(
+          customer.latitude!,
+          customer.longitude!,
+          vendor.serviceArea.latitude,
+          vendor.serviceArea.longitude,
+        );
+
+        const radiusKm = vendor.serviceArea.radius ?? 0;
+
+        const availability = this.resolveAvailability(
+          vendor.operationHours ?? [],
+        );
+
+        return {
+          ...vendor,
+          distanceKm,
+          withinRadius: radiusKm > 0 ? distanceKm <= radiusKm : true,
+          availability,
+        };
+      })
+      .sort((a, b) => a.distanceKm - b.distanceKm);
+
+    const nearbyVendors = vendorsWithDistance.filter(
+      (vendor) => vendor.withinRadius,
     );
-  }
 
-  const vendors = await this.homeRepository.findVendorCandidates();
+    const homepageVendors =
+      nearbyVendors.length > 0
+        ? nearbyVendors
+        : vendorsWithDistance.slice(0, 10);
 
-  const vendorsWithDistance = vendors
-    .map((vendor) => {
-      const distanceKm = this.calculateDistanceKm(
+    const homepageVendorIds = homepageVendors.map((vendor) => vendor.id);
+
+    const [
+      categories,
+      cuisines,
+      favoriteVendorIds,
+      favoriteProductIds,
+    ] = await Promise.all([
+      this.homeRepository.findHomeCategories(8),
+      this.homeRepository.findPopularCuisines(8),
+      this.homeRepository.findFavoriteVendorIdsByCustomerId(customer.id),
+      this.homeRepository.findFavoriteProductIdsByCustomerId(customer.id),
+    ]);
+
+    const favoriteVendorIdSet = new Set(favoriteVendorIds);
+    const favoriteProductIdSet = new Set(favoriteProductIds);
+
+    let topPicks = await this.homeRepository.findProductsForHome(
+      homepageVendorIds,
+      8,
+    );
+
+    if (!topPicks.length) {
+      topPicks = await this.homeRepository.findProductsFallback(8);
+    }
+
+    const topPicksSorted = topPicks.sort((a, b) => {
+      const aDistance = this.calculateDistanceKm(
         customer.latitude!,
         customer.longitude!,
-        vendor.serviceArea.latitude,
-        vendor.serviceArea.longitude,
+        a.vendor.serviceArea?.latitude ?? customer.latitude!,
+        a.vendor.serviceArea?.longitude ?? customer.longitude!,
       );
 
-      const radiusKm = vendor.serviceArea.radius ?? 0;
-      const availability = this.resolveAvailability(
-        vendor.operationHours ?? [],
+      const bDistance = this.calculateDistanceKm(
+        customer.latitude!,
+        customer.longitude!,
+        b.vendor.serviceArea?.latitude ?? customer.latitude!,
+        b.vendor.serviceArea?.longitude ?? customer.longitude!,
       );
 
-      return {
-        ...vendor,
-        distanceKm,
-        withinRadius: radiusKm > 0 ? distanceKm <= radiusKm : true,
-        availability,
-      };
-    })
-    .sort((a, b) => a.distanceKm - b.distanceKm);
+      return aDistance - bDistance;
+    });
 
-  const nearbyVendors = vendorsWithDistance.filter(
-    (vendor) => vendor.withinRadius,
-  );
+    const topPickIds = topPicksSorted.map((item) => item.id);
 
-  const homepageVendors =
-    nearbyVendors.length > 0
-      ? nearbyVendors
-      : vendorsWithDistance.slice(0, 10);
-
-  const homepageVendorIds = homepageVendors.map((vendor) => vendor.id);
-
-  const [categories, cuisines] = await Promise.all([
-    this.homeRepository.findHomeCategories(8),
-    this.homeRepository.findPopularCuisines(8),
-  ]);
-
-  let topPicks = await this.homeRepository.findProductsForHome(
-    homepageVendorIds,
-    8,
-  );
-
-  if (!topPicks.length) {
-    topPicks = await this.homeRepository.findProductsFallback(8);
-  }
-
-  const topPicksSorted = topPicks.sort((a, b) => {
-    const aDistance = this.calculateDistanceKm(
-      customer.latitude!,
-      customer.longitude!,
-      a.vendor.serviceArea?.latitude ?? customer.latitude!,
-      a.vendor.serviceArea?.longitude ?? customer.longitude!,
-    );
-
-    const bDistance = this.calculateDistanceKm(
-      customer.latitude!,
-      customer.longitude!,
-      b.vendor.serviceArea?.latitude ?? customer.latitude!,
-      b.vendor.serviceArea?.longitude ?? customer.longitude!,
-    );
-
-    return aDistance - bDistance;
-  });
-
-  const topPickIds = topPicksSorted.map((item) => item.id);
-
-  let trySomethingNew = await this.homeRepository.findProductsForHome(
-    homepageVendorIds,
-    10,
-    topPickIds,
-  );
-
-  if (!trySomethingNew.length) {
-    trySomethingNew = await this.homeRepository.findProductsFallback(
+    let trySomethingNew = await this.homeRepository.findProductsForHome(
+      homepageVendorIds,
       10,
       topPickIds,
     );
 
     if (!trySomethingNew.length) {
-      trySomethingNew = await this.homeRepository.findProductsFallback(10);
-    }
-  }
+      trySomethingNew = await this.homeRepository.findProductsFallback(
+        10,
+        topPickIds,
+      );
 
-  return {
+      if (!trySomethingNew.length) {
+        trySomethingNew =
+          await this.homeRepository.findProductsFallback(10);
+      }
+    }
+
+    return {
       user: {
         id: customer.user.id,
         email: customer.user.email,
@@ -145,25 +157,37 @@ export class HomeService {
       })),
 
       whatsNearMe: homepageVendors.slice(0, 6).map((vendor) =>
-        this.toHomeVendorCard(vendor),
+        this.toHomeVendorCard(vendor, favoriteVendorIdSet),
       ),
 
       recommendedForYou: homepageVendors.slice(0, 6).map((vendor) =>
-        this.toHomeVendorCard(vendor),
+        this.toHomeVendorCard(vendor, favoriteVendorIdSet),
       ),
 
       topPicksForYou: topPicksSorted.slice(0, 6).map((product) =>
-        this.toHomeProductCard(product, customer.latitude!, customer.longitude!),
+        this.toHomeProductCard(
+          product,
+          customer.latitude!,
+          customer.longitude!,
+          favoriteProductIdSet,
+        ),
       ),
 
       trySomethingNew: trySomethingNew.slice(0, 10).map((product) =>
-        this.toHomeProductCard(product, customer.latitude!, customer.longitude!),
+        this.toHomeProductCard(
+          product,
+          customer.latitude!,
+          customer.longitude!,
+          favoriteProductIdSet,
+        ),
       ),
     };
   }
 
-
-  private toHomeVendorCard(vendor: any): HomeVendorCardDto {
+  private toHomeVendorCard(
+    vendor: any,
+    favoriteVendorIdSet: Set<string>,
+  ): HomeVendorCardDto {
     const productImage = vendor.products?.[0]?.images?.[0]?.url;
 
     return {
@@ -175,22 +199,25 @@ export class HomeService {
         this.resolveMediaUrl(vendor.coverImage) ??
         this.resolveMediaUrl(productImage),
 
-      distanceKm: Number(vendor.distanceKm.toFixed(1)),
+      distanceKm: Number((vendor.distanceKm ?? 0).toFixed(1)),
 
       cityLabel: this.extractCityLabel(vendor.serviceArea?.address),
 
-      isOpen: vendor.availability.isOpen,
-      statusLabel: vendor.availability.label,
+      isOpen: vendor.availability?.isOpen ?? false,
+      statusLabel: vendor.availability?.label ?? 'Temporarily Closed',
 
       rating: Number((vendor.truckReviewAverage ?? 0).toFixed(1)),
       reviewCount: vendor.truckReviewCount ?? 0,
+
+      isFavorite: favoriteVendorIdSet.has(vendor.id),
     };
   }
 
-    private toHomeProductCard(
+  private toHomeProductCard(
     product: any,
     customerLatitude: number,
     customerLongitude: number,
+    favoriteProductIdSet: Set<string>,
   ): HomeProductCardDto {
     const distanceKm = this.calculateDistanceKm(
       customerLatitude,
@@ -206,7 +233,7 @@ export class HomeService {
       price: product.price,
 
       vendorId: product.vendorId,
-      vendorName: product.vendor.businessName ?? 'Unnamed Vendor',
+      vendorName: product.vendor?.businessName ?? 'Unnamed Vendor',
 
       distanceKm: Number(distanceKm.toFixed(1)),
 
@@ -215,9 +242,10 @@ export class HomeService {
 
       rating: Number((product.foodReviewAverage ?? 0).toFixed(1)),
       reviewCount: product.foodReviewCount ?? 0,
+
+      isFavorite: favoriteProductIdSet.has(product.id),
     };
   }
-
 
   private calculateDistanceKm(
     lat1: number,
@@ -255,6 +283,7 @@ export class HomeService {
   ): { isOpen: boolean; label: string } {
     const now = new Date();
     const today = now.getDay();
+
     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(
       now.getMinutes(),
     ).padStart(2, '0')}`;

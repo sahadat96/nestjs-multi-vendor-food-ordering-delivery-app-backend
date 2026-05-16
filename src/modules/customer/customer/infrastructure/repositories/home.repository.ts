@@ -122,7 +122,9 @@ export class HomeRepository implements IHomeRepository {
       },
       include: {
         vendor: {
-          include: {
+          select: {
+            id: true,
+            businessName: true,
             serviceArea: true,
           },
         },
@@ -176,7 +178,9 @@ export class HomeRepository implements IHomeRepository {
       },
       include: {
         vendor: {
-          include: {
+          select: {
+            id: true,
+            businessName: true,
             serviceArea: true,
           },
         },
@@ -312,5 +316,35 @@ export class HomeRepository implements IHomeRepository {
         ): cuisine is { id: string; name: string; imageUrl: string | null } =>
           cuisine !== undefined,
       );
+  }
+
+  async findFavoriteVendorIdsByCustomerId(
+    customerId: string,
+  ): Promise<string[]> {
+    const favorites = await this.prisma.favoriteVendor.findMany({
+      where: {
+        customerId,
+      },
+      select: {
+        vendorId: true,
+      },
+    });
+
+    return favorites.map((item) => item.vendorId);
+  }
+
+  async findFavoriteProductIdsByCustomerId(
+    customerId: string,
+  ): Promise<string[]> {
+    const favorites = await this.prisma.favoriteProduct.findMany({
+      where: {
+        customerId,
+      },
+      select: {
+        productId: true,
+      },
+    });
+
+    return favorites.map((item) => item.productId);
   }
 }
