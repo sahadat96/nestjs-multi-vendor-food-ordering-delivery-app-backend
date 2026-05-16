@@ -4,7 +4,11 @@ import {
   Injectable,
 } from '@nestjs/common';
 import type { IHomeRepository } from '../domain/interface/home.repository.interface';
-import { HomeResponseDto } from '../presentation/dto/home.response.dto';
+import { 
+  HomeResponseDto,
+  HomeVendorCardDto,
+  HomeProductCardDto,
+ } from '../presentation/dto/home.response.dto';
 import { MediaService } from '@/common/media/media.service';
 
 @Injectable()
@@ -15,98 +19,108 @@ export class HomeService {
     private readonly mediaService: MediaService,
   ) {}
 
-  async getHome(userId: string): Promise<HomeResponseDto> {
-    const customer = await this.homeRepository.findCustomerHomeProfileByUserId(userId);
+ async getHome(userId: string): Promise<HomeResponseDto> {
+  const customer =
+    await this.homeRepository.findCustomerHomeProfileByUserId(userId);
 
-    if (!customer) {
-      throw new BadRequestException('Customer not found');
-    }
+  if (!customer) {
+    throw new BadRequestException('Customer not found');
+  }
 
-    if (customer.latitude === null || customer.longitude === null) {
-      throw new BadRequestException(
-        'Customer location is required to load home page',
+  if (customer.latitude === null || customer.longitude === null) {
+    throw new BadRequestException(
+      'Customer location is required to load home page',
+    );
+  }
+
+  const vendors = await this.homeRepository.findVendorCandidates();
+
+  const vendorsWithDistance = vendors
+    .map((vendor) => {
+      const distanceKm = this.calculateDistanceKm(
+        customer.latitude!,
+        customer.longitude!,
+        vendor.serviceArea.latitude,
+        vendor.serviceArea.longitude,
       );
-    }
 
-    const vendors = await this.homeRepository.findVendorCandidates();
+      const radiusKm = vendor.serviceArea.radius ?? 0;
+      const availability = this.resolveAvailability(
+        vendor.operationHours ?? [],
+      );
 
-    const vendorsWithDistance = vendors
-      .map((vendor) => {
-        const distanceKm = this.calculateDistanceKm(
-          customer.latitude!,
-          customer.longitude!,
-          vendor.serviceArea.latitude,
-          vendor.serviceArea.longitude,
-        );
+      return {
+        ...vendor,
+        distanceKm,
+        withinRadius: radiusKm > 0 ? distanceKm <= radiusKm : true,
+        availability,
+      };
+    })
+    .sort((a, b) => a.distanceKm - b.distanceKm);
 
-        const radiusKm = vendor.serviceArea.radius ?? 0;
+  const nearbyVendors = vendorsWithDistance.filter(
+    (vendor) => vendor.withinRadius,
+  );
 
-        return {
-          ...vendor,
-          distanceKm,
-          withinRadius: radiusKm > 0 ? distanceKm <= radiusKm : true,
-          availability: this.resolveAvailability(vendor.operationHours),
-        };
-      })
-      .sort((a, b) => a.distanceKm - b.distanceKm);
+  const homepageVendors =
+    nearbyVendors.length > 0
+      ? nearbyVendors
+      : vendorsWithDistance.slice(0, 10);
 
-    const nearbyVendors = vendorsWithDistance.filter((vendor) => vendor.withinRadius);
+  const homepageVendorIds = homepageVendors.map((vendor) => vendor.id);
 
-    const homepageVendors =
-      nearbyVendors.length > 0 ? nearbyVendors : vendorsWithDistance.slice(0, 10);
+  const [categories, cuisines] = await Promise.all([
+    this.homeRepository.findHomeCategories(8),
+    this.homeRepository.findPopularCuisines(8),
+  ]);
 
-    const homepageVendorIds = homepageVendors.map((vendor) => vendor.id);
+  let topPicks = await this.homeRepository.findProductsForHome(
+    homepageVendorIds,
+    8,
+  );
 
-    const categories = await this.homeRepository.findDistinctCategoryNames(8);
-    const cuisines = await this.homeRepository.findPopularCuisines(8);
+  if (!topPicks.length) {
+    topPicks = await this.homeRepository.findProductsFallback(8);
+  }
 
-    let topPicks = await this.homeRepository.findProductsForHome(
-      homepageVendorIds,
-      8,
+  const topPicksSorted = topPicks.sort((a, b) => {
+    const aDistance = this.calculateDistanceKm(
+      customer.latitude!,
+      customer.longitude!,
+      a.vendor.serviceArea?.latitude ?? customer.latitude!,
+      a.vendor.serviceArea?.longitude ?? customer.longitude!,
     );
 
-    if (!topPicks.length) {
-      topPicks = await this.homeRepository.findProductsFallback(8);
-    }
+    const bDistance = this.calculateDistanceKm(
+      customer.latitude!,
+      customer.longitude!,
+      b.vendor.serviceArea?.latitude ?? customer.latitude!,
+      b.vendor.serviceArea?.longitude ?? customer.longitude!,
+    );
 
-    const topPicksSorted = topPicks.sort((a, b) => {
-      const aDistance = this.calculateDistanceKm(
-        customer.latitude!,
-        customer.longitude!,
-        a.vendor.serviceArea?.latitude ?? customer.latitude!,
-        a.vendor.serviceArea?.longitude ?? customer.longitude!,
-      );
+    return aDistance - bDistance;
+  });
 
-      const bDistance = this.calculateDistanceKm(
-        customer.latitude!,
-        customer.longitude!,
-        b.vendor.serviceArea?.latitude ?? customer.latitude!,
-        b.vendor.serviceArea?.longitude ?? customer.longitude!,
-      );
+  const topPickIds = topPicksSorted.map((item) => item.id);
 
-      return aDistance - bDistance;
-    });
+  let trySomethingNew = await this.homeRepository.findProductsForHome(
+    homepageVendorIds,
+    10,
+    topPickIds,
+  );
 
-    const topPickIds = topPicksSorted.map((item) => item.id);
-
-    let trySomethingNew = await this.homeRepository.findProductsForHome(
-     homepageVendorIds,
-     10,
-     topPickIds,
+  if (!trySomethingNew.length) {
+    trySomethingNew = await this.homeRepository.findProductsFallback(
+      10,
+      topPickIds,
     );
 
     if (!trySomethingNew.length) {
-        trySomethingNew = await this.homeRepository.findProductsFallback(
-            10,
-            topPickIds,
-        );
-
-        if (!trySomethingNew.length) {
-            trySomethingNew = await this.homeRepository.findProductsFallback(10);
-        }
+      trySomethingNew = await this.homeRepository.findProductsFallback(10);
     }
+  }
 
-    return {
+  return {
       user: {
         id: customer.user.id,
         email: customer.user.email,
@@ -119,73 +133,91 @@ export class HomeService {
         longitude: customer.longitude,
       },
 
-      categories: categories.map((name) => ({ name })),
+      categories: categories.map((category) => ({
+        id: category.id,
+        name: category.name,
+      })),
 
       popularCuisines: cuisines.map((item) => ({
         id: item.id,
         name: item.name,
-        imageUrl: this.mediaService.getUrl(item.imageUrl) 
+        imageUrl: this.resolveMediaUrl(item.imageUrl),
       })),
 
-      whatsNearMe: homepageVendors.slice(0, 6).map((vendor) => ({
-        id: vendor.id,
-        businessName: vendor.businessName ?? 'Unnamed Vendor',
-        coverImage: this.mediaService.getUrl(vendor.coverImage) ??
-        vendor.products[0]?.images[0]?.url ?? undefined,
-        distanceKm: Number(vendor.distanceKm.toFixed(1)),
-        cityLabel: this.extractCityLabel(vendor.serviceArea?.address),
-        isOpen: vendor.availability.isOpen,
-        statusLabel: vendor.availability.label,
-      })),
+      whatsNearMe: homepageVendors.slice(0, 6).map((vendor) =>
+        this.toHomeVendorCard(vendor),
+      ),
 
-      recommendedForYou: homepageVendors.slice(0, 6).map((vendor) => ({
-        id: vendor.id,
-        businessName: vendor.businessName ?? 'Unnamed Vendor',
-        coverImage:this.mediaService.getUrl(vendor.coverImage) ??
-        vendor.products[0]?.images[0]?.url ?? undefined,
-        distanceKm: Number(vendor.distanceKm.toFixed(1)),
-        cityLabel: this.extractCityLabel(vendor.serviceArea?.address),
-        isOpen: vendor.availability.isOpen,
-        statusLabel: vendor.availability.label,
-      })),
+      recommendedForYou: homepageVendors.slice(0, 6).map((vendor) =>
+        this.toHomeVendorCard(vendor),
+      ),
 
-      topPicksForYou: topPicksSorted.slice(0, 6).map((product) => ({
-        id: product.id,
-        name: product.name,
-        image: this.mediaService.getUrl(product.images?.[0]?.url),
-        price: product.price,
-        vendorId: product.vendorId,
-        vendorName: product.vendor.businessName ?? 'Unnamed Vendor',
-        distanceKm: Number(
-          this.calculateDistanceKm(
-            customer.latitude!,
-            customer.longitude!,
-            product.vendor.serviceArea?.latitude ?? customer.latitude!,
-            product.vendor.serviceArea?.longitude ?? customer.longitude!,
-          ).toFixed(1),
-        ),
-        categoryName: product.category?.name ?? undefined,
-      })),
+      topPicksForYou: topPicksSorted.slice(0, 6).map((product) =>
+        this.toHomeProductCard(product, customer.latitude!, customer.longitude!),
+      ),
 
-      trySomethingNew: trySomethingNew.slice(0, 10).map((product) => ({
-        id: product.id,
-        name: product.name,
-        image: this.mediaService.getUrl(product.images?.[0]?.url),
-        price: product.price,
-        vendorId: product.vendorId,
-        vendorName: product.vendor.businessName ?? 'Unnamed Vendor',
-        distanceKm: Number(
-          this.calculateDistanceKm(
-            customer.latitude!,
-            customer.longitude!,
-            product.vendor.serviceArea?.latitude ?? customer.latitude!,
-            product.vendor.serviceArea?.longitude ?? customer.longitude!,
-          ).toFixed(1),
-        ),
-        categoryName: product.category?.name ?? undefined,
-      })),
+      trySomethingNew: trySomethingNew.slice(0, 10).map((product) =>
+        this.toHomeProductCard(product, customer.latitude!, customer.longitude!),
+      ),
     };
   }
+
+
+  private toHomeVendorCard(vendor: any): HomeVendorCardDto {
+    const productImage = vendor.products?.[0]?.images?.[0]?.url;
+
+    return {
+      id: vendor.id,
+      businessName: vendor.businessName ?? 'Unnamed Vendor',
+      bio: vendor.bio ?? undefined,
+
+      coverImage:
+        this.resolveMediaUrl(vendor.coverImage) ??
+        this.resolveMediaUrl(productImage),
+
+      distanceKm: Number(vendor.distanceKm.toFixed(1)),
+
+      cityLabel: this.extractCityLabel(vendor.serviceArea?.address),
+
+      isOpen: vendor.availability.isOpen,
+      statusLabel: vendor.availability.label,
+
+      rating: Number((vendor.truckReviewAverage ?? 0).toFixed(1)),
+      reviewCount: vendor.truckReviewCount ?? 0,
+    };
+  }
+
+    private toHomeProductCard(
+    product: any,
+    customerLatitude: number,
+    customerLongitude: number,
+  ): HomeProductCardDto {
+    const distanceKm = this.calculateDistanceKm(
+      customerLatitude,
+      customerLongitude,
+      product.vendor.serviceArea?.latitude ?? customerLatitude,
+      product.vendor.serviceArea?.longitude ?? customerLongitude,
+    );
+
+    return {
+      id: product.id,
+      name: product.name,
+      image: this.resolveMediaUrl(product.images?.[0]?.url),
+      price: product.price,
+
+      vendorId: product.vendorId,
+      vendorName: product.vendor.businessName ?? 'Unnamed Vendor',
+
+      distanceKm: Number(distanceKm.toFixed(1)),
+
+      categoryId: product.category?.id ?? undefined,
+      categoryName: product.category?.name ?? undefined,
+
+      rating: Number((product.foodReviewAverage ?? 0).toFixed(1)),
+      reviewCount: product.foodReviewCount ?? 0,
+    };
+  }
+
 
   private calculateDistanceKm(
     lat1: number,
@@ -294,5 +326,13 @@ export class HomeService {
     }
 
     return address.split(',')[0]?.trim() || undefined;
+  }
+
+  private resolveMediaUrl(path?: string | null): string | undefined {
+    if (!path) {
+      return undefined;
+    }
+
+    return this.mediaService.getUrl(path) ?? path;
   }
 }
