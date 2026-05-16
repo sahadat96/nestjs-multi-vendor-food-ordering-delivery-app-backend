@@ -230,112 +230,112 @@ export class VendorMapper {
     unreadNotificationCount: number;
     isLive: boolean;
   }): VendorHomeResponseDto {
-    const vendor = data.vendor;
+      const vendor = data.vendor;
 
-    const kycApproved = vendor.kycStatus === KycStatus.APPROVED;
+      const kycApproved = vendor.kycStatus === KycStatus.APPROVED;
 
-    const businessApproved =
-      vendor.vendorVerification?.status === VerificationStatus.APPROVED;
+      const businessApproved =
+        vendor.vendorVerification?.status === VerificationStatus.APPROVED;
 
-    const subscriptionActive =
-      vendor.subscriptionStatus === SubscriptionStatus.ACTIVE;
+      const subscriptionActive =
+        vendor.subscriptionStatus === SubscriptionStatus.ACTIVE;
 
-    const canGoLive = kycApproved && businessApproved && subscriptionActive;
+      const canGoLive = kycApproved && businessApproved && subscriptionActive;
 
-    const actionRequired = !canGoLive;
-
-    return {
-      vendor: {
-        id: vendor.id,
-        businessName: vendor.businessName ?? 'Unnamed Vendor',
-        coverImage: this.mediaService.getUrl( vendor.coverImage),
-        address: vendor.serviceArea?.address ?? undefined,
-        latitude: vendor.serviceArea?.latitude ?? undefined,
-        longitude: vendor.serviceArea?.longitude ?? undefined,
-      },
-
-      verification: {
-        isLimitedMode: !canGoLive,
-        kycStatus: vendor.kycStatus,
-        businessVerificationStatus:
-          vendor.vendorVerification?.status ?? undefined,
-        subscriptionStatus: vendor.subscriptionStatus,
-        onboardingStep: vendor.onboardingStep,
-        actionRequired,
-        title: actionRequired ? 'Action Required' : undefined,
-        message: actionRequired
-          ? 'Your account is currently in "Limited Mode". To start accepting order requests and accessing the marketplace, please complete your identity and fleet verification.'
-          : undefined,
-        buttonText: actionRequired ? 'Complete Verification' : undefined,
-      },
-
-      liveStatus: {
-        canGoLive,
-        isLive: canGoLive ? data.isLive : false,
-        disabledReason: canGoLive
-          ? undefined
-          : 'Verify account to toggle status',
-      },
-
-      stats: {
-        todaySale: Number(data.stats.todaySale.toFixed(2)),
-        ordersCompleted: data.stats.ordersCompleted,
-        pendingOrders: data.stats.pendingOrders,
-        cancelledOrders: data.stats.cancelledOrders,
-      },
-
-      currentLocation: vendor.serviceArea
-        ? {
-            address: vendor.serviceArea.address ?? undefined,
-            latitude: vendor.serviceArea.latitude,
-            longitude: vendor.serviceArea.longitude,
-            radius: vendor.serviceArea.radius,
-          }
-        : undefined,
-
-      unreadNotificationCount: data.unreadNotificationCount,
-    };
-  }
-
-    toMenuCategoriesResponse(vendor: any): VendorMenuCategoriesResponseDto {
-    const categories = vendor.categories ?? [];
-
-    const mappedCategories = categories.map((category: any) => {
-      const products = category.products ?? [];
+      const actionRequired = !canGoLive;
 
       return {
-        id: category.id,
-        name: category.name,
-        itemCount: products.length,
-        items: products.map((product: any) => {
-          const images = product.images ?? [];
-          const firstImage = images[0];
+        vendor: {
+          id: vendor.id,
+          businessName: vendor.businessName ?? 'Unnamed Vendor',
+          coverImage: this.mediaService.getUrl( vendor.coverImage),
+          address: vendor.serviceArea?.address ?? undefined,
+          latitude: vendor.serviceArea?.latitude ?? undefined,
+          longitude: vendor.serviceArea?.longitude ?? undefined,
+        },
 
-          return {
-            id: product.id,
-            name: product.name,
-            description: product.description ?? undefined,
-            price: product.price,
-            estimateCookTime: product.estimateCookTime,
-            isActive: product.isActive,
-            availabilityLabel: product.isActive ? 'Available' : 'Unavailable',
-            image: firstImage?.url
-              ? this.mediaService.getUrl(firstImage.url)
-              : undefined,
-            images: images.map((image: any) => ({
-              id: image.id,
-              url: this.mediaService.getUrl(image.url),
-              position: image.position,
-            })),
-          };
-        }),
+        verification: {
+          isLimitedMode: !canGoLive,
+          kycStatus: vendor.kycStatus,
+          businessVerificationStatus:
+            vendor.vendorVerification?.status ?? undefined,
+          subscriptionStatus: vendor.subscriptionStatus,
+          onboardingStep: vendor.onboardingStep,
+          actionRequired,
+          title: actionRequired ? 'Action Required' : undefined,
+          message: actionRequired
+            ? 'Your account is currently in "Limited Mode". To start accepting order requests and accessing the marketplace, please complete your identity and fleet verification.'
+            : undefined,
+          buttonText: actionRequired ? 'Complete Verification' : undefined,
+        },
+
+        liveStatus: {
+          canGoLive,
+          isLive: canGoLive ? data.isLive : false,
+          disabledReason: canGoLive
+            ? undefined
+            : 'Verify account to toggle status',
+        },
+
+        stats: {
+          todaySale: Number(data.stats.todaySale.toFixed(2)),
+          ordersCompleted: data.stats.ordersCompleted,
+          pendingOrders: data.stats.pendingOrders,
+          cancelledOrders: data.stats.cancelledOrders,
+        },
+
+        currentLocation: vendor.serviceArea
+          ? {
+              address: vendor.serviceArea.address ?? undefined,
+              latitude: vendor.serviceArea.latitude,
+              longitude: vendor.serviceArea.longitude,
+              radius: vendor.serviceArea.radius,
+            }
+          : undefined,
+
+        unreadNotificationCount: data.unreadNotificationCount,
       };
-    });
+    }
 
-    const totalItems = mappedCategories.reduce(
-      (sum: number, category: any) => sum + category.itemCount,
-      0,
-    );
+    toMenuCategoriesResponse(vendor: any): VendorMenuCategoriesResponseDto {
+      const categories = vendor.categories ?? [];
+
+      const mappedCategories = categories.map((category: any) => {
+        const products = category.products ?? [];
+
+        return {
+          id: category.id,
+          name: category.name,
+          itemCount: products.length,
+          items: products.map((product: any) => {
+            const images = product.images ?? [];
+            const firstImage = images[0];
+
+            return {
+              id: product.id,
+              name: product.name,
+              description: product.description ?? undefined,
+              price: product.price,
+              estimateCookTime: product.estimateCookTime,
+              isActive: product.isActive,
+              availabilityLabel: product.isActive ? 'Available' : 'Unavailable',
+              image: firstImage?.url
+                ? this.mediaService.getUrl(firstImage.url)
+                : undefined,
+              images: images.map((image: any) => ({
+                id: image.id,
+                url: this.mediaService.getUrl(image.url),
+                position: image.position,
+              })),
+            };
+          }),
+        };
+      });
+
+      const totalItems = mappedCategories.reduce(
+        (sum: number, category: any) => sum + category.itemCount,
+        0,
+      );
 
     return {
       totalCategories: mappedCategories.length,
@@ -344,7 +344,7 @@ export class VendorMapper {
     };
   }
 
-   toMenuItemsResponse(data: {
+  toMenuItemsResponse(data: {
     total: number;
     page: number;
     limit: number;

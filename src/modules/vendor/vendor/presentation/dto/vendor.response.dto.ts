@@ -38,11 +38,6 @@ export class VendorMenuVendorInfoResponseDto {
   cuisines!: string[];
 }
 
-export class VendorMenuResponseDto {
-  vendor!: VendorMenuVendorInfoResponseDto;
-  sections!: VendorMenuSectionResponseDto[];
-}
-
 export class VendorInfoOpeningHourResponseDto {
   dayOfWeek!: number;
   dayLabel!: string;
@@ -164,13 +159,6 @@ export class VendorMenuCategoryProductDto {
   availabilityLabel!: string;
   image?: string;
   images!: VendorMenuCategoryProductImageDto[];
-}
-
-export class VendorMenuCategoryDto {
-  id!: string;
-  name!: string;
-  itemCount!: number;
-  items!: VendorMenuCategoryProductDto[];
 }
 
 export class VendorMenuCategoriesResponseDto {
@@ -318,5 +306,42 @@ export class VendorFollowersResponseDto {
   };
 
   followers!: VendorFollowerListItemDto[];
+}
+
+export class VendorMenuProductImageDto {
+  id!: string;
+  url?: string;
+  isPrimary!: boolean;
+  position!: number;
+}
+
+export class VendorMenuProductCuisineDto {
+  id!: string;
+  name!: string;
+  imageUrl?: string;
+}
+
+export class VendorMenuProductDto {
+  id!: string;
+  name!: string;
+  description!: string;
+  price!: number;
+  estimateCookTime!: number;
+  isActive!: boolean;
+  images!: VendorMenuProductImageDto[];
+  cuisine?: VendorMenuProductCuisineDto;
+}
+
+export class VendorMenuCategoryDto {
+  id!: string;
+  name!: string;
+  itemCount!: number;
+  products!: VendorMenuProductDto[];
+}
+
+export class VendorMenuResponseDto {
+  totalCategories!: number;
+  totalItems!: number;
+  categories!: VendorMenuCategoryDto[];
 }
 
