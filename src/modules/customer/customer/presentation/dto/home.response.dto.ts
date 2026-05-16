@@ -1,7 +1,7 @@
 export class HomeUserDto {
   id!: string;
-  name!: string;
   email!: string;
+  name!: string;
 }
 
 export class HomeLocationDto {
@@ -11,6 +11,7 @@ export class HomeLocationDto {
 }
 
 export class HomeCategoryDto {
+  id!: string;
   name!: string;
 }
 
@@ -23,11 +24,14 @@ export class HomeCuisineDto {
 export class HomeVendorCardDto {
   id!: string;
   businessName!: string;
+  bio?: string;
   coverImage?: string;
   distanceKm!: number;
   cityLabel?: string;
   isOpen!: boolean;
   statusLabel!: string;
+  rating!: number;
+  reviewCount!: number;
 }
 
 export class HomeProductCardDto {
@@ -35,19 +39,29 @@ export class HomeProductCardDto {
   name!: string;
   image?: string;
   price!: number;
+
   vendorId!: string;
   vendorName!: string;
+
   distanceKm!: number;
+
+  categoryId?: string;
   categoryName?: string;
+
+  rating!: number;
+  reviewCount!: number;
 }
 
 export class HomeResponseDto {
   user!: HomeUserDto;
   currentLocation!: HomeLocationDto;
+
   categories!: HomeCategoryDto[];
   popularCuisines!: HomeCuisineDto[];
+
   whatsNearMe!: HomeVendorCardDto[];
   recommendedForYou!: HomeVendorCardDto[];
+
   topPicksForYou!: HomeProductCardDto[];
   trySomethingNew!: HomeProductCardDto[];
 }

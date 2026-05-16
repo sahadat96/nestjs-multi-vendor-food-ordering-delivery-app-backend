@@ -10,16 +10,29 @@ export interface CustomerHomeProfile {
   };
 }
 
+export interface HomeCategoryView {
+  id: string;
+  name: string;
+}
+
+export interface HomeCuisineView {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+}
+
 export interface IHomeRepository {
-  findCustomerHomeProfileByUserId(
+   findCustomerHomeProfileByUserId(
     userId: string,
   ): Promise<CustomerHomeProfile | null>;
 
   findVendorCandidates(): Promise<any[]>;
 
+  findHomeCategories(limit: number): Promise<HomeCategoryView[]>;
+
   findDistinctCategoryNames(limit: number): Promise<string[]>;
 
-  findPopularCuisines(limit: number): Promise<{ id: string; name: string; imageUrl: string | null }[]>;
+  findPopularCuisines(limit: number): Promise<HomeCuisineView[]>;
 
   findProductsForHome(
     vendorIds: string[],
