@@ -85,6 +85,24 @@ export class HomeService {
     const favoriteVendorIdSet = new Set(favoriteVendorIds);
     const favoriteProductIdSet = new Set(favoriteProductIds);
 
+    const popularTrucksNearby = [...homepageVendors].sort((a, b) => {
+      const bRating = b.truckReviewAverage ?? 0;
+      const aRating = a.truckReviewAverage ?? 0;
+
+      if (bRating !== aRating) {
+        return bRating - aRating;
+      }
+
+      const bReviewCount = b.truckReviewCount ?? 0;
+      const aReviewCount = a.truckReviewCount ?? 0;
+
+      if (bReviewCount !== aReviewCount) {
+        return bReviewCount - aReviewCount;
+      }
+
+      return a.distanceKm - b.distanceKm;
+    });
+
     let topPicks = await this.homeRepository.findProductsForHome(
       homepageVendorIds,
       8,
@@ -161,6 +179,10 @@ export class HomeService {
       ),
 
       recommendedForYou: homepageVendors.slice(0, 6).map((vendor) =>
+        this.toHomeVendorCard(vendor, favoriteVendorIdSet),
+      ),
+
+      explorePopularTrucksNearby: popularTrucksNearby.slice(0, 6).map((vendor) =>
         this.toHomeVendorCard(vendor, favoriteVendorIdSet),
       ),
 

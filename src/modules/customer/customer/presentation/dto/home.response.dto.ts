@@ -60,6 +60,8 @@ export class HomeResponseDto {
   whatsNearMe!: HomeVendorCardDto[];
   recommendedForYou!: HomeVendorCardDto[];
 
+  explorePopularTrucksNearby!: HomeVendorCardDto[];
+
   topPicksForYou!: HomeProductCardDto[];
   trySomethingNew!: HomeProductCardDto[];
 }
