@@ -35,3 +35,14 @@ export class VendorVerificationListQueryDto {
   @Max(100)
   limit?: number = 10;
 }
+
+export enum AdminVendorVerificationDocumentType {
+  BUSINESS_LICENSE = 'BUSINESS_LICENSE',
+  HEALTH_PERMIT = 'HEALTH_PERMIT',
+  INSURANCE_PROOF = 'INSURANCE_PROOF',
+}
+
+export class VendorVerificationDocumentParamDto {
+  @IsEnum(AdminVendorVerificationDocumentType)
+  documentType!: AdminVendorVerificationDocumentType;
+}

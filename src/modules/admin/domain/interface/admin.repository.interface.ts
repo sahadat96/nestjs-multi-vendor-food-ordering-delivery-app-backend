@@ -28,4 +28,8 @@ export interface IAdminVendorVerificationRepository {
   getManagementStats(): Promise<VendorVerificationStatsResult>;
 
   findDetailById(verificationId: string): Promise<any | null>;
+  
+  findDocumentFileByVerificationId(
+    verificationId: string,
+  ): Promise<any | null>;
 }

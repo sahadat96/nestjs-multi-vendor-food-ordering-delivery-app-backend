@@ -1,12 +1,19 @@
 import { VerificationStatus } from '@prisma/client';
 import { 
     Injectable,
+    NotFoundException,
  } from '@nestjs/common';
+
+import {
+  AdminVendorVerificationDocumentType,
+} from '../../presentation/dto/admin.dto';
 import {
   VendorVerificationManagementResponseDto,
   VendorVerificationListItemDto,
   AdminVendorVerificationDetailResponseDto,
+  AdminVendorVerificationFileResponseDto,
 } from '../../presentation/dto/admin.response.dto';
+
 import type {
   VendorVerificationListResult,
   VendorVerificationStatsResult,
@@ -196,4 +203,93 @@ export class AdminMapper {
   private resolveMediaUrl(path: string): string {
     return this.mediaService.getUrl(path) ?? path;
   }
+
+  toFileResponse(data: {
+    verification: any;
+    documentType: AdminVendorVerificationDocumentType;
+  }): AdminVendorVerificationFileResponseDto {
+    const filePath = this.getDocumentFilePath(
+        data.verification,
+        data.documentType,
+    );
+
+    if (!filePath) {
+        throw new NotFoundException('Document file not found');
+    }
+
+    return {
+        verificationId: data.verification.id,
+        vendorId: data.verification.vendor.id,
+
+        documentType: data.documentType,
+        label: this.getDocumentLabel(data.documentType),
+
+        fileName: this.extractFileName1(filePath),
+        fileUrl: this.resolveMediaUrl(filePath),
+        mimeType: this.resolveMimeType(filePath),
+     };
+   }
+
+   private getDocumentFilePath(
+     verification: any,
+     documentType: AdminVendorVerificationDocumentType,
+   ): string | null {
+    switch (documentType) {
+        case AdminVendorVerificationDocumentType.BUSINESS_LICENSE:
+        return verification.businessLicense;
+
+        case AdminVendorVerificationDocumentType.HEALTH_PERMIT:
+        return verification.healthPermit;
+
+        case AdminVendorVerificationDocumentType.INSURANCE_PROOF:
+        return verification.insuranceProof;
+
+        default:
+        return null;
+      }
+    }
+
+    private getDocumentLabel(
+      documentType: AdminVendorVerificationDocumentType,
+    ): string {
+    switch (documentType) {
+        case AdminVendorVerificationDocumentType.BUSINESS_LICENSE:
+        return 'Business License';
+
+        case AdminVendorVerificationDocumentType.HEALTH_PERMIT:
+        return 'Health Permit';
+
+        case AdminVendorVerificationDocumentType.INSURANCE_PROOF:
+        return 'Proof of Insurance';
+
+        default:
+        return 'Document';
+     }
+    }
+
+    private extractFileName1(path: string): string {
+     return path.split('/').pop() ?? path;
+    }
+
+    private resolveMimeType(path: string): string | undefined {
+     const extension = path.split('.').pop()?.toLowerCase();
+
+     switch (extension) {
+         case 'pdf':
+         return 'application/pdf';
+
+         case 'jpg':
+         case 'jpeg':
+         return 'image/jpeg';
+
+         case 'png':
+         return 'image/png';
+
+         case 'webp':
+         return 'image/webp';
+
+         default:
+         return undefined;
+     }
+    }
 }

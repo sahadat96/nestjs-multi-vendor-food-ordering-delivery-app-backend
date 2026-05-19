@@ -72,20 +72,25 @@ export class AdminVendorVerificationDetailResponseDto {
   verificationId!: string;
   vendorId!: string;
   vendorCode!: string;
-
   status!: VerificationStatus;
   submittedAt!: Date;
   submittedAtLabel!: string;
-
   rejectionReason?: string;
-
   documents!: AdminVendorVerificationDocumentDto[];
-
   vendor!: AdminVendorVerificationVendorDto;
-
   decision!: {
     canApprove: boolean;
     canReject: boolean;
     message: string;
   };
+}
+
+export class AdminVendorVerificationFileResponseDto {
+  verificationId!: string;
+  vendorId!: string;
+  documentType!: string;
+  label!: string;
+  fileName!: string;
+  fileUrl!: string;
+  mimeType?: string;
 }

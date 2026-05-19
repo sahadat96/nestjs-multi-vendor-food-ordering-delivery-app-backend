@@ -183,4 +183,26 @@ export class AdminVendorVerificationRepository
       },
     });
   }
+
+  async findDocumentFileByVerificationId(
+    verificationId: string,
+  ): Promise<any | null> {
+    return this.prisma.vendorVerification.findUnique({
+      where: {
+        id: verificationId,
+      },
+      select: {
+        id: true,
+        businessLicense: true,
+        healthPermit: true,
+        insuranceProof: true,
+
+        vendor: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+  }
 }
