@@ -1,25 +1,27 @@
 
-// import { Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 
-// import { AdminVendorVerificationController } from './presentation/admin-vendor-verification.controller';
-// import { AdminVendorVerificationService } from './application/admin-vendor-verification.service';
-// import { AdminVendorVerificationRepository } from './infrastructure/repositories/admin-vendor-verification.repository';
-// import { AdminVendorVerificationMapper } from './infrastructure/mapper/admin-vendor-verification.mapper';
+import { AdminController } from './presentation/controllers/admin.controller';
+import { AdminVendorVerificationService } from './application/admin.service';
+import { AdminVendorVerificationRepository } from './infrastructure/repositories/admin.repository';
+import { AdminMapper } from './infrastructure/mapper/admin.mapper';
+import { PrismaService } from '@/prisma/prisma.service';
 
-// @Module({
-//   controllers: [
-//     AdminVendorVerificationController,
-//   ],
-//   providers: [
-//     AdminVendorVerificationService,
-//     AdminVendorVerificationMapper,
-//     {
-//       provide: 'IAdminVendorVerificationRepository',
-//       useClass: AdminVendorVerificationRepository,
-//     },
-//   ],
-//   exports: [
-//     AdminVendorVerificationService,
-//   ],
-// })
-// export class AdminModule {}
+@Module({
+  controllers: [
+    AdminController,
+  ],
+  providers: [
+    AdminVendorVerificationService,
+    AdminMapper,
+    PrismaService,
+    {
+      provide: 'IAdminVendorVerificationRepository',
+      useClass: AdminVendorVerificationRepository,
+    },
+  ],
+  exports: [
+    AdminVendorVerificationService,
+  ],
+})
+export class AdminModule {}

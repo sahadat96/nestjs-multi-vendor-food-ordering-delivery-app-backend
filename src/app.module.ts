@@ -22,6 +22,7 @@ import { ReviewModule } from './modules/review/review.module';
 import { MediaModule } from './common/media/media.module';
 import { HelpCenterModule } from './modules/help-center/help-center.module';
 import { BullModule } from '@nestjs/bullmq';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { BullModule } from '@nestjs/bullmq';
     ReviewModule,
     MediaModule,
     HelpCenterModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [

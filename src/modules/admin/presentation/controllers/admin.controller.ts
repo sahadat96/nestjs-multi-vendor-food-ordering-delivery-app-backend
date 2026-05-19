@@ -13,7 +13,7 @@ import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/role.enum';
 
 @Controller('admin/vendor-verifications')
-export class AdminVendorVerificationController {
+export class AdminController {
   constructor(
     private readonly service: AdminVendorVerificationService,
   ) {}
