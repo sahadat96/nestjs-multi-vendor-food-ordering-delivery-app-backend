@@ -141,10 +141,7 @@ export class AdminDashboardRevenueResponseDto {
   range!: DashboardRevenueRange;
   metric!: DashboardRevenueMetric;
   currency!: string;
-
   total!: number;
-
   items!: AdminDashboardRevenueChartItemDto[];
-
   lastUpdatedAt!: Date;
 }

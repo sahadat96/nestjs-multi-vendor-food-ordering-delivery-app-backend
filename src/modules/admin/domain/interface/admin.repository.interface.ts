@@ -1,5 +1,9 @@
 import { VerificationStatus } from '@prisma/client';
-import { VendorVerificationSort } from '../../presentation/dto/admin.dto';
+import { 
+  VendorVerificationSort,
+  DashboardRevenueMetric,
+  DashboardRevenueRange,
+ } from '../../presentation/dto/admin.dto';
 
 export interface FindVendorVerificationsInput {
   status?: VerificationStatus;
@@ -43,6 +47,37 @@ export interface AdminDashboardOverviewRaw {
   };
 }
 
+export interface AdminDashboardRevenueInput {
+  range: DashboardRevenueRange;
+  metric: DashboardRevenueMetric;
+}
+
+export interface AdminDashboardRevenueRaw {
+  range: DashboardRevenueRange;
+  metric: DashboardRevenueMetric;
+  currency: string;
+  total: number;
+  items: AdminDashboardRevenueRawItem[];
+}
+
+export interface AdminDashboardRevenueRawItem {
+  label: string;
+  value: number;
+}
+
+export interface RevenueSubscriptionRow {
+  createdAt: Date;
+  subscriptionPlan: {
+    price: number;
+    currency: string;
+  } | null;
+}
+
+export interface SalesOrderRow {
+  createdAt: Date;
+  totalAmount: number;
+}
+
 export interface IAdminVendorVerificationRepository {
   findManagementList(
     input: FindVendorVerificationsInput,
@@ -57,4 +92,8 @@ export interface IAdminVendorVerificationRepository {
   ): Promise<any | null>;
 
   getOverview(): Promise<AdminDashboardOverviewRaw>;
+
+  findSubscriptionRevenueRows(startDate: Date): Promise<RevenueSubscriptionRow[]>;
+
+  findSalesRows(startDate: Date): Promise<SalesOrderRow[]>;
 }

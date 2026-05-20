@@ -6,6 +6,8 @@ import {
 
 import {
   AdminVendorVerificationDocumentType,
+  DashboardRevenueRange,
+  DashboardRevenueMetric,
 } from '../../presentation/dto/admin.dto';
 import {
   VendorVerificationManagementResponseDto,
@@ -13,6 +15,7 @@ import {
   AdminVendorVerificationDetailResponseDto,
   AdminVendorVerificationFileResponseDto,
   AdminDashboardOverviewResponseDto,
+  AdminDashboardRevenueResponseDto,
 } from '../../presentation/dto/admin.response.dto';
 
 import type {
@@ -21,6 +24,11 @@ import type {
   AdminDashboardOverviewRaw,
 } from '../../domain/interface/admin.repository.interface';
 import { MediaService } from '@/common/media/media.service';
+
+export interface RevenueChartItem {
+  label: string;
+  value: number;
+}
 
 @Injectable()
 export class AdminMapper {
@@ -324,6 +332,26 @@ export class AdminMapper {
         total: data.vendorsByStatus.total,
       },
 
+      lastUpdatedAt: new Date(),
+    };
+  }
+
+  toRevenueResponse(data: {
+    range: DashboardRevenueRange;
+    metric: DashboardRevenueMetric;
+    currency: string;
+    total: number;
+    items: RevenueChartItem[];
+  }): AdminDashboardRevenueResponseDto {
+    return {
+      range: data.range,
+      metric: data.metric,
+      currency: data.currency,
+      total: Number(data.total.toFixed(2)),
+      items: data.items.map((item) => ({
+        label: item.label,
+        value: Number(item.value.toFixed(2)),
+      })),
       lastUpdatedAt: new Date(),
     };
   }

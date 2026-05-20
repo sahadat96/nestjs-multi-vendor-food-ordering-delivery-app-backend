@@ -1,19 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
+
 import { 
   VerificationStatus,
   KycStatus,
   SubscriptionStatus,
   VendorLiveStatus,
+  OrderStatus,
  } from '@prisma/client';
-import { VendorVerificationSort } from '../../presentation/dto/admin.dto';
+
 import type {
   FindVendorVerificationsInput,
   IAdminVendorVerificationRepository,
   VendorVerificationListResult,
   VendorVerificationStatsResult,
   AdminDashboardOverviewRaw,
+  RevenueSubscriptionRow,
+  SalesOrderRow,
 } from '../../domain/interface/admin.repository.interface';
+
+import { VendorVerificationSort } from '../../presentation/dto/admin.dto';
 
 @Injectable()
 export class AdminVendorVerificationRepository
@@ -391,4 +397,51 @@ export class AdminVendorVerificationRepository
       },
     };
   }
+
+    async findSubscriptionRevenueRows(
+    startDate: Date,
+  ): Promise<RevenueSubscriptionRow[]> {
+    return this.prisma.vendorSubscription.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+        },
+        subscriptionPlanId: {
+          not: null,
+        },
+      },
+      select: {
+        createdAt: true,
+        subscriptionPlan: {
+          select: {
+            price: true,
+            currency: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findSalesRows(startDate: Date): Promise<SalesOrderRow[]> {
+    return this.prisma.order.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+        },
+        status: {
+          in: [
+            OrderStatus.CONFIRMED,
+            OrderStatus.PREPARING,
+            OrderStatus.READY_FOR_PICKUP,
+            OrderStatus.COMPLETED,
+          ],
+        },
+      },
+      select: {
+        createdAt: true,
+        totalAmount: true,
+      },
+    });
+  }
+
 }
