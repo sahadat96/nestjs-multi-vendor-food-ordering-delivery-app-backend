@@ -7,10 +7,12 @@ import type { IAdminVendorVerificationRepository } from '../domain/interface/adm
 import { 
   VendorVerificationListQueryDto,
   VendorVerificationSort,
+  AdminVendorVerificationDocumentType,
  } from '../presentation/dto/admin.dto';
 import { 
   VendorVerificationManagementResponseDto,
   AdminVendorVerificationDetailResponseDto,
+  AdminVendorVerificationFileResponseDto,
  } from '../presentation/dto/admin.response.dto';
 import { AdminMapper } from '../infrastructure/mapper/admin.mapper';
 import { VerificationStatus } from '@prisma/client';
@@ -60,5 +62,22 @@ export class AdminVendorVerificationService {
     }
 
     return this.adminMapper.toDetailResponse(verification);
+  }
+
+  async getVerificationDocumentFile(
+    verificationId: string,
+    documentType: AdminVendorVerificationDocumentType,
+  ): Promise<AdminVendorVerificationFileResponseDto> {
+    const verification =
+      await this.repository.findDocumentFileByVerificationId(verificationId);
+
+    if (!verification) {
+      throw new NotFoundException('Vendor verification not found');
+    }
+
+    return this.adminMapper.toFileResponse({
+      verification,
+      documentType,
+    });
   }
 }
