@@ -44,7 +44,7 @@ export class AdminController {
     return this.service.getVerificationDetail(verificationId);
   }
 
-  @Get(':verificationId/documents/:documentType')
+  @Get('vendor-verifications/:verificationId/documents/:documentType')
   @UseGuards(RoleGuard)
   @Roles(Role.ADMIN)
   async getVendorVerificationDocumentFile(
