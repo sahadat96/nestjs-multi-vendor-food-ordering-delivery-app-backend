@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/prisma/prisma.service';
 
 import { 
+  Prisma,
   VerificationStatus,
   KycStatus,
   SubscriptionStatus,
@@ -17,9 +18,15 @@ import type {
   AdminDashboardOverviewRaw,
   RevenueSubscriptionRow,
   SalesOrderRow,
+  FindAdminVendorAccountsInput,
+  AdminVendorAccountListResult,
+  AdminVendorAccountStatsResult,
 } from '../../domain/interface/admin.repository.interface';
 
-import { VendorVerificationSort } from '../../presentation/dto/admin.dto';
+import { 
+  VendorVerificationSort,
+  AdminVendorAccountSort,
+ } from '../../presentation/dto/admin.dto';
 
 @Injectable()
 export class AdminVendorVerificationRepository
@@ -444,4 +451,272 @@ export class AdminVendorVerificationRepository
     });
   }
 
+  async findVerificationForDecision(
+    verificationId: string,
+  ): Promise<any | null> {
+    return this.prisma.vendorVerification.findUnique({
+      where: {
+        id: verificationId,
+      },
+      select: {
+        id: true,
+        vendorId: true,
+        businessLicense: true,
+        healthPermit: true,
+        insuranceProof: true,
+        status: true,
+        reviewedAt: true,
+        rejectionReason: true,
+        vendor: {
+          select: {
+            id: true,
+            kycStatus: true,
+          },
+        },
+      },
+    });
+  }
+
+  async approveVerification(
+    verificationId: string,
+  ): Promise<any> {
+    return this.prisma.$transaction(async (tx) => {
+      const verification = await tx.vendorVerification.update({
+        where: {
+          id: verificationId,
+        },
+        data: {
+          status: VerificationStatus.APPROVED,
+          rejectionReason: null,
+          reviewedAt: new Date(),
+        },
+        select: {
+          id: true,
+          vendorId: true,
+          status: true,
+          reviewedAt: true,
+        },
+      });
+
+      await tx.vendor.update({
+        where: {
+          id: verification.vendorId,
+        },
+        data: {
+          kycStatus: KycStatus.APPROVED,
+        },
+      });
+
+      return verification;
+    });
+  }
+
+   async findVendorAccounts(
+    input: FindAdminVendorAccountsInput,
+  ): Promise<AdminVendorAccountListResult> {
+    const skip = (input.page - 1) * input.limit;
+
+    const search = input.search?.trim();
+
+    const where: Prisma.VendorWhereInput = {
+      ...(input.status && {
+        kycStatus: input.status,
+      }),
+
+      ...(input.subscriptionStatus && {
+        subscriptionStatus: input.subscriptionStatus,
+      }),
+
+      ...(search && {
+        OR: [
+          {
+            id: {
+              contains: search,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            businessName: {
+              contains: search,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            publicEmail: {
+              contains: search,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            contactNumber: {
+              contains: search,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            owner: {
+              name: {
+                contains: search,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+          },
+          {
+            owner: {
+              email: {
+                contains: search,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+          },
+        ],
+      }),
+    };
+
+    const orderBy = this.resolveOrderBy(input.sort);
+
+    const [total, items] = await Promise.all([
+      this.prisma.vendor.count({
+        where,
+      }),
+
+      this.prisma.vendor.findMany({
+        where,
+        skip,
+        take: input.limit,
+        orderBy,
+        select: {
+          id: true,
+          businessName: true,
+          publicEmail: true,
+          contactNumber: true,
+          kycStatus: true,
+          subscriptionStatus: true,
+          subscriptionExpiry: true,
+          createdAt: true,
+
+          owner: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+
+          subscriptionPlan: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              price: true,
+              currency: true,
+            },
+          },
+
+          subscription: {
+            select: {
+              id: true,
+              provider: true,
+              store: true,
+              productId: true,
+              currentPeriodEnd: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      total,
+      items,
+    };
+  }
+
+  async getVendorAccountStats(): Promise<AdminVendorAccountStatsResult> {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const [
+      totalVendors,
+      verifiedVendors,
+      newThisMonth,
+      suspendedVendors,
+    ] = await Promise.all([
+      this.prisma.vendor.count(),
+
+      this.prisma.vendor.count({
+        where: {
+          kycStatus: KycStatus.APPROVED,
+        },
+      }),
+
+      this.prisma.vendor.count({
+        where: {
+          createdAt: {
+            gte: startOfMonth,
+          },
+        },
+      }),
+
+      /**
+       * Your schema does not have SUSPENDED vendor status.
+       * For this dashboard, we treat CANCELLED subscription as suspended.
+       * If you add VendorAccountStatus later, change this logic.
+       */
+      this.prisma.vendor.count({
+        where: {
+          subscriptionStatus: SubscriptionStatus.CANCELLED,
+        },
+      }),
+    ]);
+
+    return {
+      totalVendors,
+      verifiedVendors,
+      newThisMonth,
+      suspendedVendors,
+    };
+  }
+
+  private resolveOrderBy(
+    sort: AdminVendorAccountSort,
+  ): Prisma.VendorOrderByWithRelationInput[] {
+    switch (sort) {
+      case AdminVendorAccountSort.OLDEST:
+        return [
+          {
+            createdAt: 'asc',
+          },
+        ];
+
+      case AdminVendorAccountSort.NAME_ASC:
+        return [
+          {
+            businessName: 'asc',
+          },
+          {
+            createdAt: 'desc',
+          },
+        ];
+
+      case AdminVendorAccountSort.NAME_DESC:
+        return [
+          {
+            businessName: 'desc',
+          },
+          {
+            createdAt: 'desc',
+          },
+        ];
+
+      case AdminVendorAccountSort.NEWEST:
+      default:
+        return [
+          {
+            createdAt: 'desc',
+          },
+        ];
+    }
+  }
 }

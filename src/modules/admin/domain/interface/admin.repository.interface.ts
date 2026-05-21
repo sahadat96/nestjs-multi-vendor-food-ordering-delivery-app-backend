@@ -1,8 +1,14 @@
-import { VerificationStatus } from '@prisma/client';
+import { 
+  VerificationStatus,
+  KycStatus,
+  SubscriptionStatus ,
+ } from '@prisma/client';
+
 import { 
   VendorVerificationSort,
   DashboardRevenueMetric,
   DashboardRevenueRange,
+  AdminVendorAccountSort,
  } from '../../presentation/dto/admin.dto';
 
 export interface FindVendorVerificationsInput {
@@ -78,6 +84,27 @@ export interface SalesOrderRow {
   totalAmount: number;
 }
 
+export interface FindAdminVendorAccountsInput {
+  search?: string;
+  status?: KycStatus;
+  subscriptionStatus?: SubscriptionStatus;
+  sort: AdminVendorAccountSort;
+  page: number;
+  limit: number;
+}
+
+export interface AdminVendorAccountListResult {
+  total: number;
+  items: any[];
+}
+
+export interface AdminVendorAccountStatsResult {
+  totalVendors: number;
+  verifiedVendors: number;
+  newThisMonth: number;
+  suspendedVendors: number;
+}
+
 export interface IAdminVendorVerificationRepository {
   findManagementList(
     input: FindVendorVerificationsInput,
@@ -96,4 +123,18 @@ export interface IAdminVendorVerificationRepository {
   findSubscriptionRevenueRows(startDate: Date): Promise<RevenueSubscriptionRow[]>;
 
   findSalesRows(startDate: Date): Promise<SalesOrderRow[]>;
+
+  findVerificationForDecision(
+    verificationId: string,
+  ): Promise<any | null>;
+
+  approveVerification(
+    verificationId: string,
+  ): Promise<any>;
+
+  findVendorAccounts(
+    input: FindAdminVendorAccountsInput,
+  ): Promise<AdminVendorAccountListResult>;
+
+  getVendorAccountStats(): Promise<AdminVendorAccountStatsResult>;
 }

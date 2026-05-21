@@ -1,4 +1,8 @@
-import { VerificationStatus } from '@prisma/client';
+import { 
+  VerificationStatus,
+  KycStatus,
+  SubscriptionStatus
+ } from '@prisma/client';
 
 import {
   DashboardRevenueMetric,
@@ -25,10 +29,8 @@ export class VendorVerificationListItemDto {
   vendorName!: string;
   publicEmail?: string;
   contactNumber?: string;
-
   status!: VerificationStatus;
   documents!: VendorVerificationDocumentStatusDto;
-
   submittedAt!: Date;
   submissionDateLabel!: string;
 }
@@ -62,13 +64,10 @@ export class AdminVendorVerificationVendorDto {
   vendorCode!: string;
   businessName!: string;
   coverImage?: string;
-
   ownerName!: string;
   ownerEmail!: string;
-
   publicEmail?: string;
   contactNumber?: string;
-
   joinedAt!: Date;
   joinedAtLabel!: string;
 }
@@ -144,4 +143,50 @@ export class AdminDashboardRevenueResponseDto {
   total!: number;
   items!: AdminDashboardRevenueChartItemDto[];
   lastUpdatedAt!: Date;
+}
+
+export class AdminVendorVerificationActionResponseDto {
+  verificationId!: string;
+  vendorId!: string;
+  status!: VerificationStatus;
+  reviewedAt!: Date;
+  message!: string;
+}
+
+export class AdminVendorAccountStatsDto {
+  totalVendors!: number;
+  verifiedVendors!: number;
+  newThisMonth!: number;
+  suspendedVendors!: number;
+}
+
+export class AdminVendorAccountListItemDto {
+  vendorId!: string;
+  vendorCode!: string;
+
+  businessName!: string;
+  ownerName!: string;
+  email!: string;
+
+  status!: KycStatus;
+  statusLabel!: string;
+
+  subscriptionStatus!: SubscriptionStatus;
+  subscriptionStatusLabel!: string;
+
+  dateJoined!: Date;
+  dateJoinedLabel!: string;
+}
+
+export class AdminVendorAccountPaginationDto {
+  total!: number;
+  page!: number;
+  limit!: number;
+  totalPages!: number;
+}
+
+export class AdminVendorAccountListResponseDto {
+  stats!: AdminVendorAccountStatsDto;
+  items!: AdminVendorAccountListItemDto[];
+  pagination!: AdminVendorAccountPaginationDto;
 }

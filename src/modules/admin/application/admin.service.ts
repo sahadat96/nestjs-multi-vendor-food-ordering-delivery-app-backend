@@ -2,6 +2,8 @@ import {
   Inject, 
   Injectable,
   NotFoundException,
+  ConflictException,
+  BadRequestException,
  } from '@nestjs/common';
 
 import { VerificationStatus } from '@prisma/client';
@@ -20,6 +22,8 @@ import {
   AdminDashboardRevenueQueryDto,
   DashboardRevenueRange,
   DashboardRevenueMetric,
+  AdminVendorAccountListQueryDto,
+  AdminVendorAccountSort,
  } from '../presentation/dto/admin.dto';
 import { 
   VendorVerificationManagementResponseDto,
@@ -27,6 +31,8 @@ import {
   AdminVendorVerificationFileResponseDto,
   AdminDashboardOverviewResponseDto,
   AdminDashboardRevenueResponseDto,
+  AdminVendorVerificationActionResponseDto,
+  AdminVendorAccountListResponseDto,
  } from '../presentation/dto/admin.response.dto';
 import { AdminMapper } from '../infrastructure/mapper/admin.mapper';
 
@@ -366,5 +372,82 @@ export class AdminVendorVerificationService {
       startDate,
       buckets,
     };
+  }
+
+  async approveVendorVerification(
+    verificationId: string,
+  ): Promise<AdminVendorVerificationActionResponseDto> {
+    const verification =
+      await this.repository.findVerificationForDecision(verificationId);
+
+    if (!verification) {
+      throw new NotFoundException('Vendor verification not found');
+    }
+
+    if (verification.status === VerificationStatus.APPROVED) {
+      throw new ConflictException(
+        'Vendor verification is already approved',
+      );
+    }
+
+    if (verification.status === VerificationStatus.REJECTED) {
+      throw new BadRequestException(
+        'Rejected verification cannot be approved. Vendor must resubmit documents.',
+      );
+    }
+
+    if (
+      verification.status !== VerificationStatus.PENDING &&
+      verification.status !== VerificationStatus.IN_REVIEW
+    ) {
+      throw new BadRequestException(
+        'Vendor verification cannot be approved from current status',
+      );
+    }
+
+    if (
+      !verification.businessLicense ||
+      !verification.healthPermit ||
+      !verification.insuranceProof
+    ) {
+      throw new BadRequestException(
+        'All required verification documents must be uploaded before approval',
+      );
+    }
+
+    const approved =
+      await this.repository.approveVerification(verificationId);
+
+    return this.adminMapper.toActionResponse({
+      verification: approved,
+      message: 'Vendor verification approved successfully.',
+    });
+  }
+
+  async getVendorAccounts(
+    query: AdminVendorAccountListQueryDto,
+  ): Promise<AdminVendorAccountListResponseDto> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const sort = query.sort ?? AdminVendorAccountSort.NEWEST;
+
+    const [stats, result] = await Promise.all([
+      this.repository.getVendorAccountStats(),
+      this.repository.findVendorAccounts({
+        search: query.search,
+        status: query.status,
+        subscriptionStatus: query.subscriptionStatus,
+        sort,
+        page,
+        limit,
+      }),
+    ]);
+
+    return this.adminMapper.toListResponse({
+      stats,
+      result,
+      page,
+      limit,
+    });
   }
 }

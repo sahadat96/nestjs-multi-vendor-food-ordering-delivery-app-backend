@@ -5,8 +5,11 @@ import {
   IsOptional,
   Max,
   Min,
+  IsString,
 } from 'class-validator';
 import { VerificationStatus } from '@prisma/client';
+
+import { KycStatus, SubscriptionStatus } from '@prisma/client';
 
 export enum VendorVerificationSort {
   NEWEST = 'newest',
@@ -71,6 +74,13 @@ export enum DashboardRevenueMetric {
   SALES = 'sales',
 }
 
+export enum AdminVendorAccountSort {
+  NEWEST = 'newest',
+  OLDEST = 'oldest',
+  NAME_ASC = 'name_asc',
+  NAME_DESC = 'name_desc',
+}
+
 export class AdminDashboardRevenueQueryDto {
   @IsOptional()
   @IsEnum(DashboardRevenueRange)
@@ -79,4 +89,35 @@ export class AdminDashboardRevenueQueryDto {
   @IsOptional()
   @IsEnum(DashboardRevenueMetric)
   metric?: DashboardRevenueMetric = DashboardRevenueMetric.REVENUE;
+}
+
+export class AdminVendorAccountListQueryDto {
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @IsOptional()
+  @IsEnum(KycStatus)
+  status?: KycStatus;
+
+  @IsOptional()
+  @IsEnum(SubscriptionStatus)
+  subscriptionStatus?: SubscriptionStatus;
+
+  @IsOptional()
+  @IsEnum(AdminVendorAccountSort)
+  sort?: AdminVendorAccountSort = AdminVendorAccountSort.NEWEST;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number = 10;
 }

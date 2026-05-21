@@ -13,6 +13,7 @@ import {
   AdminVendorVerificationDocumentType,
   AdminDashboardOverviewQueryDto,
   AdminDashboardRevenueQueryDto,
+  AdminVendorAccountListQueryDto,
  } from '../dto/admin.dto';
 import { 
   VendorVerificationManagementResponseDto,
@@ -20,7 +21,9 @@ import {
   AdminVendorVerificationFileResponseDto,
   AdminDashboardOverviewResponseDto,
   AdminDashboardRevenueResponseDto,
+  AdminVendorAccountListResponseDto,
 } from '../dto/admin.response.dto';
+
 import { RoleGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { Role } from '@/common/enums/role.enum';
@@ -90,4 +93,13 @@ export class AdminController {
   ) {
     return this.service.approveVendorVerification(verificationId);
   }
+
+  @Get('vendors/accounts')
+  @UseGuards(RoleGuard)
+  @Roles(Role.ADMIN)
+  async getVendorAccounts(
+    @Query() query: AdminVendorAccountListQueryDto,
+  ): Promise<AdminVendorAccountListResponseDto> {
+    return this.service.getVendorAccounts(query);
+  } 
 }

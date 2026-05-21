@@ -1,4 +1,9 @@
-import { VerificationStatus } from '@prisma/client';
+import { 
+  VerificationStatus,
+  KycStatus,
+  SubscriptionStatus,
+} from '@prisma/client';
+
 import { 
     Injectable,
     NotFoundException,
@@ -16,13 +21,19 @@ import {
   AdminVendorVerificationFileResponseDto,
   AdminDashboardOverviewResponseDto,
   AdminDashboardRevenueResponseDto,
+  AdminVendorVerificationActionResponseDto,
+  AdminVendorAccountListResponseDto,
+  AdminVendorAccountListItemDto,
 } from '../../presentation/dto/admin.response.dto';
 
 import type {
   VendorVerificationListResult,
   VendorVerificationStatsResult,
   AdminDashboardOverviewRaw,
+  AdminVendorAccountStatsResult,
+  AdminVendorAccountListResult,
 } from '../../domain/interface/admin.repository.interface';
+
 import { MediaService } from '@/common/media/media.service';
 
 export interface RevenueChartItem {
@@ -354,5 +365,140 @@ export class AdminMapper {
       })),
       lastUpdatedAt: new Date(),
     };
+  }
+
+  toActionResponse(data: {
+    verification: {
+      id: string;
+      vendorId: string;
+      status: any;
+      reviewedAt: Date | null;
+    };
+    message: string;
+  }): AdminVendorVerificationActionResponseDto {
+    return {
+      verificationId: data.verification.id,
+      vendorId: data.verification.vendorId,
+      status: data.verification.status,
+      reviewedAt: data.verification.reviewedAt ?? new Date(),
+      message: data.message,
+    };
+  }
+
+  toListResponse(data: {
+    stats: AdminVendorAccountStatsResult;
+    result: AdminVendorAccountListResult;
+    page: number;
+    limit: number;
+  }): AdminVendorAccountListResponseDto {
+    return {
+      stats: {
+        totalVendors: data.stats.totalVendors,
+        verifiedVendors: data.stats.verifiedVendors,
+        newThisMonth: data.stats.newThisMonth,
+        suspendedVendors: data.stats.suspendedVendors,
+      },
+
+      items: data.result.items.map((vendor) =>
+        this.toListItemResponse1(vendor),
+      ),
+
+      pagination: {
+        total: data.result.total,
+        page: data.page,
+        limit: data.limit,
+        totalPages:
+          data.result.total === 0
+            ? 0
+            : Math.ceil(data.result.total / data.limit),
+      },
+    };
+  }
+
+  private toListItemResponse1(vendor: any): AdminVendorAccountListItemDto {
+    return {
+      vendorId: vendor.id,
+      vendorCode: this.buildVendorCode1(vendor.id),
+
+      businessName:
+        vendor.businessName ??
+        vendor.owner?.name ??
+        'Unnamed Vendor',
+
+      ownerName:
+        vendor.owner?.name ??
+        vendor.businessName ??
+        'Unnamed Vendor',
+
+      email:
+        vendor.publicEmail ??
+        vendor.owner?.email ??
+        'No email found',
+
+      status: vendor.kycStatus,
+      statusLabel: this.toKycStatusLabel(vendor.kycStatus),
+
+      subscriptionStatus: vendor.subscriptionStatus,
+      subscriptionStatusLabel: this.toSubscriptionStatusLabel(
+        vendor.subscriptionStatus,
+      ),
+
+      dateJoined: vendor.createdAt,
+      dateJoinedLabel: this.formatDate1(vendor.createdAt),
+    };
+  }
+
+  private buildVendorCode1(vendorId: string): string {
+    return `#${vendorId.slice(0, 6).toUpperCase()}`;
+  }
+
+  private toKycStatusLabel(status: KycStatus): string {
+    switch (status) {
+      case KycStatus.APPROVED:
+        return 'Verified';
+
+      case KycStatus.REJECTED:
+        return 'Rejected';
+
+      case KycStatus.PENDING_REVIEW:
+        return 'Pending';
+
+      case KycStatus.UNVERIFIED:
+      default:
+        return 'Unverified';
+    }
+  }
+
+  private toSubscriptionStatusLabel(status: SubscriptionStatus): string {
+    switch (status) {
+      case SubscriptionStatus.ACTIVE:
+        return 'Active';
+
+      case SubscriptionStatus.INACTIVE:
+        return 'Inactive';
+
+      case SubscriptionStatus.EXPIRED:
+        return 'Expired';
+
+      case SubscriptionStatus.CANCELLED:
+        return 'Cancelled';
+
+      case SubscriptionStatus.CANCELLED:
+        return 'Grace Period';
+
+      case SubscriptionStatus.CANCELLED:
+        return 'Billing Retry';
+
+      default:
+        return 'Unknown';
+    }
+  }
+
+  private formatDate1(date: Date): string {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+    }).format(date);
   }
 }
