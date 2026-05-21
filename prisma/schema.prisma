@@ -69,6 +69,7 @@ model Otp {
 
 model Vendor {
   id                   String   @id @default(uuid())
+  vendorCode           String   @unique
   businessName         String?
   publicEmail          String?
   contactNumber        String?
@@ -113,6 +114,8 @@ model Vendor {
   
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
+
+  @@index([vendorCode])
 }
 
 model SubscriptionPlan {
