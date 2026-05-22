@@ -418,7 +418,7 @@ export class AdminMapper {
   private toListItemResponse1(vendor: any): AdminVendorAccountListItemDto {
     return {
       vendorId: vendor.id,
-      vendorCode: this.buildVendorCode1(vendor.id),
+      vendorCode: vendor.vendorCode,
 
       businessName:
         vendor.businessName ??
@@ -446,10 +446,6 @@ export class AdminMapper {
       dateJoined: vendor.createdAt,
       dateJoinedLabel: this.formatDate1(vendor.createdAt),
     };
-  }
-
-  private buildVendorCode1(vendorId: string): string {
-    return `#${vendorId.slice(0, 6).toUpperCase()}`;
   }
 
   private toKycStatusLabel(status: KycStatus): string {

@@ -511,7 +511,7 @@ export class AdminVendorVerificationRepository
     });
   }
 
-   async findVendorAccounts(
+  async findVendorAccounts(
     input: FindAdminVendorAccountsInput,
   ): Promise<AdminVendorAccountListResult> {
     const skip = (input.page - 1) * input.limit;
@@ -529,6 +529,12 @@ export class AdminVendorVerificationRepository
 
       ...(search && {
         OR: [
+           {
+            vendorCode: {
+              contains: search,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
           {
             id: {
               contains: search,
@@ -587,6 +593,7 @@ export class AdminVendorVerificationRepository
         orderBy,
         select: {
           id: true,
+          vendorCode: true,
           businessName: true,
           publicEmail: true,
           contactNumber: true,
