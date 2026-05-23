@@ -126,5 +126,4 @@ export class AdminController {
   ): Promise<AdminVendorAccountOrdersResponseDto> {
     return this.service.getVendorAccountOrders(vendorId, query);
   }
-
-}
+} 

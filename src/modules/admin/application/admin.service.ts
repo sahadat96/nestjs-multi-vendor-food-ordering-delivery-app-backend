@@ -31,6 +31,9 @@ import {
   AdminVendorAccountSort,
   AdminVendorAccountOverviewQueryDto,
   AdminVendorOverviewRange,
+  AdminVendorAccountOrdersQueryDto,
+  AdminVendorOrderStatusFilter,
+  AdminVendorOrderSort,
  } from '../presentation/dto/admin.dto';
 import { 
   VendorVerificationManagementResponseDto,
@@ -41,8 +44,11 @@ import {
   AdminVendorVerificationActionResponseDto,
   AdminVendorAccountListResponseDto,
   AdminVendorAccountOverviewResponseDto,
+  AdminVendorAccountOrdersResponseDto,
  } from '../presentation/dto/admin.response.dto';
 import { AdminMapper } from '../infrastructure/mapper/admin.mapper';
+
+import { VendorService } from '@/modules/vendor/vendor/application/vendor.service';
 
 export interface RevenueChartItem {
   label: string;
@@ -62,6 +68,7 @@ export class AdminVendorVerificationService {
     @Inject('IAdminVendorVerificationRepository')
     private readonly repository: IAdminVendorVerificationRepository,
     private readonly adminMapper: AdminMapper,
+    private readonly vendorService: VendorService,
   ) {}
 
   async getManagementList(
@@ -962,4 +969,37 @@ export class AdminVendorVerificationService {
       endDate: previousEnd,
     };
   }
+
+  async getVendorAccountOrders(
+    vendorId: string,
+    query: AdminVendorAccountOrdersQueryDto,
+  ): Promise<AdminVendorAccountOrdersResponseDto> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+    const status = query.status ?? AdminVendorOrderStatusFilter.ALL;
+    const sort = query.sort ?? AdminVendorOrderSort.NEWEST;
+
+    const vendor = await this.vendorService.findByVendorId(vendorId);
+
+    if (!vendor) {
+      throw new NotFoundException('Vendor not found');
+    }
+
+    const result = await this.repository.findVendorAccountOrders({
+      vendorId,
+      search: query.search,
+      status,
+      sort,
+      page,
+      limit,
+    });
+
+    return this.adminMapper.toVendorAccountOrdersResponse({
+      result,
+      page,
+      limit,
+    });
+  }
 }
+
+
