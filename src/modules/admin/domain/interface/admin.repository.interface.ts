@@ -10,6 +10,8 @@ import {
   DashboardRevenueMetric,
   DashboardRevenueRange,
   AdminVendorAccountSort,
+  AdminVendorOrderStatusFilter,
+  AdminVendorOrderSort,
  } from '../../presentation/dto/admin.dto';
 
 export interface FindVendorVerificationsInput {
@@ -138,6 +140,21 @@ export interface AdminVendorFavoriteCustomerOrderSummary {
   totalSpent: number;
 }
 
+export interface FindAdminVendorAccountOrdersInput {
+  vendorId: string;
+  search?: string;
+  status: AdminVendorOrderStatusFilter;
+  sort: AdminVendorOrderSort;
+  page: number;
+  limit: number;
+}
+
+export interface AdminVendorAccountOrdersResult {
+  total: number;
+  items: any[];
+}
+
+//Main Interface
 export interface IAdminVendorVerificationRepository {
   findManagementList(
     input: FindVendorVerificationsInput,
@@ -213,4 +230,8 @@ export interface IAdminVendorVerificationRepository {
       totalSpent: number;
     }[]
   >;
+
+  findVendorAccountOrders(
+    input: FindAdminVendorAccountOrdersInput,
+  ): Promise<AdminVendorAccountOrdersResult>;
 }

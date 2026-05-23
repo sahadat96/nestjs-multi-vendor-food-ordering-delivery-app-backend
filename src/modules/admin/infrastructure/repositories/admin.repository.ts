@@ -24,11 +24,15 @@ import type {
   AdminVendorOverviewOrderRow,
   AdminVendorOverviewProfileViewRow,
   AdminVendorOverviewFavoriteRow,
+  FindAdminVendorAccountOrdersInput,
+  AdminVendorAccountOrdersResult,
 } from '../../domain/interface/admin.repository.interface';
 
 import { 
   VendorVerificationSort,
   AdminVendorAccountSort,
+  AdminVendorOrderStatusFilter,
+  AdminVendorOrderSort,
  } from '../../presentation/dto/admin.dto';
 
 @Injectable()
@@ -967,5 +971,137 @@ export class AdminVendorVerificationRepository
       orderCount: item._count.id,
       totalSpent: item._sum.totalAmount ?? 0,
     }));
+  }
+
+  async findVendorAccountOrders(
+    input: FindAdminVendorAccountOrdersInput,
+  ): Promise<AdminVendorAccountOrdersResult> {
+    const page = input.page;
+    const limit = input.limit;
+    const skip = (page - 1) * limit;
+
+    const search = input.search?.trim();
+
+    const where: Prisma.OrderWhereInput = {
+      vendorId: input.vendorId,
+    };
+
+    if (
+      input.status &&
+      input.status !== AdminVendorOrderStatusFilter.ALL
+    ) {
+      where.status = input.status as OrderStatus;
+    }
+
+    if (search) {
+      where.OR = [
+        {
+          orderNumber: {
+            contains: search,
+            mode: Prisma.QueryMode.insensitive,
+          },
+        },
+        {
+          customer: {
+            user: {
+              name: {
+                contains: search,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+          },
+        },
+        {
+          customer: {
+            user: {
+              email: {
+                contains: search,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+          },
+        },
+      ];
+    }
+
+    const orderBy = this.resolveVendorAccountOrderSort(input.sort);
+
+    const [total, items] = await Promise.all([
+      this.prisma.order.count({
+        where,
+      }),
+
+      this.prisma.order.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy,
+        select: {
+          id: true,
+          orderNumber: true,
+          status: true,
+          totalAmount: true,
+          createdAt: true,
+
+          customer: {
+            select: {
+              id: true,
+              user: {
+                select: {
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      total,
+      items,
+    };
+  }
+
+  private resolveVendorAccountOrderSort(
+    sort: AdminVendorOrderSort,
+  ): Prisma.OrderOrderByWithRelationInput[] {
+    switch (sort) {
+      case AdminVendorOrderSort.OLDEST:
+        return [
+          {
+            createdAt: 'asc',
+          },
+        ];
+
+      case AdminVendorOrderSort.AMOUNT_HIGH:
+        return [
+          {
+            totalAmount: 'desc',
+          },
+          {
+            createdAt: 'desc',
+          },
+        ];
+
+      case AdminVendorOrderSort.AMOUNT_LOW:
+        return [
+          {
+            totalAmount: 'asc',
+          },
+          {
+            createdAt: 'desc',
+          },
+        ];
+
+      case AdminVendorOrderSort.NEWEST:
+      default:
+        return [
+          {
+            createdAt: 'desc',
+          },
+        ];
+    }
   }
 }
