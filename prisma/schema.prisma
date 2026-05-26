@@ -95,6 +95,12 @@ model Vendor {
   status               VendorLiveStatus @default(OFFLINE)
   statusUpdatedAt      DateTime?
 
+  adminStatus          VendorAdminStatus @default(ACTIVE)
+  statusReason         String?
+
+  suspendedAt          DateTime?
+  disabledAt           DateTime?
+
   kycProfile           KycProfile? 
   products             Product[] 
   socialLinks          SocialLink[] 
@@ -860,6 +866,12 @@ model VendorProfileView {
   @@index([vendorId])
   @@index([customerId])
   @@index([viewedAt])
+}
+
+enum VendorAdminStatus {
+  ACTIVE
+  SUSPENDED
+  DISABLED
 }
 
 enum SubscriptionProvider {
