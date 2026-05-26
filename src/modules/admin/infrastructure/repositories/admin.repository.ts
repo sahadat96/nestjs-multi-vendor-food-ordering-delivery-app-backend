@@ -38,6 +38,11 @@ import {
   AdminVendorOrderSort,
  } from '../../presentation/dto/admin.dto';
 
+export type VendorSubscriptionWithPlan =
+  Prisma.VendorSubscriptionGetPayload<{
+    include: { subscriptionPlan: true };
+  }>;
+
 @Injectable()
 export class AdminVendorVerificationRepository
   implements IAdminVendorVerificationRepository
@@ -1118,12 +1123,12 @@ export class AdminVendorVerificationRepository
 
   async findSubscriptionByVendorId(
     vendorId: string,
-  ): Promise<VendorSubscription | null> {
+  ): Promise<VendorSubscriptionWithPlan | null> {
     return this.prisma.vendorSubscription.findUnique({
       where: { vendorId },
       include: {
         subscriptionPlan: true,
       },
-    });
+    }); 
   }
 }

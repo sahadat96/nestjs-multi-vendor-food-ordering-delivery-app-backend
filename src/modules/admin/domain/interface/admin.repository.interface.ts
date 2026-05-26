@@ -5,6 +5,7 @@ import {
   OrderStatus,
   VendorVerification,
   VendorSubscription,
+  Prisma,
  } from '@prisma/client';
 
 import { 
@@ -165,6 +166,11 @@ export interface AdminVendorDocumentRow {
   expiresAt?: Date | null;
 }
 
+export type VendorSubscriptionWithPlan =
+  Prisma.VendorSubscriptionGetPayload<{
+    include: { subscriptionPlan: true };
+  }>;
+
 //Main Interface
 export interface IAdminVendorVerificationRepository {
   findManagementList(
@@ -198,7 +204,6 @@ export interface IAdminVendorVerificationRepository {
   ): Promise<AdminVendorAccountListResult>;
 
   getVendorAccountStats(): Promise<AdminVendorAccountStatsResult>;
-
 
   findVendorOverviewById(vendorId: string): Promise<any | null>;
 
@@ -246,11 +251,11 @@ export interface IAdminVendorVerificationRepository {
     input: FindAdminVendorAccountOrdersInput,
   ): Promise<AdminVendorAccountOrdersResult>;
 
- findVendorDocuments(
+  findVendorDocuments(
     vendorId: string,
   ): Promise<VendorVerification | null>;
 
   findSubscriptionByVendorId(
     vendorId: string,
-  ): Promise<VendorSubscription | null>;
+  ): Promise<VendorSubscriptionWithPlan | null>;
 }

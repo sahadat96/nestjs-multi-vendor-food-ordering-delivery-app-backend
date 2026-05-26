@@ -5,7 +5,9 @@ import {
   VendorLiveStatus,
   OrderStatus,
   VendorVerification,
+  VendorSubscription,
 } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 import { 
     Injectable,
@@ -33,7 +35,8 @@ import {
   AdminVendorAccountOverviewResponseDto,
   AdminVendorAccountOrdersResponseDto,
   AdminVendorDocumentsResponseDto,
-  AdminVendorDocumentItemDto
+  AdminVendorDocumentItemDto,
+  AdminVendorSubscriptionResponseDto,
 } from '../../presentation/dto/admin.response.dto';
 
 import type {
@@ -51,6 +54,11 @@ export interface RevenueChartItem {
   label: string;
   value: number;
 }
+
+export type VendorSubscriptionWithPlan =
+  Prisma.VendorSubscriptionGetPayload<{
+    include: { subscriptionPlan: true };
+}>;
 
 @Injectable()
 export class AdminMapper {
@@ -738,48 +746,76 @@ export class AdminMapper {
     }).format(date);
   }
 
-toVendorDocumentsResponseFromVerification(
-  data: VendorVerification,
-): AdminVendorDocumentsResponseDto {
-  const docs: AdminVendorDocumentRow[] = [
-    {
-      id: data.id,
-      type: 'BUSINESS_LICENSE',
-      fileName: 'Business License.pdf',
-      fileKey: data.businessLicense,
-      createdAt: data.createdAt,
-    },
-    {
-      id: data.id,
-      type: 'HEALTH_PERMIT',
-      fileName: 'Health Permit.pdf',
-      fileKey: data.healthPermit,
-      createdAt: data.createdAt,
-    },
-    {
-      id: data.id,
-      type: 'INSURANCE_PROOF',
-      fileName: 'Proof of Insurance.pdf',
-      fileKey: data.insuranceProof,
-      createdAt: data.createdAt,
-    },
-  ];
+  toVendorDocumentsResponseFromVerification(
+    data: VendorVerification,
+  ): AdminVendorDocumentsResponseDto {
+    const docs: AdminVendorDocumentRow[] = [
+      {
+        id: data.id,
+        type: 'BUSINESS_LICENSE',
+        fileName: 'Business License.pdf',
+        fileKey: data.businessLicense,
+        createdAt: data.createdAt,
+      },
+      {
+        id: data.id,
+        type: 'HEALTH_PERMIT',
+        fileName: 'Health Permit.pdf',
+        fileKey: data.healthPermit,
+        createdAt: data.createdAt,
+      },
+      {
+        id: data.id,
+        type: 'INSURANCE_PROOF',
+        fileName: 'Proof of Insurance.pdf',
+        fileKey: data.insuranceProof,
+        createdAt: data.createdAt,
+      },
+    ];
 
-  return {
-    items: docs.map((doc): AdminVendorDocumentItemDto => ({
-      id: doc.id,
-      documentType: doc.type,
-      documentName: doc.fileName,
-      status: 'ACTIVE',
-      statusLabel: 'Active',
-      uploadedAt: doc.createdAt,
-      uploadedAtLabel: this.formatDate(doc.createdAt),
-      expiresAt: undefined,
-      expiresAtLabel: undefined,
-      fileUrl: doc.fileKey
-        ? this.mediaService.getUrl(doc.fileKey) ?? ''
-        : '',
-    })),
-  };
-}
+    return {
+      items: docs.map((doc): AdminVendorDocumentItemDto => ({
+        id: doc.id,
+        documentType: doc.type,
+        documentName: doc.fileName,
+        status: 'ACTIVE',
+        statusLabel: 'Active',
+        uploadedAt: doc.createdAt,
+        uploadedAtLabel: this.formatDate(doc.createdAt),
+        expiresAt: undefined,
+        expiresAtLabel: undefined,
+        fileUrl: doc.fileKey
+          ? this.mediaService.getUrl(doc.fileKey) ?? ''
+          : '',
+      })),
+    };
+  }
+
+  toVendorSubscriptionResponse(
+    sub: VendorSubscriptionWithPlan,
+  ): AdminVendorSubscriptionResponseDto {
+    const startDate = sub.createdAt;
+    const endDate = sub.currentPeriodEnd ?? undefined;
+
+    return {
+      items: [
+        {
+          invoiceId: sub.id,
+
+          planName: sub.subscriptionPlan?.name ?? 'Free Trial',
+
+          provider: sub.provider,
+          status: sub.status,
+
+          startDate,
+          startDateLabel: this.formatDate(startDate),
+
+          endDate,
+          endDateLabel: endDate ? this.formatDate(endDate) : undefined,
+
+          isCurrent: sub.status === 'ACTIVE',
+        },
+      ],
+    };
+  }
 }
