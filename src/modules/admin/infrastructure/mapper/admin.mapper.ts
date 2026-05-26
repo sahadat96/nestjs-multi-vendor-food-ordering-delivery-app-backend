@@ -6,6 +6,8 @@ import {
   OrderStatus,
   VendorVerification,
   VendorSubscription,
+  Vendor,
+  VendorAdminStatus,
 } from '@prisma/client';
 import { Prisma } from '@prisma/client';
 
@@ -37,6 +39,7 @@ import {
   AdminVendorDocumentsResponseDto,
   AdminVendorDocumentItemDto,
   AdminVendorSubscriptionResponseDto,
+  AdminVendorStatusResponseDto,
 } from '../../presentation/dto/admin.response.dto';
 
 import type {
@@ -818,4 +821,23 @@ export class AdminMapper {
       ],
     };
   }
+
+  toVendorStatusResponse(vendor: Vendor): AdminVendorStatusResponseDto {
+    return {
+      id: vendor.id,
+      status: vendor.adminStatus,
+      statusLabel: this.formatStatus(vendor.adminStatus),
+      reason: vendor.statusReason ?? undefined,
+      updatedAt: vendor.updatedAt,
+    };
+  }
+
+  private formatStatus(status: VendorAdminStatus): string {
+    const statusMap: Record<VendorAdminStatus, string> = {
+      ACTIVE: 'Active',
+      SUSPENDED: 'Suspended',
+      DISABLED: 'Disabled',
+    };
+  return statusMap[status];
+}
 }

@@ -9,7 +9,8 @@ import {
   VendorLiveStatus,
   OrderStatus,
   VendorVerification,
-  VendorSubscription,
+  Vendor,
+  VendorAdminStatus,
  } from '@prisma/client';
 
 import type {
@@ -28,7 +29,7 @@ import type {
   AdminVendorOverviewFavoriteRow,
   FindAdminVendorAccountOrdersInput,
   AdminVendorAccountOrdersResult,
-  AdminVendorDocumentRow,
+  UpdateVendorVerificationData,
 } from '../../domain/interface/admin.repository.interface';
 
 import { 
@@ -42,6 +43,13 @@ export type VendorSubscriptionWithPlan =
   Prisma.VendorSubscriptionGetPayload<{
     include: { subscriptionPlan: true };
   }>;
+
+type UpdateVendorStatusData = {
+  adminStatus: VendorAdminStatus;
+  statusReason?: string | null;
+  suspendedAt?: Date | null;
+  disabledAt?: Date | null;
+};
 
 @Injectable()
 export class AdminVendorVerificationRepository
@@ -1130,5 +1138,28 @@ export class AdminVendorVerificationRepository
         subscriptionPlan: true,
       },
     }); 
+  }
+
+  async updateStatus(
+    vendorId: string,
+    data: UpdateVendorStatusData,
+  ): Promise<Vendor> {
+    const prismaData = this.toPrismaUpdate(data);
+
+    return this.prisma.vendor.update({
+      where: { id: vendorId },
+      data: prismaData,
+    });
+  }
+
+  private toPrismaUpdate(
+    data: UpdateVendorStatusData,
+  ): Prisma.VendorUpdateInput {
+    return {
+      adminStatus: data.adminStatus,
+      statusReason: data.statusReason,
+      suspendedAt: data.suspendedAt,
+      disabledAt: data.disabledAt,
+    };
   }
 }

@@ -167,13 +167,4 @@ export class AdminController {
       dto.reason,
     );
   }
-  
-  // @Patch('vendors/:id/activate')
-  // @UseGuards(RoleGuard)
-  // @Roles(Role.ADMIN)
-  // @ResponseMessage('Vendor activate successfully.')
-  // activateVendor(@Param('id') vendorId: string) {
-  //   return this.service.activateVendor(vendorId);
-  // }
-
 } 

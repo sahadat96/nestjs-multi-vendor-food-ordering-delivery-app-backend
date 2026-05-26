@@ -35,6 +35,7 @@ import {
   AdminVendorAccountOrdersQueryDto,
   AdminVendorOrderStatusFilter,
   AdminVendorOrderSort,
+  UpdateVendorStatusData,
  } from '../presentation/dto/admin.dto';
 import { 
   VendorVerificationManagementResponseDto,
@@ -1037,24 +1038,9 @@ export class AdminVendorVerificationService {
     status: VendorAdminStatus,
     reason?: string,
   ) {
-    const vendor = await this.vendorService.findByVendorId(vendorId);
-
-    if (!vendor) {
-      throw new NotFoundException('Vendor not found');
-    }
-
-    if (
-      (status === 'SUSPENDED' || status === 'DISABLED') &&
-      !reason
-    ) {
-      throw new BadRequestException(
-        'Reason is required for this action',
-      );
-    }
-
-    const data: any = {
+    let data: UpdateVendorStatusData = {
       adminStatus: status,
-      statusReason: reason ?? null,
+      statusReason: reason || null,
     };
 
     if (status === 'SUSPENDED') {
@@ -1070,16 +1056,10 @@ export class AdminVendorVerificationService {
     if (status === 'ACTIVE') {
       data.suspendedAt = null;
       data.disabledAt = null;
+      data.statusReason = null;
     }
-
-    const updated = await this.repository.updateStatus(
-      vendorId,
-      data,
-    );
-
-    return this.adminMapper.toVendorStatusResponse(updated);
+    return this.repository.updateStatus(vendorId, data);
   }
-
 }
 
 

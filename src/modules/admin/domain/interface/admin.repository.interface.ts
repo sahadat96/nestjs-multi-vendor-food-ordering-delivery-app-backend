@@ -6,6 +6,7 @@ import {
   VendorVerification,
   VendorSubscription,
   Prisma,
+  Vendor,
  } from '@prisma/client';
 
 import { 
@@ -15,6 +16,7 @@ import {
   AdminVendorAccountSort,
   AdminVendorOrderStatusFilter,
   AdminVendorOrderSort,
+  UpdateVendorStatusData,
  } from '../../presentation/dto/admin.dto';
 
 export interface FindVendorVerificationsInput {
@@ -171,6 +173,18 @@ export type VendorSubscriptionWithPlan =
     include: { subscriptionPlan: true };
   }>;
 
+export enum VendorVerificationStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
+
+export interface UpdateVendorVerificationData {
+  verificationStatus: VendorVerificationStatus;
+  rejectionReason?: string | null;
+  verifiedAt?: Date | null;
+}
+
 //Main Interface
 export interface IAdminVendorVerificationRepository {
   findManagementList(
@@ -258,4 +272,9 @@ export interface IAdminVendorVerificationRepository {
   findSubscriptionByVendorId(
     vendorId: string,
   ): Promise<VendorSubscriptionWithPlan | null>;
+
+  updateStatus(
+    vendorId: string,
+    data: UpdateVendorStatusData,
+  ): Promise<Vendor>;
 }

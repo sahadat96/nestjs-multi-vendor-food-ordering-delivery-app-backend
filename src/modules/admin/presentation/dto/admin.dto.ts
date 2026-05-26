@@ -182,6 +182,18 @@ export class AdminVendorAccountOrdersQueryDto {
 }
 
 export class UpdateVendorStatusDto {
+  @IsEnum(VendorAdminStatus)
   status!: VendorAdminStatus;
+
+  @IsOptional()
+  @IsString()
   reason?: string;
 }
+
+export interface UpdateVendorStatusData {
+  adminStatus: VendorAdminStatus;
+  statusReason?: string | null;
+  suspendedAt?: Date | null;
+  disabledAt?: Date | null;
+}
+

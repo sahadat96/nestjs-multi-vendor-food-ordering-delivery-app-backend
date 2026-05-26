@@ -4,6 +4,7 @@ import {
   SubscriptionStatus,
   VendorLiveStatus,
   OrderStatus,
+  VendorAdminStatus,
  } from '@prisma/client';
 
 import {
@@ -371,4 +372,14 @@ export class AdminVendorSubscriptionItemDto {
 
 export class AdminVendorSubscriptionResponseDto {
   items!: AdminVendorSubscriptionItemDto[];
+}
+
+export class AdminVendorStatusResponseDto {
+  id!: string;
+  status!: VendorAdminStatus; 
+  statusLabel!: string;
+  reason?: string;
+  suspendedAt?: Date;
+  disabledAt?: Date;
+  updatedAt!: Date;
 }
