@@ -1,10 +1,32 @@
-import { Controller, Get, Post, Body, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
-import { AuthService } from '../application/auth.service';
-import { RegisterDto } from './dto/registerDto/register.dto';
-import { LoginDto } from './dto/loginDto/login.dto';
+import { 
+  Controller, 
+  Get, 
+  Post,
+  Body, 
+  Req, 
+  Res,
+  UnauthorizedException, 
+  UseGuards 
+} from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+
+import type { AuthUser } from '../domain/interfaces/auth-user.interface';
+
 import { JwtAuthGuard } from '../infrastructure/guards/jwt-auth.guard';
+
+import { RegisterDto } from './dto/registerDto/register.dto';
+import { LoginDto } from './dto/loginDto/login.dto';
+import { 
+  SendOtpDto, 
+  VerifyOtpDto,
+  NewPasswordDto,
+} from './dto/mail/otp.dto';
+
+import { CurrentUserResponseDto } from './dto/userDto/user.response.dto';
+
+import { AuthService } from '../application/auth.service';
 import { RoleGuard } from 'src/common/guards/roles.guard';
 import { PermissionGuard } from 'src/common/guards/permissions.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -12,13 +34,10 @@ import { Permissions } from 'src/common/decorators/permissions.decorator';
 import { Permission } from 'src/common/enums/permission.enum';
 import { Role } from 'src/common/enums/role.enum';
 import { GoogleOAuthGuard } from 'src/common/guards/google-oauth.guard';
-import { ConfigService } from '@nestjs/config';
 import { Public } from 'src/common/decorators/public.decorator';
-import { SendOtpDto, VerifyOtpDto, NewPasswordDto  } from './dto/mail/otp.dto';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CurrentUser } from '../decorators/get-user.decorator';
-import type { AuthUser } from '../domain/interfaces/auth-user.interface';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -94,12 +113,12 @@ export class AuthController {
    return res.redirect(`${frontendUrl}?token=${tokens.accessToken}`);
   }
 
-  @Get('test')
-  @UseGuards(RoleGuard, PermissionGuard )
-  @Roles(Role.USER)
-  @Permissions(Permission.VIEW_USER)
-  get() {
-    return 'Sohel Athentication test Success';
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async me(
+    @CurrentUser() user: AuthUser,
+  ): Promise<CurrentUserResponseDto> {
+    return this.authService.getCurrentUser(user.id);
   }
 
   @Post('refresh')

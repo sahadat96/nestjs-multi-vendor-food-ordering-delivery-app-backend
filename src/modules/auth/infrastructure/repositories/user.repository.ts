@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
+
 import { IUserRepository, LoginUserView} from '../../domain/interfaces/user.repository.interface';
 import { User } from '../../domain/entities/user.entity';
 import { UserMapper } from '../mappers/user.mapper';
+import { UserWithRelations } from '../../domain/types/user-with-relations.type';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
@@ -161,5 +163,23 @@ export class UserRepository implements IUserRepository {
       data: { refreshToken },
     });
   }
-  
+
+  async findLoginUserById(
+    userId: string,
+  ): Promise<UserWithRelations | null> {
+    return this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      include: {
+        role: true,
+        customer: true,
+        vendorStore: {
+          include: {
+            serviceArea: true,
+          },
+        },
+      },
+    });
+  }
 }

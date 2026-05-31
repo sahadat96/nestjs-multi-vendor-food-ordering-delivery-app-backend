@@ -1,18 +1,32 @@
-import { Injectable, Inject, ConflictException, UnauthorizedException, BadRequestException, ForbiddenException  } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+
+import { 
+  Injectable,
+  Inject, 
+  ConflictException,
+  UnauthorizedException, 
+  BadRequestException, 
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
+
+import { OAuth2Client } from 'google-auth-library';
+import * as crypto from 'crypto';
+import * as bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
+
 import type { IUserRepository } from '../domain/interfaces/user.repository.interface';
 import type { IOtpRepository } from '../domain/interfaces/otp.repository.interface';
 import { User } from '../domain/entities/user.entity';
-import * as bcrypt from 'bcrypt';
-import { JwtService } from '@nestjs/jwt';
-import { v4 as uuidv4 } from 'uuid';
+
+import { AuthOtpQueueService } from '../infrastructure/queues/auth-otp-queue.service';
+
 import { RegisterDto } from '../presentation/dto/registerDto/register.dto';
 import { LoginDto } from '../presentation/dto/loginDto/login.dto';
-import { ConfigService } from '@nestjs/config';
-import { OAuth2Client } from 'google-auth-library';
-import * as crypto from 'crypto';
 import { MailService } from 'src/common/mail/mail.service';
 import { VerifyOtpDto  } from '../presentation/dto/mail/otp.dto';
-import { AuthOtpQueueService } from '../infrastructure/queues/auth-otp-queue.service';
+import { CurrentUserResponseDto } from '../presentation/dto/userDto/user.response.dto';
 
 @Injectable()
 export class AuthService {
@@ -370,5 +384,23 @@ export class AuthService {
     await this.userRepository.updateRefreshToken(userId, null);
   }
 
+  async getCurrentUser(
+    userId: string,
+  ): Promise<CurrentUserResponseDto> {
+
+    const user =
+      await this.userRepository.findLoginUserById(userId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role.name,
+      emailVerified: user.isEmailVerified,
+    };
+  }
 }
 

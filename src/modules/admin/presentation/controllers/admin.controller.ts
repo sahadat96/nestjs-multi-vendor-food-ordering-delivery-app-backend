@@ -152,7 +152,6 @@ export class AdminController {
     return this.service.getVendorSubscription(vendorId);
   }
 
-  
   @Patch('vendors/:id/status')
   @UseGuards(RoleGuard)
   @Roles(Role.ADMIN)
