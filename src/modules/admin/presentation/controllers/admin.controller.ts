@@ -30,6 +30,7 @@ import {
   AdminVendorAccountOrdersResponseDto,
   AdminVendorDocumentsResponseDto,
   AdminVendorSubscriptionResponseDto,
+  AdminVendorStatusResponseDto,
 } from '../dto/admin.response.dto';
 
 import { RoleGuard } from '@/common/guards/roles.guard';
@@ -159,7 +160,7 @@ export class AdminController {
   updateVendorStatus(
     @Param('id') vendorId: string,
     @Body() dto: UpdateVendorStatusDto,
-  ) {
+  ) : Promise<AdminVendorStatusResponseDto>{
     return this.service.updateVendorStatus(
       vendorId,
       dto.status,
