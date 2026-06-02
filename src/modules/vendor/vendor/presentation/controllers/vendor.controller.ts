@@ -229,3 +229,4 @@ export class VendorController {
     return this.vendorService.getVendorFollowers(user.id, query);
   }
 }
+

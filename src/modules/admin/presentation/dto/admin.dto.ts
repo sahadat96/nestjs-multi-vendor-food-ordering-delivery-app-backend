@@ -10,9 +10,9 @@ import {
 import { 
   VerificationStatus,
   VendorAdminStatus,
+  KycStatus,
+  SubscriptionStatus,
  } from '@prisma/client';
-
-import { KycStatus, SubscriptionStatus } from '@prisma/client';
 
 export enum VendorVerificationSort {
   NEWEST = 'newest',
@@ -195,5 +195,13 @@ export interface UpdateVendorStatusData {
   statusReason?: string | null;
   suspendedAt?: Date | null;
   disabledAt?: Date | null;
+}
+
+export class GetCustomersQueryDto {
+  search?: string;
+  status?: boolean;
+  page?: number = 1;
+  limit?: number = 10;
+  sortBy?: 'newest' | 'oldest' = 'newest';
 }
 
