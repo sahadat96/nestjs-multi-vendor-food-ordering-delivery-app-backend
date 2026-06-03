@@ -8,6 +8,9 @@ import { AdminMapper } from './infrastructure/mapper/admin.mapper';
 import { PrismaService } from '@/prisma/prisma.service';
 import { MediaService } from '@/common/media/media.service';
 import { VendorModule } from '../vendor/vendor/vendor.module';
+import { AdminCustomerService } from './application/admin.customer.service';
+import { AdminCustomerRepository } from './infrastructure/repositories/admin.customer.repository';
+import { AdminCustomerMapper } from './infrastructure/mapper/admin.customer.mapper';
 
 @Module({
   controllers: [
@@ -21,9 +24,15 @@ import { VendorModule } from '../vendor/vendor/vendor.module';
     AdminMapper,
     PrismaService,
     MediaService,
+    AdminCustomerService,
+    AdminCustomerMapper,
     {
       provide: 'IAdminVendorVerificationRepository',
       useClass: AdminVendorVerificationRepository,
+    },
+     {
+      provide: 'IAdminCustomerRepository',
+      useClass: AdminCustomerRepository,
     },
   ],
   exports: [
