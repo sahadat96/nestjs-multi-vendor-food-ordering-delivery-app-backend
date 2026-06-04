@@ -8,8 +8,6 @@ import {
 
 import {
   VerificationStatus,
-  OrderStatus,
-  VendorAdminStatus,
 } from '@prisma/client';
 
 import type { 
@@ -19,14 +17,14 @@ import type {
 
 import { AdminCustomerMapper } from '../infrastructure/mapper/admin.customer.mapper';
 
-import { CustomerOrderHistoryQueryDto } from '../presentation/dto/customer-query.dto';
-import {
-  GetCustomersQueryDto,
- } from '../presentation/dto/admin.dto';
 import { 
-  PaginatedCustomerResponseDto,
- } from '../presentation/dto/admin.response.dto';
-import { CustomerDetailResponseDto } from '../presentation/dto/customer-detail.response.dto';
+  CustomerOrderHistoryQueryDto,
+  CustomerReportQueueQueryDto,
+} from '../presentation/dto/customer-query.dto';
+import { 
+  CustomerDetailResponseDto,
+  CustomerReportQueueResponseDto,
+ } from '../presentation/dto/customer-detail.response.dto';
 
 import { VendorService } from '@/modules/vendor/vendor/application/vendor.service';
 
@@ -61,6 +59,15 @@ export class AdminCustomerService {
     const limit = query.limit ?? 10;
 
     return this.adminCustomerMapper.toDetailResponse(raw, page, limit);
+  }
+
+  async getReportQueue(
+    query: CustomerReportQueueQueryDto,
+  ): Promise<CustomerReportQueueResponseDto> {
+
+    const raw = await this.adminCustomerRepository.findReportQueue(query);
+
+    return this.adminCustomerMapper.toReportQueueResponse(raw, query.page, query.limit);
   }
 }
 

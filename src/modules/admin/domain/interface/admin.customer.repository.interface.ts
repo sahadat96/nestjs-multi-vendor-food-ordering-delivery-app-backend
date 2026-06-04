@@ -7,8 +7,14 @@ import {
 import { 
   VendorVerificationSort,
  } from '../../presentation/dto/admin.dto';
- import { CustomerOrderHistoryQueryDto } from '../../presentation/dto/customer-query.dto';
- import { CustomerRawData } from '../../infrastructure/mapper/admin.customer.mapper';
+ import { 
+  CustomerOrderHistoryQueryDto,
+  CustomerReportQueueQueryDto,
+ } from '../../presentation/dto/customer-query.dto';
+ import { 
+  CustomerRawData,
+  ReportQueueRawData,
+ } from '../../infrastructure/mapper/admin.customer.mapper';
 
 export interface PaginatedResult<T> {
   data: T[];
@@ -34,4 +40,13 @@ export interface IAdminCustomerRepository {
   ): Promise<CustomerRawData>;
 
   existsById(customerId: string): Promise<boolean> 
+
+  findRawCustomerData(
+    customerId: string,
+    query: CustomerOrderHistoryQueryDto,
+  ): Promise<CustomerRawData>;
+
+  findReportQueue(                                    // ✅ add
+    query: CustomerReportQueueQueryDto,
+  ): Promise<ReportQueueRawData>;
 }

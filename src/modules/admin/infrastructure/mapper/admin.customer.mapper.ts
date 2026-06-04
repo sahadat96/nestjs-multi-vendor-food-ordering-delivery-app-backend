@@ -75,6 +75,24 @@ export interface CustomerRawData {
   reportsFiled: number;
 }
 
+type ReportQueueRaw = {
+  customerId:  string;
+  reportCount: number;
+  vendorCount: number;
+  customer: {
+    id:     string;
+    avatar: string | null;
+    user: {
+      name:  string | null;
+      email: string;
+    };
+  };
+}
+
+export interface ReportQueueRawData {
+  items:  ReportQueueRaw[];
+  total:  number;
+}
 
 @Injectable()
 export class AdminCustomerMapper {
