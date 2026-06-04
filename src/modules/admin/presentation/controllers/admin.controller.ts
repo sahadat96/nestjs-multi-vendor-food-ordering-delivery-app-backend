@@ -8,7 +8,11 @@ import {
   Body,
 } from '@nestjs/common';
 
-import { AdminVendorVerificationService } from '../../application/admin.service';
+import { 
+  AdminVendorVerificationService,
+ } from '../../application/admin.service';
+ import { AdminCustomerService } from '../../application/admin.customer.service';
+
 import { 
   VendorVerificationListQueryDto,
   AdminVendorVerificationDocumentType,
@@ -42,6 +46,7 @@ import { ResponseMessage } from '@/common/decorators/response-message.decorator'
 export class AdminController {
   constructor(
     private readonly service: AdminVendorVerificationService,
+    private readonly adminCustomerService: AdminCustomerService,
   ) {}
 
   @Get('vendor-verifications')
@@ -176,5 +181,18 @@ export class AdminController {
       dto.status,
       dto.reason,
     );
+  }
+  
+  @Get('customer-list')
+  @UseGuards(RoleGuard)
+  @Roles(Role.ADMIN)
+  async getCustomers(
+    @Query('page') page = 1,
+    @Query('limit') limit = 10
+  ) {
+    return this.adminCustomerService.getCustomers({
+      page: Number(page),
+      limit: Number(limit),
+    });
   }
 } 

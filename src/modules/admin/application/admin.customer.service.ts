@@ -32,7 +32,7 @@ import { VendorService } from '@/modules/vendor/vendor/application/vendor.servic
 @Injectable()
 export class AdminCustomerService {
   constructor(
-    @Inject('IAdminVendorVerificationRepository')
+    @Inject('IAdminCustomerRepository')
     private readonly adminCustomerRepository: IAdminCustomerRepository,
     private readonly adminCustomerMapper: AdminCustomerMapper,
     private readonly vendorService: VendorService,
