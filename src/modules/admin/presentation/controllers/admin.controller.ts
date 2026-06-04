@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Body,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 
 import { 
@@ -13,6 +14,12 @@ import {
  } from '../../application/admin.service';
  import { AdminCustomerService } from '../../application/admin.customer.service';
 
+ import {
+  ApiOperation,
+  ApiParam,
+} from '@nestjs/swagger';
+
+import { CustomerOrderHistoryQueryDto } from '../dto/customer-query.dto';
 import { 
   VendorVerificationListQueryDto,
   AdminVendorVerificationDocumentType,
@@ -36,6 +43,7 @@ import {
   AdminVendorSubscriptionResponseDto,
   AdminVendorStatusResponseDto,
 } from '../dto/admin.response.dto';
+import { CustomerDetailResponseDto } from '../dto/customer-detail.response.dto';
 
 import { RoleGuard } from '@/common/guards/roles.guard';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -194,5 +202,16 @@ export class AdminController {
       page: Number(page),
       limit: Number(limit),
     });
+  }
+
+  @Get(':customerId')
+  @ResponseMessage('Customer detail fetched successfully')
+  @ApiOperation({ summary: 'Get customer detail with order history' })
+  @ApiParam({ name: 'customerId', description: 'Customer UUID' })
+  async getCustomerDetail(
+    @Param('customerId', ParseUUIDPipe) customerId: string,
+    @Query() query: CustomerOrderHistoryQueryDto,
+  ): Promise<CustomerDetailResponseDto> {
+    return this.adminCustomerService.getCustomerDetail(customerId, query);
   }
 } 

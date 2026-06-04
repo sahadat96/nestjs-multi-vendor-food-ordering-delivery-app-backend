@@ -19,13 +19,14 @@ import type {
 
 import { AdminCustomerMapper } from '../infrastructure/mapper/admin.customer.mapper';
 
+import { CustomerOrderHistoryQueryDto } from '../presentation/dto/customer-query.dto';
 import {
   GetCustomersQueryDto,
  } from '../presentation/dto/admin.dto';
 import { 
   PaginatedCustomerResponseDto,
  } from '../presentation/dto/admin.response.dto';
-
+import { CustomerDetailResponseDto } from '../presentation/dto/customer-detail.response.dto';
 import { VendorService } from '@/modules/vendor/vendor/application/vendor.service';
 
 
@@ -38,11 +39,27 @@ export class AdminCustomerService {
     private readonly vendorService: VendorService,
   ) {}
 
-async getCustomers(params: FindAllCustomersParams) {
-  const result = await this.adminCustomerRepository.findAll(params);
+  async getCustomers(params: FindAllCustomersParams) {
+    const result = await this.adminCustomerRepository.findAll(params);
 
-  return this.adminCustomerMapper.toPaginated(result);
-}
+    return this.adminCustomerMapper.toPaginated(result);
+  }
+
+  async getCustomerDetail(
+    customerId: string,
+    query: CustomerOrderHistoryQueryDto,
+  ): Promise<CustomerDetailResponseDto> {
+    const customer = await this.adminCustomerRepository.findCustomerDetailById(
+      customerId,
+      query,
+    );
+
+    if (!customer) {
+      throw new NotFoundException('Customer not found');
+    }
+
+    return customer;
+  }
 }
 
 
