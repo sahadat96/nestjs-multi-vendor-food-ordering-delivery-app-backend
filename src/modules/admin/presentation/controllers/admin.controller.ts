@@ -221,12 +221,12 @@ export class AdminController {
     return this.adminCustomerService.getCustomerDetail(customerId, query);
   }
 
-@Get('customer/report')
-@ResponseMessage('Customer report queue fetched successfully')
-@ApiOperation({ summary: 'Get reported customer queue with search, sort, pagination' })
-async getReportQueue(
-  @Query() query: CustomerReportQueueQueryDto,
-): Promise<CustomerReportQueueResponseDto> {
-  return this.adminCustomerService.getReportQueue(query);
-}
+  @Get('customer/report')
+  @ResponseMessage('Customer report queue fetched successfully')
+  @ApiOperation({ summary: 'Get reported customer queue with search, sort, pagination' })
+  async getReportQueue(
+    @Query() query: CustomerReportQueueQueryDto,
+  ): Promise<CustomerReportQueueResponseDto> {
+    return this.adminCustomerService.getReportQueue(query);
+  }
 } 
