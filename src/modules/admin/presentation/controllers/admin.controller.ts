@@ -49,7 +49,8 @@ import {
 import { 
   CustomerDetailResponseDto,
   CustomerReportQueueResponseDto,
-  CustomerReportDetailResponseDto
+  CustomerReportDetailResponseDto,
+  CustomerVendorReportsResponseDto,
  } from '../dto/customer-detail.response.dto';
 
 import { RoleGuard } from '@/common/guards/roles.guard';
@@ -211,6 +212,8 @@ export class AdminController {
   }
 
   @Get('customer/report')
+  @UseGuards(RoleGuard)
+  @Roles(Role.ADMIN)
   @ResponseMessage('Customer report queue fetched successfully')
   @ApiOperation({ summary: 'Get reported customer queue with search, sort, pagination' })
   async getReportQueue(
@@ -220,6 +223,8 @@ export class AdminController {
   }
 
   @Get('customer/:customerId')
+  @UseGuards(RoleGuard)
+  @Roles(Role.ADMIN)
   @ResponseMessage('Customer detail fetched successfully')
   @ApiOperation({ summary: 'Get customer detail with order history' })
   @ApiParam({ name: 'customerId', description: 'Customer UUID' })
@@ -231,6 +236,8 @@ export class AdminController {
   }
 
   @Get('customer/:customerId/reports')
+  @UseGuards(RoleGuard)
+  @Roles(Role.ADMIN)
   @ResponseMessage('Customer report details fetched successfully')
   @ApiOperation({ summary: 'Get customer report details with vendor breakdown' })
   @ApiParam({ name: 'customerId', description: 'Customer UUID' })
@@ -238,5 +245,17 @@ export class AdminController {
     @Param('customerId', ParseUUIDPipe) customerId: string,
   ): Promise<CustomerReportDetailResponseDto> { 
     return this.adminCustomerService.getCustomerReportDetail(customerId);
+  }
+
+  @Get(':customerId/reports/vendors')
+  @UseGuards(RoleGuard)
+  @Roles(Role.ADMIN)
+  @ResponseMessage('Customer vendor reports fetched successfully')
+  @ApiOperation({ summary: 'Get all vendor reports against a customer grouped by vendor' })
+  @ApiParam({ name: 'customerId', description: 'Customer UUID' })
+  async getCustomerVendorReports(
+    @Param('customerId', ParseUUIDPipe) customerId: string,
+  ): Promise<CustomerVendorReportsResponseDto> {
+    return this.adminCustomerService.getCustomerVendorReports(customerId);
   }
 }
