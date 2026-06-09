@@ -247,7 +247,7 @@ export class AdminController {
     return this.adminCustomerService.getCustomerReportDetail(customerId);
   }
 
-  @Get(':customerId/reports/vendors')
+  @Get('customer/:customerId/reports/vendors')
   @UseGuards(RoleGuard)
   @Roles(Role.ADMIN)
   @ResponseMessage('Customer vendor reports fetched successfully')

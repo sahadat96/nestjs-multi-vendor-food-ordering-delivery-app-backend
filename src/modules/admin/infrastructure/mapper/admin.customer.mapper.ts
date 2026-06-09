@@ -10,7 +10,6 @@ import {
     NotFoundException,
  } from '@nestjs/common';
 
- 
 import type {
   VendorVerificationListResult,
 } from '../../domain/interface/admin.repository.interface';
@@ -30,6 +29,9 @@ import {
   CustomerReportQueueResponseDto,
   CustomerReportDetailResponseDto,
   ReportingVendorDto,
+  ReportItemDto,
+  VendorReportGroupDto,
+  CustomerVendorReportsResponseDto,
  } from '../../presentation/dto/customer-detail.response.dto';
 
 import { MediaService } from '@/common/media/media.service';
@@ -135,6 +137,23 @@ export interface CustomerReportDetailRawData {
 export interface ReportQueueRawData {
   items:  ReportQueueRaw[];
   total:  number;
+}
+
+type VendorReportsRaw = {
+  vendor: {
+    id:           string;
+    vendorCode:   string;
+    businessName: string | null;
+    coverImage:   string | null;
+  };
+  reports: {
+    id:        string;
+    createdAt: Date;
+  }[];
+};
+
+export interface CustomerVendorReportsRawData {
+  vendorGroups: VendorReportsRaw[];
 }
 
 @Injectable()
@@ -315,6 +334,45 @@ export class AdminCustomerMapper {
       .map(this.toReportingVendor)
       .sort((a, b) => b.reportCount - a.reportCount);
 
+    return dto;
+  }
+
+  static toReportItem(
+    report: { id: string; createdAt: Date },
+    index:  number,
+  ): ReportItemDto {
+    const dto         = new ReportItemDto();
+    dto.reportId      = report.id;
+    dto.reportNumber  = `#${report.id.slice(0, 5).toUpperCase()}`;
+    dto.createdAt     = report.createdAt;
+    dto.displayDate   = new Date(report.createdAt).toLocaleDateString('en-US', {
+      month: '2-digit',
+      day:   '2-digit',
+      year:  'numeric',
+    }).replace(/\//g, '-');    
+    return dto;
+  }
+
+  static toVendorReportGroup(raw: VendorReportsRaw): VendorReportGroupDto {
+    const dto         = new VendorReportGroupDto();
+    dto.vendorId      = raw.vendor.id;
+    dto.vendorCode    = `${raw.vendor.vendorCode}`;
+    dto.businessName  = raw.vendor.businessName ?? 'Unknown';
+    dto.coverImage    = raw.vendor.coverImage;
+    dto.reportCount   = raw.reports.length;
+    dto.reports       = raw.reports.map((r, i) =>
+      AdminCustomerMapper.toReportItem(r, i),
+    );
+    return dto;
+  }
+
+  toCustomerVendorReports(
+    raw: CustomerVendorReportsRawData,
+  ): CustomerVendorReportsResponseDto {
+    const dto     = new CustomerVendorReportsResponseDto();
+    dto.vendors   = raw.vendorGroups
+      .map(AdminCustomerMapper.toVendorReportGroup)
+      .sort((a, b) => b.reportCount - a.reportCount); 
     return dto;
   }
 }

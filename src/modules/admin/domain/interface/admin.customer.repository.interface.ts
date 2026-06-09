@@ -1,12 +1,7 @@
-import { 
-  VerificationStatus,
-  Customer,
+import {
   Prisma,
  } from '@prisma/client';
 
-import { 
-  VendorVerificationSort,
- } from '../../presentation/dto/admin.dto';
  import { 
   CustomerOrderHistoryQueryDto,
   CustomerReportQueueQueryDto,
@@ -15,6 +10,7 @@ import {
   CustomerRawData,
   ReportQueueRawData,
   CustomerReportDetailRawData,
+  CustomerVendorReportsRawData,
  } from '../../infrastructure/mapper/admin.customer.mapper';
 
 export interface PaginatedResult<T> {
@@ -54,4 +50,8 @@ export interface IAdminCustomerRepository {
   findReportDetail(
     customerId: string,
   ): Promise<CustomerReportDetailRawData | null>;
+
+  findCustomerVendorReports(
+    customerId: string,
+  ): Promise<CustomerVendorReportsRawData | null>;
 }

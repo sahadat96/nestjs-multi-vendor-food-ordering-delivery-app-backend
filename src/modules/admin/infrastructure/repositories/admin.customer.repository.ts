@@ -21,7 +21,21 @@ import {
   CustomerRawData,
   ReportQueueRawData,
   CustomerReportDetailRawData,
+  CustomerVendorReportsRawData,
  } from '../mapper/admin.customer.mapper';
+
+ type VendorReportsRaw = {
+  vendor: {
+    id:           string;
+    vendorCode:   string;
+    businessName: string | null;
+    coverImage:   string | null;
+  };
+  reports: {
+    id:        string;
+    createdAt: Date;
+  }[];
+};
 
 @Injectable()
 export class AdminCustomerRepository
@@ -310,5 +324,69 @@ export class AdminCustomerRepository
       totalReportCount,
       lastOrderedAt: lastOrder?.createdAt ?? null,
     };
+  }
+
+  async findCustomerVendorReports(
+    customerId: string,
+  ): Promise<CustomerVendorReportsRawData | null> {
+
+    const customerExists = await this.prisma.customer.findUnique({
+      where:  { id: customerId },
+      select: { id: true },
+    });
+
+    if (!customerExists) return null;
+
+    const vendorIds = await this.prisma.orderReport
+      .findMany({
+        where:   { customerId },
+        select:  { vendorId: true },
+        distinct: ['vendorId'],        
+      })
+      .then((rows) => rows.map((r) => r.vendorId));
+
+    if (!vendorIds.length) return { vendorGroups: [] };
+
+    const [vendors, reports] = await Promise.all([
+
+      this.prisma.vendor.findMany({
+        where:  { id: { in: vendorIds } },
+        select: {
+          id:           true,
+          vendorCode:   true,
+          businessName: true,
+          coverImage:   true,
+        },
+      }),
+
+      this.prisma.orderReport.findMany({
+        where:  { customerId },
+        select: {
+          id:        true,
+          vendorId:  true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'asc' }, 
+      }),
+    ]);
+
+    const vendorMap = new Map(vendors.map((v) => [v.id, v]));
+
+    const reportsByVendor = new Map<string, { id: string; createdAt: Date }[]>();
+
+    for (const report of reports) {
+      const existing = reportsByVendor.get(report.vendorId) ?? [];
+      existing.push({ id: report.id, createdAt: report.createdAt });
+      reportsByVendor.set(report.vendorId, existing);
+    }
+
+    const vendorGroups: VendorReportsRaw[] = vendorIds
+      .filter((id) => vendorMap.has(id))
+      .map((id) => ({
+        vendor:  vendorMap.get(id)!,
+        reports: reportsByVendor.get(id) ?? [],
+      }));
+
+    return { vendorGroups };
   }
 }
