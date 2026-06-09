@@ -33,4 +33,5 @@ export default () => ({
     from: process.env.MAIL_FROM || '"No Reply" <no-reply@example.com>',
   },
   
+  
 });

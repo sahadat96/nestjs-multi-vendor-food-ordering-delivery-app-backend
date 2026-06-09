@@ -49,6 +49,7 @@ import {
 import { 
   CustomerDetailResponseDto,
   CustomerReportQueueResponseDto,
+  CustomerReportDetailResponseDto
  } from '../dto/customer-detail.response.dto';
 
 import { RoleGuard } from '@/common/guards/roles.guard';
@@ -227,5 +228,15 @@ export class AdminController {
     @Query() query: CustomerOrderHistoryQueryDto,
   ): Promise<CustomerDetailResponseDto> {
     return this.adminCustomerService.getCustomerDetail(customerId, query);
+  }
+
+  @Get(':customerId/reports')
+  @ResponseMessage('Customer report details fetched successfully')
+  @ApiOperation({ summary: 'Get customer report details with vendor breakdown' })
+  @ApiParam({ name: 'customerId', description: 'Customer UUID' })
+  async getCustomerReportDetail(
+    @Param('customerId', ParseUUIDPipe) customerId: string,
+  ): Promise<CustomerReportDetailResponseDto> {
+    return this.service.getCustomerReportDetail(customerId);
   }
 }

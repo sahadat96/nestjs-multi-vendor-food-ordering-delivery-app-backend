@@ -167,17 +167,13 @@ export class AdminVendorAccountStatsDto {
 export class AdminVendorAccountListItemDto {
   vendorId!: string;
   vendorCode!: string;
-
   businessName!: string;
   ownerName!: string;
   email!: string;
-
   status!: KycStatus;
   statusLabel!: string;
-
   subscriptionStatus!: SubscriptionStatus;
   subscriptionStatusLabel!: string;
-
   dateJoined!: Date;
   dateJoinedLabel!: string;
 }
@@ -316,15 +312,11 @@ export class AdminVendorAccountOrderListItemDto {
   id!: string;
   orderNumber!: string;
   orderCode!: string;
-
   customer!: AdminVendorAccountOrderCustomerDto;
-
   date!: Date;
   dateLabel!: string;
   timeLabel!: string;
-
   totalAmount!: number;
-
   status!: OrderStatus;
   statusLabel!: string;
 }
@@ -376,7 +368,7 @@ export class AdminVendorSubscriptionResponseDto {
 
 export class AdminVendorStatusResponseDto {
   id!: string;
-  status!: VendorAdminStatus; 
+  status!: VendorAdminStatus;
   statusLabel!: string;
   reason?: string;
   suspendedAt?: Date;
@@ -402,4 +394,26 @@ export class CustomerListItemDto {
   dateJoined!: Date;
   orders!: number;
   totalSpent!: number;
+}
+
+export class ReportingVendorDto {
+  vendorId!:     string;
+  vendorCode!:   string;       
+  businessName!: string;
+  coverImage!:   string | null;
+  reportCount!:  number;
+}
+
+export class CustomerReportDetailResponseDto {
+  customerId!:       string;
+  customerCode!:     string;
+  fullName!:         string;
+  avatar!:           string | null;
+  completedOrders!:  number;
+  cancelledOrders!:  number;
+  incompleteOrders!: number;
+  reportCount!:      number;
+  vendorCount!:      number;
+  lastOrderedAt!:    Date | null;
+  vendors!:          ReportingVendorDto[];
 }
