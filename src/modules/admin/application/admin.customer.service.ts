@@ -84,7 +84,7 @@ export class AdminCustomerService {
     if (raw.totalReportCount === 0) {
       throw new NotFoundException('No reports found for this customer');
     }
-    
-    return AdminCustomerMapper.toReportDetail(raw);
+
+    return this.adminCustomerMapper.toReportDetail(raw);
   }
 }

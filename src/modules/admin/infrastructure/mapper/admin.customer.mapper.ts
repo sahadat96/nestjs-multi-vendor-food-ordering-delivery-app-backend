@@ -28,6 +28,8 @@ import {
 import { 
   CustomerDetailResponseDto,
   CustomerReportQueueResponseDto,
+  CustomerReportDetailResponseDto,
+  ReportingVendorDto,
  } from '../../presentation/dto/customer-detail.response.dto';
 
 import { MediaService } from '@/common/media/media.service';
@@ -243,7 +245,7 @@ export class AdminCustomerMapper {
     return dto;
   }
 
-  static toReportQueueItem(raw: ReportQueueRaw): CustomerReportQueueItemDto {
+  toReportQueueItem(raw: ReportQueueRaw): CustomerReportQueueItemDto {
     const dto         = new CustomerReportQueueItemDto();
     dto.customerId    = raw.customer.id;
     dto.customerCode  = `#${raw.customerId.slice(0, 6).toUpperCase()}`;
@@ -261,10 +263,58 @@ export class AdminCustomerMapper {
     limit: number,
   ): CustomerReportQueueResponseDto {
     const dto   = new CustomerReportQueueResponseDto();
-    dto.data    = raw.items.map(AdminCustomerMapper.toReportQueueItem);
+    dto.data    = raw.items.map(this.toReportQueueItem);
     dto.total   = raw.total;
     dto.page    = page;
     dto.limit   = limit;
+    return dto;
+  }
+
+
+  toReportingVendor(raw: {
+    vendorId:    string;
+    reportCount: number;
+    vendor: {
+      id:           string;
+      vendorCode:   string;
+      businessName: string | null;
+      coverImage:   string | null;
+    };
+  }): ReportingVendorDto {
+    const dto         = new ReportingVendorDto();
+    dto.vendorId      = raw.vendor.id;
+    dto.vendorCode    = `${raw.vendor.vendorCode}`;
+    dto.businessName  = raw.vendor.businessName ?? 'Unknown';
+    dto.coverImage    = raw.vendor.coverImage;
+    dto.reportCount   = raw.reportCount;
+    return dto;
+  }
+
+  toReportDetail(
+    raw: CustomerReportDetailRawData,
+  ): CustomerReportDetailResponseDto {
+    const { customer, vendorGroups, totalReportCount, lastOrderedAt } = raw;
+
+    const getCount = (status: string): number =>
+      customer.orders.filter((o) => o.status === status).length;
+
+    const dto                = new CustomerReportDetailResponseDto();
+    
+    dto.customerId           = customer.id;
+    dto.customerCode         = `#${customer.id.slice(0, 5).toUpperCase()}`;
+    dto.fullName             = customer.user.name ?? 'Unknown';
+    dto.avatar               = customer.avatar;
+    dto.completedOrders      = getCount('COMPLETED');
+    dto.cancelledOrders      = getCount('CANCELLED');
+    dto.incompleteOrders     = getCount('PENDING');
+    dto.reportCount          = totalReportCount;
+    dto.vendorCount          = vendorGroups.length;
+    dto.lastOrderedAt        = lastOrderedAt;
+
+    dto.vendors = vendorGroups
+      .map(this.toReportingVendor)
+      .sort((a, b) => b.reportCount - a.reportCount);
+
     return dto;
   }
 }

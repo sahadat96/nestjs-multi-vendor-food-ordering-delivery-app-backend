@@ -230,13 +230,13 @@ export class AdminController {
     return this.adminCustomerService.getCustomerDetail(customerId, query);
   }
 
-  @Get(':customerId/reports')
+  @Get('customer/:customerId/reports')
   @ResponseMessage('Customer report details fetched successfully')
   @ApiOperation({ summary: 'Get customer report details with vendor breakdown' })
   @ApiParam({ name: 'customerId', description: 'Customer UUID' })
   async getCustomerReportDetail(
     @Param('customerId', ParseUUIDPipe) customerId: string,
-  ): Promise<CustomerReportDetailResponseDto> {
-    return this.service.getCustomerReportDetail(customerId);
+  ): Promise<CustomerReportDetailResponseDto> { 
+    return this.adminCustomerService.getCustomerReportDetail(customerId);
   }
 }

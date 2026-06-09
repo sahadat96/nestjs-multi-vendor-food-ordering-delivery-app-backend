@@ -7,7 +7,7 @@ import {
 
 import type {
  IAdminCustomerRepository,
- FindAllCustomersParams
+ FindAllCustomersParams,
 } from '../../domain/interface/admin.customer.repository.interface';
 
 import { 
@@ -15,11 +15,12 @@ import {
  } from '../../presentation/dto/admin.dto';
  import { 
   CustomerOrderHistoryQueryDto,
-  CustomerReportQueueQueryDto,
+  CustomerReportQueueQueryDto,  
  } from '../../presentation/dto/customer-query.dto';
  import { 
   CustomerRawData,
   ReportQueueRawData,
+  CustomerReportDetailRawData,
  } from '../mapper/admin.customer.mapper';
 
 @Injectable()
@@ -234,5 +235,80 @@ export class AdminCustomerRepository
     items = items.slice(skip, skip + limit);
 
     return { items, total };
+  }
+
+  async findReportDetail(
+    customerId: string,
+  ): Promise<CustomerReportDetailRawData | null> {
+
+    const [customer, vendorReportGroups, totalReportCount, lastOrder] =
+      await Promise.all([
+
+        this.prisma.customer.findUnique({
+          where: { id: customerId },
+          select: {
+            id:          true,  
+            avatar:      true,
+            dateOfBirth: true,
+            address:     true,
+            user: {
+              select: {
+                name:  true,
+                email: true,
+              },
+            },
+            orders: {
+              select: { status: true },  
+            },
+          },
+        }),
+
+        this.prisma.orderReport.groupBy({
+          by:    ['vendorId'],
+          where: { customerId },
+          _count: { vendorId: true },
+        }),
+
+        this.prisma.orderReport.count({
+          where: { customerId },
+        }),
+
+        this.prisma.order.findFirst({
+          where:   { customerId },
+          orderBy: { createdAt: 'desc' },
+          select:  { createdAt: true },
+        }),
+      ]);
+
+    if (!customer) return null;
+
+    const vendorIds = vendorReportGroups.map((g) => g.vendorId);
+
+    const vendors = await this.prisma.vendor.findMany({
+      where: { id: { in: vendorIds } },
+      select: {
+        id:           true,
+        vendorCode:   true,
+        businessName: true,
+        coverImage:   true,
+      },
+    });
+
+    const vendorMap = new Map(vendors.map((v) => [v.id, v]));
+
+    const vendorGroups = vendorReportGroups
+      .filter((g) => vendorMap.has(g.vendorId))
+      .map((g) => ({
+        vendorId:    g.vendorId,
+        reportCount: g._count.vendorId,
+        vendor:      vendorMap.get(g.vendorId)!,
+      }));
+
+    return {
+      customer,
+      vendorGroups,
+      totalReportCount,
+      lastOrderedAt: lastOrder?.createdAt ?? null,
+    };
   }
 }
