@@ -91,3 +91,26 @@ export class VendorReportGroupDto {
 export class CustomerVendorReportsResponseDto {
   vendors!: VendorReportGroupDto[];
 }
+
+export class ReportDetailItemDto {
+  reportId!:     string;
+  reportNumber!: string;       
+  reason!:       string;        
+  description!:  string | null; 
+  status!:       string;
+  displayDate!:  string;       
+  createdAt!:    Date;
+}
+
+export class VendorReportGroupDto2 {
+  vendorId!:     string;
+  vendorCode!:   string;
+  businessName!: string;
+  coverImage!:   string | null;
+  reportCount!:  number;
+  reports!:      ReportDetailItemDto[];
+}
+
+export class CustomerVendorReportsResponseDto2 {
+  vendors!: VendorReportGroupDto2[];
+}
