@@ -5,12 +5,14 @@ import {
  import { 
   CustomerOrderHistoryQueryDto,
   CustomerReportQueueQueryDto,
+  
  } from '../../presentation/dto/customer-query.dto';
  import { 
   CustomerRawData,
   ReportQueueRawData,
   CustomerReportDetailRawData,
   CustomerVendorReportsRawData,
+  CustomerVendorReportsRawData1
  } from '../../infrastructure/mapper/admin.customer.mapper';
 
 export interface PaginatedResult<T> {
@@ -54,4 +56,8 @@ export interface IAdminCustomerRepository {
   findCustomerVendorReports(
     customerId: string,
   ): Promise<CustomerVendorReportsRawData | null>;
+
+  findCustomerVendorReports2(
+    customerId: string,
+  ): Promise<CustomerVendorReportsRawData1 | null>;
 }

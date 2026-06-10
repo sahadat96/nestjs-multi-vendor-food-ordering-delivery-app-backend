@@ -2,7 +2,8 @@ import {
   VerificationStatus,
   Prisma,
   Customer,
-  OrderStatus
+  OrderStatus,
+  OrderReportReason
 } from '@prisma/client';
 
 import { 
@@ -156,6 +157,29 @@ export interface CustomerVendorReportsRawData {
   vendorGroups: VendorReportsRaw[];
 }
 
+type OrderReportRaw = {
+  id:          string;
+  reason:      OrderReportReason;
+  description: string | null;
+  status:      string;
+  createdAt:   Date;
+};
+
+type VendorReportsRaw1 = {
+  vendor: {
+    id:           string;
+    vendorCode:   string;
+    businessName: string | null;
+    coverImage:   string | null;
+  };
+  reports: OrderReportRaw[];
+};
+
+export interface CustomerVendorReportsRawData1 {
+  vendorGroups: VendorReportsRaw1[];
+}
+
+
 @Injectable()
 export class AdminCustomerMapper {
  constructor(private readonly mediaService: MediaService) {}
@@ -288,7 +312,6 @@ export class AdminCustomerMapper {
     dto.limit   = limit;
     return dto;
   }
-
 
   toReportingVendor(raw: {
     vendorId:    string;

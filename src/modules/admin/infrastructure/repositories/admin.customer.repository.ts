@@ -3,6 +3,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 
 import { 
   Customer,
+  OrderReportReason,
  } from '@prisma/client';
 
 import type {
@@ -22,6 +23,7 @@ import {
   ReportQueueRawData,
   CustomerReportDetailRawData,
   CustomerVendorReportsRawData,
+  CustomerVendorReportsRawData1,
  } from '../mapper/admin.customer.mapper';
 
  type VendorReportsRaw = {
@@ -35,6 +37,14 @@ import {
     id:        string;
     createdAt: Date;
   }[];
+};
+
+type OrderReportRaw = {
+  id:          string;
+  reason:      OrderReportReason;
+  description: string | null;
+  status:      string;
+  createdAt:   Date;
 };
 
 @Injectable()
@@ -377,6 +387,78 @@ export class AdminCustomerRepository
     for (const report of reports) {
       const existing = reportsByVendor.get(report.vendorId) ?? [];
       existing.push({ id: report.id, createdAt: report.createdAt });
+      reportsByVendor.set(report.vendorId, existing);
+    }
+
+    const vendorGroups: VendorReportsRaw[] = vendorIds
+      .filter((id) => vendorMap.has(id))
+      .map((id) => ({
+        vendor:  vendorMap.get(id)!,
+        reports: reportsByVendor.get(id) ?? [],
+      }));
+
+    return { vendorGroups };
+  }
+
+  async findCustomerVendorReports2(
+    customerId: string,
+  ): Promise<CustomerVendorReportsRawData1 | null> {
+
+    const customerExists = await this.prisma.customer.findUnique({
+      where:  { id: customerId },
+      select: { id: true },
+    });
+
+    if (!customerExists) return null;
+
+    const vendorIds = await this.prisma.orderReport
+      .findMany({
+        where:    { customerId },
+        select:   { vendorId: true },
+        distinct: ['vendorId'],
+      })
+      .then((rows) => rows.map((r) => r.vendorId));
+
+    if (!vendorIds.length) return { vendorGroups: [] };
+
+    const [vendors, reports] = await Promise.all([
+
+      this.prisma.vendor.findMany({
+        where:  { id: { in: vendorIds } },
+        select: {
+          id:           true,
+          vendorCode:   true,
+          businessName: true,
+          coverImage:   true,
+        },
+      }),
+
+      this.prisma.orderReport.findMany({
+        where:  { customerId },
+        select: {
+          id:          true,
+          vendorId:    true,
+          reason:      true,          
+          description: true,          
+          status:      true,
+          createdAt:   true,
+        },
+        orderBy: { createdAt: 'asc' },
+      }),
+    ]);
+
+    const vendorMap = new Map(vendors.map((v) => [v.id, v]));
+
+    const reportsByVendor = new Map<string, OrderReportRaw[]>();
+    for (const report of reports) {
+      const existing = reportsByVendor.get(report.vendorId) ?? [];
+      existing.push({
+        id:          report.id,
+        reason:      report.reason,
+        description: report.description,
+        status:      report.status,
+        createdAt:   report.createdAt,
+      });
       reportsByVendor.set(report.vendorId, existing);
     }
 
