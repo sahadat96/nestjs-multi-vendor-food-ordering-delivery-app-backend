@@ -260,7 +260,7 @@ export class AdminController {
     return this.adminCustomerService.getCustomerVendorReports(customerId);
   }
 
-  @Get(':customerId/reports/vendors')
+  @Get('customers/:customerId/reports/vendors')
   @ResponseMessage('Customer vendor reports fetched successfully')
   @ApiOperation({ summary: 'Get vendor reports against customer with reason and details' })
   @ApiParam({ name: 'customerId', description: 'Customer UUID' })
@@ -270,3 +270,4 @@ export class AdminController {
     return this.adminCustomerService.getCustomerVendorReports2(customerId);
   }
 }
+

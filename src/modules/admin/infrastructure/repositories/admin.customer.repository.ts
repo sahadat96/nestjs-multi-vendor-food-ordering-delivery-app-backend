@@ -47,6 +47,16 @@ type OrderReportRaw = {
   createdAt:   Date;
 };
 
+type VendorReportsRaw1 = {
+  vendor: {
+    id:           string;
+    vendorCode:   string;
+    businessName: string | null;
+    coverImage:   string | null;
+  };
+  reports: OrderReportRaw[];
+};
+
 @Injectable()
 export class AdminCustomerRepository
   implements IAdminCustomerRepository
@@ -462,7 +472,7 @@ export class AdminCustomerRepository
       reportsByVendor.set(report.vendorId, existing);
     }
 
-    const vendorGroups: VendorReportsRaw[] = vendorIds
+    const vendorGroups: VendorReportsRaw1[] = vendorIds
       .filter((id) => vendorMap.has(id))
       .map((id) => ({
         vendor:  vendorMap.get(id)!,

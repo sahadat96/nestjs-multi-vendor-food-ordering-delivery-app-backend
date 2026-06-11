@@ -32,7 +32,10 @@ import {
   ReportingVendorDto,
   ReportItemDto,
   VendorReportGroupDto,
+  VendorReportGroupDto2,
   CustomerVendorReportsResponseDto,
+  ReportDetailItemDto,
+  CustomerVendorReportsResponseDto2,
  } from '../../presentation/dto/customer-detail.response.dto';
 
 import { MediaService } from '@/common/media/media.service';
@@ -179,6 +182,15 @@ export interface CustomerVendorReportsRawData1 {
   vendorGroups: VendorReportsRaw1[];
 }
 
+const REASON_LABEL: Record<OrderReportReason, string> = {
+  CUSTOMER_NO_SHOW:     'Customer did not arrive',
+  CUSTOMER_UNREACHABLE: 'Unable to contact customer',
+  FAKE_ORDER:           'Fake order placed',
+  PAYMENT_ISSUE:        'Payment issue',
+  ABUSIVE_BEHAVIOR:     'Abusive behavior',
+  WRONG_ORDER_CLAIM:    'Wrong order claim',
+  OTHER:                'Other',
+};
 
 @Injectable()
 export class AdminCustomerMapper {
@@ -360,7 +372,7 @@ export class AdminCustomerMapper {
     return dto;
   }
 
-  static toReportItem(
+  toReportItem(
     report: { id: string; createdAt: Date },
     index:  number,
   ): ReportItemDto {
@@ -376,15 +388,16 @@ export class AdminCustomerMapper {
     return dto;
   }
 
-  static toVendorReportGroup(raw: VendorReportsRaw): VendorReportGroupDto {
+  toVendorReportGroup(raw: VendorReportsRaw): VendorReportGroupDto {
     const dto         = new VendorReportGroupDto();
+
     dto.vendorId      = raw.vendor.id;
     dto.vendorCode    = `${raw.vendor.vendorCode}`;
     dto.businessName  = raw.vendor.businessName ?? 'Unknown';
     dto.coverImage    = raw.vendor.coverImage;
     dto.reportCount   = raw.reports.length;
     dto.reports       = raw.reports.map((r, i) =>
-      AdminCustomerMapper.toReportItem(r, i),
+      this.toReportItem(r, i),
     );
     return dto;
   }
@@ -394,7 +407,52 @@ export class AdminCustomerMapper {
   ): CustomerVendorReportsResponseDto {
     const dto     = new CustomerVendorReportsResponseDto();
     dto.vendors   = raw.vendorGroups
-      .map(AdminCustomerMapper.toVendorReportGroup)
+      .map(this.toVendorReportGroup)
+      .sort((a, b) => b.reportCount - a.reportCount);
+    return dto;
+  }
+
+  toReportDetailItem(raw: OrderReportRaw): ReportDetailItemDto {
+    const dto          = new ReportDetailItemDto();
+
+    dto.reportId       = raw.id;
+    dto.reportNumber   = `#${raw.id.slice(0, 5).toUpperCase()}`;
+    dto.reason         = REASON_LABEL[raw.reason] ?? raw.reason;
+    dto.description    = raw.description;
+    dto.status         = raw.status;
+    dto.createdAt      = raw.createdAt;
+    dto.displayDate    = new Date(raw.createdAt)
+      .toLocaleDateString('en-US', {
+        month: '2-digit',
+        day:   '2-digit',
+        year:  'numeric',
+      })
+      .replace(/\//g, '-');
+    return dto;
+  }
+
+  toVendorReportGroup1(raw: VendorReportsRaw1): VendorReportGroupDto2 {
+    const dto        = new VendorReportGroupDto2();
+
+    dto.vendorId     = raw.vendor.id;
+    dto.vendorCode   = `#${raw.vendor.vendorCode}`;
+    dto.businessName = raw.vendor.businessName ?? 'Unknown';
+    dto.coverImage   = raw.vendor.coverImage;
+    dto.reportCount  = raw.reports.length;
+    dto.reports      = raw.reports
+      .map((r) => this.toReportDetailItem(r))
+      .sort((a, b) =>                 
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      );
+    return dto;
+  }
+
+  toCustomerVendorReports1(
+    raw: CustomerVendorReportsRawData1,
+  ): CustomerVendorReportsResponseDto2 {
+    const dto   = new CustomerVendorReportsResponseDto2();
+    dto.vendors = raw.vendorGroups
+      .map((r) => this.toVendorReportGroup1(r))
       .sort((a, b) => b.reportCount - a.reportCount); 
     return dto;
   }

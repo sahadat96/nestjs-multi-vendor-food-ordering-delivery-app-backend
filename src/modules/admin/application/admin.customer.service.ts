@@ -120,6 +120,6 @@ export class AdminCustomerService {
       throw new NotFoundException('No reports found for this customer');
     }
 
-    return this.adminCustomerMapper.toCustomerVendorReports2(raw);
+    return this.adminCustomerMapper.toCustomerVendorReports1(raw);
   }
 }
