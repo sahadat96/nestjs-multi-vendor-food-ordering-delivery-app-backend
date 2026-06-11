@@ -1,3 +1,7 @@
+import { 
+    Injectable,
+ } from '@nestjs/common';
+
 import { AnalyticsSummaryResponseDto } from '../../presentation/dto/analytics-summary.response.dto';
 
 export interface AnalyticsSummaryRawData {
@@ -7,9 +11,10 @@ export interface AnalyticsSummaryRawData {
   platformRevenue:  number;
 }
 
+@Injectable()
 export class AdminAnalyticsMapper {
 
-  static toSummaryResponse(
+  toSummaryResponse(
     raw: AnalyticsSummaryRawData,
   ): AnalyticsSummaryResponseDto {
     const dto              = new AnalyticsSummaryResponseDto();

@@ -21,6 +21,7 @@ import type {
  } from '../domain/interface/admin.repository.interface';
  
 import { AdminMapper } from '../infrastructure/mapper/admin.mapper';
+import { AdminAnalyticsMapper } from '../infrastructure/mapper/admin-analytics.mapper';
 
 import { 
   VendorVerificationListQueryDto,
@@ -77,7 +78,8 @@ export class AdminVendorVerificationService {
     @Inject('IAdminVendorVerificationRepository')
     private readonly repository: IAdminVendorVerificationRepository,
     private readonly adminMapper: AdminMapper,
-    private readonly vendorService: VendorService,
+    private readonly vendorService: VendorService, 
+    private readonly adminAnalyticsMapper: AdminAnalyticsMapper, 
   ) {}
 
   async getManagementList(
@@ -1131,8 +1133,8 @@ export class AdminVendorVerificationService {
   async getAnalyticalSummary(): Promise<AnalyticsSummaryResponseDto> {
 
     const raw = await this.repository.getAnalyticalSummary();
-    
-    return AdminAnalyticsMapper.toSummaryResponse(raw);
+
+    return this.adminAnalyticsMapper.toSummaryResponse(raw);
   }
 }
 

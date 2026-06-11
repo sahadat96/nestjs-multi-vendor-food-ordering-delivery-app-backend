@@ -11,6 +11,7 @@ import { VendorModule } from '../vendor/vendor/vendor.module';
 import { AdminCustomerService } from './application/admin.customer.service';
 import { AdminCustomerRepository } from './infrastructure/repositories/admin.customer.repository';
 import { AdminCustomerMapper } from './infrastructure/mapper/admin.customer.mapper';
+import { AdminAnalyticsMapper } from './infrastructure/mapper/admin-analytics.mapper';
 import { CustomerModule } from '../customer/customer/customer.module';
 
 @Module({
@@ -28,6 +29,7 @@ import { CustomerModule } from '../customer/customer/customer.module';
     MediaService,
     AdminCustomerService,
     AdminCustomerMapper,
+    AdminAnalyticsMapper,
     {
       provide: 'IAdminVendorVerificationRepository',
       useClass: AdminVendorVerificationRepository,

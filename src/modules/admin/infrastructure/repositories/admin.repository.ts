@@ -33,6 +33,10 @@ import type {
 } from '../../domain/interface/admin.repository.interface';
 
 import { 
+  AnalyticsSummaryRawData,
+ } from '../mapper/admin-analytics.mapper';
+
+import { 
   VendorVerificationSort,
   AdminVendorAccountSort,
   AdminVendorOrderStatusFilter,
@@ -1182,5 +1186,35 @@ export class AdminVendorVerificationRepository
       where: { id: vendorId },
       data,
     });
+  }
+
+  async getAnalyticalSummary(): Promise<AnalyticsSummaryRawData> {
+    const [
+      totalVendors,
+      totalCustomers,
+      totalSubscribers,
+      revenueAggregate,
+    ] = await Promise.all([
+
+      this.prisma.vendor.count(),
+
+      this.prisma.customer.count(),
+
+      this.prisma.vendorSubscription.count({
+        where: { status: SubscriptionStatus.ACTIVE },
+      }),
+
+      this.prisma.subscriptionTransaction.aggregate({
+        _sum: { amount: true },
+      }),
+
+    ]);
+
+    return {
+      totalVendors,
+      totalCustomers,
+      totalSubscribers,
+      platformRevenue: revenueAggregate._sum.amount ?? 0,
+    };
   }
 }

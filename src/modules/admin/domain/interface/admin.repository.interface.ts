@@ -10,6 +10,10 @@ import {
  } from '@prisma/client';
 
 import { 
+  AnalyticsSummaryRawData,
+ } from '../../infrastructure/mapper/admin-analytics.mapper';
+
+import { 
   VendorVerificationSort,
   DashboardRevenueMetric,
   DashboardRevenueRange,
@@ -281,4 +285,6 @@ export interface IAdminVendorVerificationRepository {
     vendorId: string,
     data: UpdateVendorStatusData,
   ): Promise<Vendor>;
+
+  getAnalyticalSummary(): Promise<AnalyticsSummaryRawData>;
 }
