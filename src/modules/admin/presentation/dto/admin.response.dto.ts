@@ -396,24 +396,3 @@ export class CustomerListItemDto {
   totalSpent!: number;
 }
 
-export class ReportingVendorDto {
-  vendorId!:     string;
-  vendorCode!:   string;       
-  businessName!: string;
-  coverImage!:   string | null;
-  reportCount!:  number;
-}
-
-export class CustomerReportDetailResponseDto {
-  customerId!:       string;
-  customerCode!:     string;
-  fullName!:         string;
-  avatar!:           string | null;
-  completedOrders!:  number;
-  cancelledOrders!:  number;
-  incompleteOrders!: number;
-  reportCount!:      number;
-  vendorCount!:      number;
-  lastOrderedAt!:    Date | null;
-  vendors!:          ReportingVendorDto[];
-}
