@@ -11,6 +11,16 @@ export interface AnalyticsSummaryRawData {
   platformRevenue:  number;
 }
 
+export interface MonthlyCountRaw {
+  month: Date;
+  count: bigint;
+}
+
+export interface PlatformGrowthRawData {
+  vendorGrowth:   MonthlyCountRaw[];
+  customerGrowth: MonthlyCountRaw[];
+}
+
 @Injectable()
 export class AdminAnalyticsMapper {
 
@@ -25,4 +35,5 @@ export class AdminAnalyticsMapper {
     dto.updatedAt          = new Date();
     return dto;
   }
+  
 }

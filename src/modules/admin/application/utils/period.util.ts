@@ -12,13 +12,13 @@ export function resolveDateRange(period: AnalyticsPeriod): DateRange {
   switch (period) {
     case AnalyticsPeriod.THIS_YEAR:
       return {
-        startDate: new Date(year, 0, 1),          // Jan 1 current year
+        startDate: new Date(year, 0, 1),         
         endDate:   now,
       };
 
     case AnalyticsPeriod.LAST_YEAR:
       return {
-        startDate: new Date(year - 1, 0, 1),      // Jan 1 last year
+        startDate: new Date(year - 1, 0, 1),     
         endDate:   new Date(year - 1, 11, 31, 23, 59, 59),
       };
 

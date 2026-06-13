@@ -43,6 +43,8 @@ import {
   AdminVendorOrderSort,
  } from '../../presentation/dto/admin.dto';
 
+import { PlatformGrowthQueryDto } from '../../presentation/dto/analytics-summary.response.dto';  
+
 export type VendorSubscriptionWithPlan =
   Prisma.VendorSubscriptionGetPayload<{
     include: { subscriptionPlan: true };
@@ -1216,5 +1218,43 @@ export class AdminVendorVerificationRepository
       totalSubscribers,
       platformRevenue: revenueAggregate._sum.amount ?? 0,
     };
+  }
+
+  async getPlatformGrowthRawData(
+    query: PlatformGrowthQueryDto,
+  ): Promise<PlatformGrowthRawData> {
+
+    const { startDate, endDate } = resolveDateRange(
+      query.period,
+    );
+
+    const [vendorGrowth, customerGrowth] = await Promise.all([
+
+      this.prisma.$queryRaw<MonthlyCountRaw[]>`
+        SELECT
+          DATE_TRUNC('month', "createdAt") AS month,
+          COUNT(*)::bigint                 AS count
+        FROM "Vendor"
+        WHERE
+          "createdAt" >= ${startDate}
+          AND "createdAt" <= ${endDate}
+        GROUP BY month
+        ORDER BY month ASC
+      `,
+      
+      this.prisma.$queryRaw<MonthlyCountRaw[]>`
+        SELECT
+          DATE_TRUNC('month', "createdAt") AS month,
+          COUNT(*)::bigint                 AS count
+        FROM "Customer"
+        WHERE
+          "createdAt" >= ${startDate}
+          AND "createdAt" <= ${endDate}
+        GROUP BY month
+        ORDER BY month ASC
+      `,
+    ]);
+
+    return { vendorGrowth, customerGrowth };
   }
 }
